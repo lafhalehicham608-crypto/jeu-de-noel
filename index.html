@@ -390,7 +390,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
     <div class="bq">
       <div class="bq-tete">
         <div><p class="eyebrow">Mode</p><h2>Banque à gages</h2></div>
-        <div class="row"><button class="petit" id="bqChangerCle">Changer de clé</button><button class="petit" id="bqRetour">Retour</button></div>
+        <div class="row"><button class="petit" id="bqLien">Copier le lien privé</button><button class="petit" id="bqChangerCle">Changer de clé</button><button class="petit" id="bqRetour">Retour</button></div>
       </div>
       <div class="bq-cle" id="bqCle" hidden>
         <p class="sub">Entre la clé de votre banque. Utilisez la même phrase sur tous vos appareils (télé, ton téléphone, le sien) : c'est elle qui relie vos gages. 8 caractères minimum.</p>
@@ -466,7 +466,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=8"></script>
+<script src="config.js?v=9"></script>
 <script>
 (function(){
 "use strict";
@@ -1534,7 +1534,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "8";
+var VERSION_SITE = "9";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
@@ -1675,24 +1675,59 @@ function demarrerManette(){
 }
 
 /* ---------- Banque à gages : Firestore, rangée sous une clé secrète ---------- */
+/* Jeu privé : la banque s'ouvre avec le lien privé (…#cle=<64 caractères>) ou avec la phrase secrète.
+   Sans l'un des deux, la télé affiche un écran « Jeu privé ». */
+function lienPrive(){ return location.origin + location.pathname + "#cle=" + CLE; }
+function empreinte(txt){
+  return crypto.subtle.digest("SHA-256", new TextEncoder().encode("jeu-de-noel:"+txt.toLowerCase())).then(function(buf){
+    return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ("0"+b.toString(16)).slice(-2); }).join("");
+  });
+}
+function appliquerCle(hex){
+  if(unsubBanque){ unsubBanque(); unsubBanque = null; }
+  CLE = hex; try{ localStorage.setItem("jdn-cle", CLE); }catch(e){}
+  BANQUE = []; banqueEtat = "chargement"; rendreBanque(); brancherDb();
+  var v = $("verrouPrive"); if(v) v.hidden = true;
+}
+function afficherVerrou(){
+  if($("verrouPrive")){ $("verrouPrive").hidden = false; return; }
+  var ov = document.createElement("section");
+  ov.className = "screen"; ov.id = "verrouPrive"; ov.style.zIndex = "70"; ov.style.background = "var(--bg)";
+  ov.appendChild(el("p","eyebrow","Jeu privé"));
+  ov.appendChild(el("h2","titre","Le Jeu de Noël"));
+  ov.appendChild(el("p","sub","Ouvre le lien privé que tu as reçu sur cet appareil, ou entre votre phrase secrète."));
+  var row = el("div","row"), inp = el("input"); inp.type = "password"; inp.id = "verrouTxt"; inp.placeholder = "Phrase secrète"; inp.autocomplete = "off";
+  inp.style.cssText = "font:600 18px var(--text);color:var(--fg);background:var(--bg2);border:2px solid var(--line);border-radius:12px;padding:.6em .8em;min-width:min(80vw,320px)";
+  var ok = el("button","plein","Entrer"), err = el("p","bq-err","");
+  function go(){ var t = inp.value.trim(); if(t.length < 8){ err.textContent = "Il faut au moins 8 caractères."; return; } empreinte(t).then(appliquerCle); }
+  ok.onclick = go; inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); go(); } });
+  row.appendChild(inp); row.appendChild(ok); ov.appendChild(row); ov.appendChild(err);
+  document.body.appendChild(ov);
+}
 function demarrerBanque(){
+  var h = lireHash();
+  if(h.cle && /^[0-9a-f]{64}$/.test(h.cle)){
+    try{ localStorage.setItem("jdn-cle", h.cle); }catch(e){}
+    try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){}
+  }
   if(!firebaseOK()){ banqueEtat = "config"; rendreBanque(); return; }
   try{ db = firebase.firestore(); }catch(e){ banqueEtat = "config"; rendreBanque(); return; }
   try{ CLE = localStorage.getItem("jdn-cle"); }catch(e){}
   if(CLE && CLE.length===64){ banqueEtat = "chargement"; brancherDb(); }
-  else { CLE = null; banqueEtat = "cle"; rendreBanque(); }
+  else { CLE = null; banqueEtat = "cle"; rendreBanque(); afficherVerrou(); }
 }
 function definirCle(){
   var txt = $("bqCleTxt").value.trim();
   if(txt.length < 8){ $("bqCleErr").textContent = "Il faut au moins 8 caractères."; return; }
   if(!window.crypto || !crypto.subtle || !window.TextEncoder){ $("bqCleErr").textContent = "Ce navigateur ne peut pas relier la banque."; return; }
-  crypto.subtle.digest("SHA-256", new TextEncoder().encode("jeu-de-noel:"+txt.toLowerCase())).then(function(buf){
-    CLE = Array.prototype.map.call(new Uint8Array(buf), function(b){ return ("0"+b.toString(16)).slice(-2); }).join("");
-    try{ localStorage.setItem("jdn-cle", CLE); }catch(e){}
-    $("bqCleTxt").value = ""; $("bqCleErr").textContent = "";
-    BANQUE = []; banqueEtat = "chargement"; rendreBanque(); brancherDb();
-  });
+  empreinte(txt).then(function(hex){ $("bqCleTxt").value = ""; $("bqCleErr").textContent = ""; appliquerCle(hex); });
 }
+$("bqLien").onclick = function(){
+  if(!CLE) return;
+  var url = lienPrive();
+  function montrerLien(){ $("bqMsg").textContent = "Lien privé : " + url; }
+  try{ navigator.clipboard.writeText(url).then(function(){ $("bqMsg").textContent = "Lien privé copié. Envoie-le uniquement à ta partenaire."; }, montrerLien); }catch(e){ montrerLien(); }
+};
 $("bqCleOk").onclick = definirCle;
 $("bqChangerCle").onclick = function(){ if(!db) return; if(unsubBanque){ unsubBanque(); unsubBanque = null; } CLE = null; BANQUE = []; banqueEtat = "cle"; rendreBanque(); try{ $("bqCleTxt").focus(); }catch(e){} };
 $("bqCleTxt").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); definirCle(); } });
