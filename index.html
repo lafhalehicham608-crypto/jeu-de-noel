@@ -127,8 +127,8 @@ button.petit{font-size:clamp(13px,1.3vw,18px);padding:.55em 1.3em;border-color:v
 #roueSvg .seg{stroke:rgba(255,255,255,.3);stroke-width:.6;transition:fill .2s}
 #roueSvg .s0{fill:rgba(47,168,255,.24)} #roueSvg .s1{fill:rgba(184,77,255,.24)} #roueSvg .s2{fill:rgba(255,255,255,.07)}
 #roueSvg .seg.gagne{fill:var(--fg)}
-#roueSvg .lbl{fill:var(--fg);font-family:var(--text);font-weight:800;font-size:9.5px}
-#roueSvg .typ{fill:var(--mute);font-family:var(--text);font-size:5.5px;letter-spacing:1.2px;text-transform:uppercase}
+#roueSvg .lbl{fill:var(--fg);font-family:var(--text);font-weight:800;font-size:8px}
+#roueSvg .typ{fill:var(--mute);font-family:var(--text);font-size:4.6px;letter-spacing:.9px;text-transform:uppercase}
 #roueSvg .gagne-t{fill:var(--bg)}
 #roueSvg .rim{fill:none;stroke:var(--fg);stroke-width:2.4}
 #roueSvg .rim2{fill:none;stroke:var(--line);stroke-width:7}
@@ -367,13 +367,30 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 /* Gages à minuteur */
 .g-duree{color:var(--fg);font-weight:800;padding:0 .15em;border-bottom:3px solid currentColor;text-shadow:0 0 18px rgba(255,255,255,.35)}
 #gage.b .g-duree{color:var(--bleu)} #gage.v .g-duree{color:var(--violet)}
-.g-chrono{font-size:clamp(48px,9vw,150px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;min-height:1em}
-.g-chrono.tirage{opacity:.6}
-.g-chrono.pause{opacity:.45}
-.g-chrono.stop{color:#ff5a6e;text-shadow:0 0 30px #ff5a6e;animation:gClignote .5s steps(1) infinite}
+/* Montre du minuteur : cadran néon, anneau qui se vide, temps au centre */
+.montre{--w:min(30vh,300px);position:relative;width:var(--w);height:calc(var(--w)*1.1);margin:1vh auto 3vh;color:var(--bleu)}
+#gage.v .montre{color:var(--violet)}
+.montre svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.montre .mo-fond{fill:rgba(10,10,20,.85);stroke:rgba(255,255,255,.12);stroke-width:1}
+.montre .mo-piste{fill:none;stroke:rgba(255,255,255,.08);stroke-width:5}
+.montre .mo-arc{fill:none;stroke:currentColor;stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 0 4px currentColor);transition:stroke-dasharray .25s linear}
+.montre .mo-tic{stroke:rgba(255,255,255,.25);stroke-width:.8}
+.montre .mo-tic.gros{stroke:rgba(255,255,255,.6);stroke-width:1.6}
+.montre .mo-pointe{fill:#fff;filter:drop-shadow(0 0 3px currentColor)}
+.montre .mo-couronne{fill:currentColor;filter:drop-shadow(0 0 4px currentColor)}
+.montre .mo-anse{fill:none;stroke:currentColor;stroke-width:2.2;opacity:.7}
+.montre .mo-t{position:absolute;left:0;right:0;top:54.5%;transform:translateY(-50%);text-align:center;color:var(--fg);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;font-size:calc(var(--w)*.23);text-shadow:0 0 18px rgba(255,255,255,.25)}
+.montre .mo-sous{position:absolute;left:0;right:0;top:72%;text-align:center;font-size:calc(var(--w)*.055);letter-spacing:.25em;text-transform:uppercase;color:var(--mute)}
+.montre.tirage .mo-t{opacity:.75}
+.montre.tirage svg{animation:moSecoue .12s linear infinite}
+.montre.pause .mo-t,.montre.pause .mo-arc{opacity:.4}
+.montre.urgent .mo-t{color:#ffd166}
+.montre.stop{color:#ff5a6e!important;animation:moVibre .09s linear infinite}
+.montre.stop .mo-t{color:#ff5a6e;font-size:calc(var(--w)*.13);animation:gClignote .5s steps(1) infinite}
+@keyframes moSecoue{25%{transform:rotate(-2deg)}75%{transform:rotate(2deg)}}
+@keyframes moVibre{25%{transform:translateX(-3px) rotate(-1deg)}75%{transform:translateX(3px) rotate(1deg)}}
+.m-montre{--w:230px;margin:6px auto 14px}
 @keyframes gClignote{50%{opacity:.15}}
-.m-chrono{font-size:64px;font-weight:800;font-variant-numeric:tabular-nums;text-align:center}
-.m-chrono.stop{color:#ff5a6e;animation:gClignote .5s steps(1) infinite;font-size:44px}
 .bq-duree{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .bq-duree select{font:600 15px var(--text);color:var(--fg);background:var(--bg2);border:2px solid var(--line);border-radius:10px;padding:.4em .6em}
 .bq-astuce{font-size:13px;color:var(--mute);margin:0}
@@ -531,7 +548,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
     <p class="qui" id="gQui"></p>
     <p class="texte" id="gTexte"></p>
     <p class="sub" id="gDuree"></p>
-    <p class="g-chrono" id="gChrono"></p>
+    <div class="montre" id="gMontre" hidden></div>
     <p class="sub" id="gNote"></p>
     <div class="actions" id="gActions"></div>
   </section>
@@ -646,7 +663,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=19"></script>
+<script src="config.js?v=20"></script>
 <script>
 (function(){
 "use strict";
@@ -1107,9 +1124,12 @@ function construireRoue(){
     var a0 = (i*seg-90)*Math.PI/180, a1 = ((i+1)*seg-90)*Math.PI/180;
     var d = "M0 0 L"+(R*Math.cos(a0)).toFixed(2)+" "+(R*Math.sin(a0)).toFixed(2)+" A"+R+" "+R+" 0 "+(seg>180?1:0)+" 1 "+(R*Math.cos(a1)).toFixed(2)+" "+(R*Math.sin(a1)).toFixed(2)+" Z";
     g.appendChild(sv("path",{d:d,id:"seg"+i,class:"seg s"+(i%3)}));
-    var c = i*seg+seg/2;
-    var t1 = sv("text",{id:"lbl"+i,class:"lbl",x:"0",y:"-58","text-anchor":"middle",transform:"rotate("+c+")"}); t1.textContent = j.nom;
-    var t2 = sv("text",{id:"typ"+i,class:"typ",x:"0",y:"-72","text-anchor":"middle",transform:"rotate("+c+")"}); t2.textContent = j.type;
+    /* Texte le long du rayon, du bord vers le centre ; retourné sur la moitié gauche pour rester lisible */
+    var c = i*seg+seg/2, gauche = c>180, tr = "rotate("+(gauche ? c+90 : c-90)+")";
+    var x = gauche ? "-87" : "87", ancre = gauche ? "start" : "end";
+    var place = 64, fs = Math.min(8, place/(j.nom.length*0.56));
+    var t1 = sv("text",{id:"lbl"+i,class:"lbl",x:x,y:"1",dy:"0","text-anchor":ancre,transform:tr,style:"font-size:"+fs.toFixed(2)+"px"}); t1.textContent = j.nom;
+    var t2 = sv("text",{id:"typ"+i,class:"typ",x:x,y:"8.5","text-anchor":ancre,transform:tr}); t2.textContent = j.type;
     g.appendChild(t2); g.appendChild(t1);
   });
   svg.appendChild(g);
@@ -1843,7 +1863,7 @@ function afficherGage(){
   montrer("gage");
   $("gage").className = "screen "+S.perdant;
   $("gQui").textContent = S.noms[S.perdant];
-  $("gChrono").textContent = ""; $("gChrono").className = "g-chrono";
+  $("gMontre").hidden = true;
   afficherTexteGage();
   $("gNote").textContent = g.exemple ? "Gage d'exemple : la banque n'a pas encore de gage "+NOM_NIV[g.niveau]+" pour "+(S.perdant==="b"?"lui":"elle")+"." : "";
   neon(S.perdant);
@@ -1866,16 +1886,48 @@ function tirerDuree(){
   var lo = Math.ceil(gt.dmin/15)*15, hi = Math.floor(gt.dmax/15)*15; if(hi<lo) hi = lo;
   var choix = []; for(var v=lo; v<=hi; v+=15) choix.push(v);
   var final = choix[rnd(choix.length)], etapes = 16, k = 0, delai = 55;
-  var c = $("gChrono"); c.className = "g-chrono tirage";
+  var c = $("gMontre"); c.hidden = false;
   $("gActions").innerHTML = "";
   diffuser();
   (function etape(){
-    if(k<etapes){ c.textContent = fmtDuree(choix[rnd(choix.length)]); bip(1500, 0.03, 0.04); k++; delai *= 1.14; plus_tard(etape, delai); return; }
+    if(k<etapes){ var v = choix[rnd(choix.length)]; majMontre(c, fmtChrono(v*1000), v/hi, "tirage", "tirage"); bip(1500, 0.03, 0.04); k++; delai *= 1.14; plus_tard(etape, delai); return; }
     gt.duree = final; gt.tirage = false;
-    c.textContent = fmtDuree(final); c.className = "g-chrono";
+    majMontre(c, fmtChrono(final*1000), 1, "", "prêt");
     bip(880, 0.12, 0.07); plus_tard(function(){ bip(1320, 0.2, 0.07); }, 120);
     afficherTexteGage(); boutonsGage(); diffuser();
   })();
+}
+/* Construit une montre (cadran SVG) dans un conteneur ; majMontre la met à jour */
+function creerMontre(root){
+  root.innerHTML = "";
+  var NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS,"svg");
+  function S2(t,a){ var e = document.createElementNS(NS,t); for(var k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; }
+  svg.setAttribute("viewBox","-60 -72 120 132");
+  S2("rect",{class:"mo-couronne",x:"-9",y:"-71",width:"18",height:"8",rx:"2.5"});
+  S2("rect",{class:"mo-couronne",x:"-3.5",y:"-64",width:"7",height:"6"});
+  S2("path",{class:"mo-anse",d:"M-40 -44 L-47 -51 M40 -44 L47 -51"});
+  S2("circle",{class:"mo-fond",r:"57"});
+  S2("circle",{class:"mo-piste",r:"50"});
+  for(var i=0;i<60;i++){
+    var a = i*6*Math.PI/180, gros = i%5===0, r1 = gros ? 39 : 42;
+    S2("line",{class:"mo-tic"+(gros?" gros":""),x1:(r1*Math.sin(a)).toFixed(2),y1:(-r1*Math.cos(a)).toFixed(2),x2:(45*Math.sin(a)).toFixed(2),y2:(-45*Math.cos(a)).toFixed(2)});
+  }
+  S2("circle",{class:"mo-arc",r:"50",pathLength:"100",transform:"rotate(-90)","stroke-dasharray":"100 100"});
+  S2("circle",{class:"mo-pointe",r:"3.4",cx:"0",cy:"-50"});
+  root.appendChild(svg);
+  var t = document.createElement("span"); t.className = "mo-t"; root.appendChild(t);
+  var sous = document.createElement("span"); sous.className = "mo-sous"; root.appendChild(sous);
+}
+function majMontre(root, txt, frac, etat, sousTxt){
+  if(!root.querySelector(".mo-arc")) creerMontre(root);
+  frac = Math.max(0, Math.min(1, frac));
+  root.querySelector(".mo-t").textContent = txt;
+  root.querySelector(".mo-sous").textContent = sousTxt||"";
+  root.querySelector(".mo-arc").setAttribute("stroke-dasharray", (frac*100).toFixed(2)+" 100");
+  var a = frac*2*Math.PI, p = root.querySelector(".mo-pointe");
+  p.setAttribute("cx", (50*Math.sin(a)).toFixed(2)); p.setAttribute("cy", (-50*Math.cos(a)).toFixed(2));
+  p.style.display = (frac>0 && frac<1) ? "" : "none";
+  root.className = root.className.replace(/\s*\b(tirage|pause|stop|urgent)\b/g, "") + (etat ? " "+etat : "");
 }
 function fmtChrono(ms){ var s = Math.max(0, Math.ceil(ms/1000)), m = Math.floor(s/60), r = s%60; return m+":"+(r<10?"0":"")+r; }
 function resteMinuteur(gt){ return gt.pause ? gt.reste : Math.max(0, gt.fin - Date.now()); }
@@ -1886,7 +1938,7 @@ function demarrerMinuteur(){
     if(g0!==gen || S.gt!==gt || gt.fini) return;
     var r = resteMinuteur(gt);
     if(r<=0){ finMinuteur(); return; }
-    var c = $("gChrono"); c.textContent = fmtChrono(r); c.className = "g-chrono" + (gt.pause ? " pause" : "");
+    majMontre($("gMontre"), fmtChrono(r), r/(gt.duree*1000), gt.pause ? "pause" : (r<=10000 ? "urgent" : ""), gt.pause ? "pause" : "");
     setTimeout(tick, 200);
   })();
 }
@@ -1898,7 +1950,7 @@ function basculerPause(){
 }
 function finMinuteur(){
   var gt = S.gt; gt.fini = true;
-  var c = $("gChrono"); c.textContent = "ARRÊTEZ !"; c.className = "g-chrono stop";
+  majMontre($("gMontre"), "ARRÊTEZ !", 1, "stop", "");
   var n = 0; (function sonne(){ if(n>=10) return; bip(n%2 ? 1175 : 880, 0.2, 0.09); n++; plus_tard(sonne, 260); })();
   boutonsGage(); diffuser();
 }
@@ -1935,7 +1987,7 @@ function choisir(c){
   if(c==="fais" && !S.fait){
     if(S.gt && !S.gt.duree) return;
     S.fait = true;
-    if(S.gt){ $("gChrono").className = "g-chrono"; demarrerMinuteur(); bip(1320, 0.15, 0.07); }
+    if(S.gt){ demarrerMinuteur(); bip(1320, 0.15, 0.07); }
     boutonsGage(); diffuser();
   }
   else if(c==="bois" && !S.fait){
@@ -2200,12 +2252,14 @@ function rendreManette(e){
     $("mGageQui").textContent = "Gage pour "+(noms[e.perdant]||"");
     var box = $("mGageBtns"); box.className = "m-gage "+e.perdant;
     var gt = e.gt;
-    if(gt && e.fait===true && !gt.fini){ mChrono.fin = Date.now() + (gt.reste||0); mChrono.pause = !!gt.pause; mChrono.reste = gt.reste||0; }
+    if(gt && e.fait===true && !gt.fini){ mChrono.fin = Date.now() + (gt.reste||0); mChrono.pause = !!gt.pause; mChrono.reste = gt.reste||0; mChrono.total = (gt.duree||1)*1000; }
     var cle = e.perdant+"|"+e.fait+"|"+e.manche+"|"+(gt ? [gt.duree, gt.tirage, gt.pause, gt.fini].join(",") : "");
     if(box.getAttribute("data-k")!==cle){
       box.setAttribute("data-k",cle); box.innerHTML = "";
       if(gt && e.fait===true){
-        var mc = el("p","m-chrono" + (gt.fini ? " stop" : "")); mc.id = "mChrono"; mc.textContent = gt.fini ? "ARRÊTEZ !" : fmtChrono(gt.reste||0); box.appendChild(mc);
+        var mc = el("div","montre m-montre"); mc.id = "mChrono"; mc.style.color = "var(--"+(e.perdant==="b"?"bleu":"violet")+")"; box.appendChild(mc);
+        if(gt.fini) majMontre(mc, "ARRÊTEZ !", 1, "stop", "");
+        else majMontre(mc, fmtChrono(gt.reste||0), (gt.reste||0)/((gt.duree||1)*1000), gt.pause ? "pause" : "", gt.pause ? "pause" : "");
         if(gt.fini){
           if(e.perdant===COTE){ var nx = el("button","plein m-gros","Manche suivante"); nx.onclick = function(){ envoyer("choix",{c:"fait",side:COTE}); }; box.appendChild(nx); }
         } else {
@@ -2260,10 +2314,11 @@ $("mValiderNoms").onclick = function(){ var d = {}; d[COTE] = $(COTE==="b"?"mNom
 $("mOk").onclick = function(){ envoyer("ok",{}); };
 var mqT=null, mpT=null;
 /* Minuteur affiché sur le téléphone, recalé à chaque état reçu de la télé */
-var mChrono = {fin:0, pause:false, reste:0};
+var mChrono = {fin:0, pause:false, reste:0, total:1000};
 setInterval(function(){
   var c = document.getElementById("mChrono"); if(!c || c.classList.contains("stop")) return;
-  c.textContent = fmtChrono(mChrono.pause ? mChrono.reste : mChrono.fin - Date.now());
+  var r = Math.max(0, mChrono.pause ? mChrono.reste : mChrono.fin - Date.now());
+  majMontre(c, fmtChrono(r), r/mChrono.total, mChrono.pause ? "pause" : (r<=10000 ? "urgent" : ""), mChrono.pause ? "pause" : "");
 }, 250);
 $("mPasser").addEventListener("pointerdown", function(e){ e.stopPropagation(); });
 $("mPasser").onclick = function(){
@@ -2285,7 +2340,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "19";
+var VERSION_SITE = "20";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
