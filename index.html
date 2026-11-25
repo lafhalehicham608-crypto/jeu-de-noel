@@ -298,6 +298,11 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 .m-gage.b button{border-color:var(--bleu)} .m-gage.v button{border-color:var(--violet)}
 .m-gage.b button.plein{background:var(--bleu);color:var(--bg)} .m-gage.v button.plein{background:var(--violet);color:var(--bg)}
 
+#btnPasser,#mPasser{position:fixed;z-index:8;right:max(24px,env(safe-area-inset-right,0px));bottom:max(20px,env(safe-area-inset-bottom,0px));font-size:clamp(12px,1.1vw,16px);padding:.5em 1.2em;border-color:var(--line);color:var(--mute);background:var(--bg)}
+#mPasser{bottom:auto;top:max(10px,env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));font-size:12px}
+#btnPasser.confirme,#mPasser.confirme{border-color:var(--fg);color:var(--fg)}
+.libre-choix{display:flex;gap:clamp(14px,3vw,40px);flex-wrap:wrap;justify-content:center}
+.libre-choix .b{background:var(--bleu);border-color:var(--bleu);color:var(--bg)} .libre-choix .v{background:var(--violet);border-color:var(--violet);color:var(--bg)}
 #btnQuitter,#mQuitter{position:fixed;z-index:8;left:max(24px,env(safe-area-inset-left,0px));bottom:max(20px,env(safe-area-inset-bottom,0px));font-size:clamp(12px,1.1vw,16px);padding:.5em 1.2em;border-color:var(--line);color:var(--mute);background:var(--bg)}
 #btnQuitter.confirme,#mQuitter.confirme{border-color:#ff5a6e;color:#ff5a6e}
 #mQuitter{left:50%;transform:translateX(-50%)!important;bottom:auto;top:max(10px,env(safe-area-inset-top,0px))}
@@ -348,6 +353,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 
 <div id="neon"></div>
 <button id="btnQuitter" hidden>Arrêter le jeu</button>
+<button id="btnPasser" hidden>Passer ce jeu</button>
 <div id="hud" hidden><span id="hudG"></span><span id="hudD"></span></div>
 
 <!-- ============ TV ============ -->
@@ -467,6 +473,13 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
     <div id="unoMain"></div>
   </section>
 
+  <section class="screen" id="libre" hidden>
+    <p class="eyebrow">Mini-jeu passé</p>
+    <h2 class="titre">Choix libre de jeu</h2>
+    <p class="sub">Jouez à un jeu de votre choix dans la vraie vie, puis dites qui a gagné.</p>
+    <div class="libre-choix"><button class="b" id="libreB" data-primary></button><button class="v" id="libreV"></button></div>
+  </section>
+
   <section class="screen" id="resultat" hidden>
     <p class="big" id="resTitre"></p>
     <p class="sub" id="resSub"></p>
@@ -520,6 +533,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <!-- ============ MANETTE ============ -->
 <div id="manette" class="manette" hidden>
   <button id="mQuitter" hidden>Arrêter le jeu</button>
+  <button id="mPasser" hidden>Passer ce jeu</button>
   <section class="screen" id="m-attente">
     <p class="eyebrow">Manette</p>
     <p class="big" id="mAttTitre">Connexion à la télé…</p>
@@ -562,6 +576,11 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
       <button class="pad pad4 v" data-side="v" data-d="1"><small>tourner</small><span>▶</span></button>
     </div>
   </section>
+  <section class="screen" id="m-libre" hidden>
+    <p class="eyebrow">Choix libre de jeu</p>
+    <p class="sub">Jouez à un jeu de votre choix, puis dites qui a gagné.</p>
+    <div class="m-gage" id="mLibreBtns"></div>
+  </section>
   <section class="screen" id="m-gage" hidden>
     <p class="eyebrow" id="mGageQui"></p>
     <div class="m-gage" id="mGageBtns"></div>
@@ -576,7 +595,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=15"></script>
+<script src="config.js?v=16"></script>
 <script>
 (function(){
 "use strict";
@@ -810,14 +829,15 @@ var gen = 0;
 function plus_tard(fn,ms){var g=gen;setTimeout(function(){if(g===gen)fn()},ms)}
 
 /* ---------- Affichage TV ---------- */
-var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","resultat","gage","fin","banque"];
+var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","libre","resultat","gage","fin","banque"];
 function montrer(id){
   gen++;
   S.ecran = id;
   ECRANS.forEach(function(e){$(e).hidden = e!==id});
-  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","resultat","gage"].indexOf(id)<0;
+  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","libre","resultat","gage"].indexOf(id)<0;
   if(id!=="gage") neon(null);
   $("btnQuitter").hidden = id==="accueil" || id==="banque";
+  $("btnPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel"].indexOf(id)<0; $("btnPasser").classList.remove("confirme"); $("btnPasser").textContent = "Passer ce jeu";
   annulerQuitter();
   majHud();
   var p = $(id).querySelector("[data-primary]:not([disabled])") || $(id).querySelector("input,button:not([disabled])");
@@ -838,9 +858,9 @@ function majHud(){
   $("hudG").appendChild(g);
   $("hudD").textContent = "";
   ["b","v"].forEach(function(s){
-    var n = S.st[s].bois, prec = hudPrec[s] || 0;
+    var n = SOIREE[s], prec = hudPrec[s] || 0;
     var g = el("span","hud-verres c"+s);
-    g.title = n+" verre"+(n>1?"s":"")+" bu"+(n>1?"s":"")+" pour "+(S.noms[s]||"?");
+    g.title = n+" verre"+(n>1?"s":"")+" ce soir pour "+(S.noms[s]||"?");
     if(AVATARS && AVATARS["t"+s]){ var ha = el("span","hud-ava"), hi = document.createElement("img"); hi.src = AVATARS["t"+s]; hi.alt = ""; ha.appendChild(hi); g.appendChild(ha); }
     g.appendChild(el("span","hud-nom", S.noms[s]||"?"));
     var box = el("span","hud-icones"), max = 8, visibles = Math.min(n, max);
@@ -854,6 +874,37 @@ function majHud(){
   });
 }
 var hudPrec = {b:0, v:0};
+/* Passer un mini-jeu : on joue à un jeu libre dans la vraie vie et on désigne le gagnant */
+var ECRANS_JEUX = ["roulette","reflexe","carte","chrono","course","uno","corde","duel"];
+function passerJeu(){
+  if(ECRANS_JEUX.indexOf(S.ecran)<0) return;
+  S.jeu = null; touches = {}; DIRK = {b:0,v:0};
+  montrer("libre");
+  $("libreB").textContent = S.noms.b+" a gagné"; $("libreV").textContent = S.noms.v+" a gagné";
+}
+function libreGagne(g){
+  if(S.ecran!=="libre" || (g!=="b" && g!=="v")) return;
+  finManche(autre(g), "Jeu libre : "+S.noms[g]+" a gagné");
+}
+$("libreB").onclick = function(){ libreGagne("b"); };
+$("libreV").onclick = function(){ libreGagne("v"); };
+var passerT = null;
+$("btnPasser").onclick = function(){
+  var b = $("btnPasser");
+  if(b.classList.contains("confirme")){ clearTimeout(passerT); passerJeu(); return; }
+  b.classList.add("confirme"); b.textContent = "Appuie encore pour passer";
+  passerT = setTimeout(function(){ b.classList.remove("confirme"); b.textContent = "Passer ce jeu"; }, 3000);
+};
+/* Verres de toute la soirée : ne se remettent pas à zéro entre les parties.
+   Gardés dans le navigateur de la télé, remis à zéro après 12 h sans nouveau verre. */
+var SOIREE = (function(){
+  try{ var x = JSON.parse(localStorage.getItem("jdn-soiree") || "null"); if(x && Date.now()-x.maj < 12*3600*1000) return {b:x.b|0, v:x.v|0}; }catch(e){}
+  return {b:0, v:0};
+})();
+function verreSoiree(cote){
+  SOIREE[cote]++;
+  try{ localStorage.setItem("jdn-soiree", JSON.stringify({b:SOIREE.b, v:SOIREE.v, maj:Date.now()})); }catch(e){}
+}
 /* Un petit verre à shot dessiné ; plein = rempli à la couleur du joueur (currentColor) */
 function verreSVG(plein){
   var w = document.createElement("span");
@@ -1647,7 +1698,7 @@ function choisir(c){
   if(S.ecran!=="gage") return;
   if(c==="fais" && !S.fait){ S.fait = true; boutonsGage(); diffuser(); }
   else if(c==="bois" && !S.fait){
-    S.st[S.perdant].bois++; S.tot[S.perdant].bois++; majHud();
+    S.st[S.perdant].bois++; S.tot[S.perdant].bois++; verreSoiree(S.perdant); majHud();
     var a = $("gActions"); a.innerHTML = ""; a.appendChild(verreBu(S.perdant));
     S.fait = "bu"; diffuser();
     plus_tard(mancheSuivante, 1500);
@@ -1670,12 +1721,12 @@ function finPartie(){
   $("finPerdant").textContent = pb===pv ? "Égalité parfaite" : S.noms[pb>pv?"b":"v"]+" a perdu la partie";
   $("fnB").textContent = S.noms.b; $("fnV").textContent = S.noms.v;
   var corps = $("finCorps"); corps.innerHTML = "";
-  [["Manches perdues","perdu"],["Gages faits","fait"],["Verres bus","bois"]].forEach(function(r){
+  [["Manches perdues","perdu"],["Gages faits","fait"],["Verres bus","bois"],["Verres de la soirée","soiree"]].forEach(function(r){
     var tr = document.createElement("tr"), th = document.createElement("th"); th.textContent = r[0]; tr.appendChild(th);
     ["b","v"].forEach(function(s){
       var td=document.createElement("td"); td.className="c"+s;
-      if(r[1]==="bois"){
-        var n = S.st[s].bois, box = el("span","fin-verres");
+      if(r[1]==="bois" || r[1]==="soiree"){
+        var n = r[1]==="soiree" ? SOIREE[s] : S.st[s].bois, box = el("span","fin-verres");
         if(!n) box.appendChild(verreSVG(false));
         for(var i=0;i<Math.min(n,20);i++) box.appendChild(verreSVG(true));
         td.appendChild(box); td.appendChild(document.createTextNode(" "+n));
@@ -1769,6 +1820,8 @@ function brancherTV(){
   room.on("choix", function(m){ if(m.data && (!m.data.side || m.data.side===S.perdant)) choisir(m.data.c); });
   room.on("uno", function(m){ if(m.data && S.ecran==="uno") unoAction(m.data); });
   room.on("quitter", function(){ if(S.ecran!=="accueil") quitter(); });
+  room.on("passer", function(){ passerJeu(); });
+  room.on("libre", function(m){ if(m.data) libreGagne(m.data.g); });
   room.on("ok", function(){ if(["accueil","joueurs","modes","intro","fin"].indexOf(S.ecran)>=0) cliquerPrincipal(); });
   room.on("nom", function(m){
     if(!m.data) return;
@@ -1785,7 +1838,7 @@ function brancherTV(){
 /* ---------- Vue manette ---------- */
 var M = {ecran:null};
 var COTE = null;  /* "b" (Lui) ou "v" (Elle) pour ce téléphone */
-var MV = ["m-attente","m-noms","m-pads","m-course","m-duel","m-uno","m-gage","m-ok"];
+var MV = ["m-attente","m-noms","m-pads","m-course","m-duel","m-uno","m-libre","m-gage","m-ok"];
 function rendreUnoManette(u, noms){
   mMontrer("m-uno");
   var box = $("mUnoCorps"); box.innerHTML = "";
@@ -1852,7 +1905,14 @@ function rendreManette(e){
   neon(COTE);
   $("mCrB").textContent = noms.b || "Bleu"; $("mCrV").textContent = noms.v || "Violet";
   if((M.ecran==="course" || M.ecran==="duel") && e.ecran!==M.ecran){ tenu = {b:{}, v:{}}; envoyerDir(); }
-  if(e.ecran==="duel"){
+  if(e.ecran==="libre"){
+    mMontrer("m-libre");
+    var lb = $("mLibreBtns");
+    if(lb.getAttribute("data-k")!==noms.b+"|"+noms.v){
+      lb.setAttribute("data-k", noms.b+"|"+noms.v); lb.innerHTML = "";
+      [["b","plein"],["v",""]].forEach(function(x){ var bt = el("button","m-gros "+x[1], (noms[x[0]]||"")+" a gagné"); bt.style.borderColor = "var(--"+(x[0]==="b"?"bleu":"violet")+")"; bt.onclick = function(){ envoyer("libre",{g:x[0]}); }; lb.appendChild(bt); });
+    }
+  } else if(e.ecran==="duel"){
     mMontrer("m-duel");
   } else if(e.ecran==="course"){
     mMontrer("m-course");
@@ -1893,6 +1953,7 @@ function rendreManette(e){
     $("mOk").textContent = e.ecran==="accueil" ? "Jouer" : e.ecran==="modes" ? "Mode classique" : e.ecran==="intro" ? "Lancer la partie" : "Continuer";
   }
   $("mQuitter").hidden = e.ecran==="accueil";
+  $("mPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel"].indexOf(e.ecran)<0;
   M.ecran = e.ecran;
 }
 function brancherManette(){
@@ -1910,7 +1971,14 @@ Array.prototype.forEach.call(document.querySelectorAll(".pad:not(.pad4)"), funct
 });
 $("mValiderNoms").onclick = function(){ var d = {}; d[COTE] = $(COTE==="b"?"mNomB":"mNomV").value.trim(); envoyer("nom", d); };
 $("mOk").onclick = function(){ envoyer("ok",{}); };
-var mqT=null;
+var mqT=null, mpT=null;
+$("mPasser").addEventListener("pointerdown", function(e){ e.stopPropagation(); });
+$("mPasser").onclick = function(){
+  var b = $("mPasser");
+  if(b.classList.contains("confirme")){ clearTimeout(mpT); b.classList.remove("confirme"); b.textContent = "Passer ce jeu"; envoyer("passer",{}); return; }
+  b.classList.add("confirme"); b.textContent = "Appuie encore pour passer";
+  mpT = setTimeout(function(){ b.classList.remove("confirme"); b.textContent = "Passer ce jeu"; }, 3000);
+};
 $("mQuitter").addEventListener("pointerdown", function(e){ e.stopPropagation(); });
 $("mQuitter").onclick = function(){
   var b=$("mQuitter");
@@ -1924,7 +1992,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "15";
+var VERSION_SITE = "16";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
