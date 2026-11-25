@@ -232,7 +232,7 @@ thead td{font-weight:600}
   box-shadow:0 0 16px color-mix(in srgb,var(--c) 40%,transparent),inset 0 0 22px color-mix(in srgb,var(--c) 22%,transparent);transition:box-shadow .15s,background .15s}
 .arene .zone.b{left:0;--c:var(--bleu)} .arene .zone.v{right:0;--c:var(--violet)}
 .arene .zone.flash{background:color-mix(in srgb,var(--c) 26%,transparent);box-shadow:0 0 34px var(--c),inset 0 0 36px color-mix(in srgb,var(--c) 45%,transparent)}
-.arene .zone span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:clamp(18px,2.4vw,40px);color:var(--c);font-variant-numeric:tabular-nums;opacity:.85}
+.arene .zone span{position:absolute;left:0;right:0;top:6%;display:flex;align-items:flex-start;justify-content:center;font-weight:800;font-size:clamp(18px,2.4vw,40px);color:var(--c);font-variant-numeric:tabular-nums;opacity:.85}
 .arene .centre{position:absolute;left:50%;top:-10%;bottom:-10%;width:2px;margin-left:-1px;background:repeating-linear-gradient(to bottom,var(--fg) 0 8px,transparent 8px 16px);opacity:.4}
 .corde{--p:0;position:absolute;left:10%;width:80%;top:50%;height:clamp(12px,2vh,22px);border-radius:99px;
   background:repeating-linear-gradient(115deg,#ecd6ab 0 9px,#b38d55 9px 13px,#ecd6ab 13px 22px);
@@ -555,7 +555,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=13"></script>
+<script src="config.js?v=14"></script>
 <script>
 (function(){
 "use strict";
@@ -1748,7 +1748,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "13";
+var VERSION_SITE = "14";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
