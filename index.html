@@ -226,6 +226,24 @@ thead td{font-weight:600}
 .pad4 span{font-size:44px;line-height:1}
 #course{padding-top:max(56px,env(safe-area-inset-top,0px))}
 #cvCourse{width:100%;flex:1 1 auto;min-height:0;max-width:100%;display:block}
+/* Quiz culture générale */
+.qz0{--k:#ffb020} .qz1{--k:#22d3c5} .qz2{--k:#ff5f7e} .qz3{--k:#8be04e}
+.qz-question{font-size:clamp(22px,3.4vw,52px);font-weight:700;max-width:28ch;text-wrap:balance;line-height:1.2}
+.qz-grille{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,1.4vw,20px);width:min(94vw,1200px)}
+.qz-rep{border:2px solid var(--k);border-radius:16px;padding:.7em 1em;display:flex;gap:14px;align-items:center;
+  background:color-mix(in srgb,var(--k) 10%,var(--bg));font-size:clamp(16px,2vw,30px);font-weight:600;text-align:left;color:var(--fg);transition:opacity .3s,box-shadow .3s,background .3s}
+.qz-rep .lettre{display:inline-flex;width:1.8em;height:1.8em;border-radius:50%;background:var(--k);color:var(--bg);align-items:center;justify-content:center;flex:none;font-weight:800}
+.qz-rep.bonne{box-shadow:0 0 0 3px #fff,0 0 30px var(--k);background:color-mix(in srgb,var(--k) 35%,var(--bg))}
+.qz-rep.fausse{opacity:.32}
+.qz-tags{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.qz-tag{font-size:.55em;padding:.2em .7em;border-radius:99px;border:1px solid currentColor;font-weight:700}
+.qz-barre{width:min(94vw,1200px);height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.qz-barre i{display:block;height:100%;width:100%;background:var(--fg)}
+.m-qz{display:flex;flex-direction:column;gap:10px;width:min(100%,440px)}
+.m-qz .qz-rep{font-size:17px;padding:.75em .9em;border-radius:14px;width:100%}
+.m-qz .qz-rep:disabled{opacity:.45}
+.m-qz .qz-rep.choisie{opacity:1;box-shadow:0 0 0 3px var(--k)}
+#m-quiz{overflow-y:auto;justify-content:flex-start;padding-top:max(56px,env(safe-area-inset-top,0px))}
 /* Duel de tanks */
 #duel{padding-top:max(56px,env(safe-area-inset-top,0px))}
 #cvDuel{width:100%;flex:1 1 auto;min-height:0;max-width:100%;display:block}
@@ -396,6 +414,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
       <button class="plein mode" data-primary id="btnClassique">Mode classique<small>Parties de 10 manches · mini-jeux et gages</small></button>
       <button class="mode" disabled>Arcade<small>Bientôt</small></button>
       <button class="mode" id="btnTestCourse">Tester la course<small>Lance directement le mini circuit</small></button>
+      <button class="mode" id="btnTestQuiz">Tester le quiz<small>Lance directement le quiz culture G</small></button>
       <button class="mode" id="btnTestDuel">Tester le duel<small>Lance directement le duel de tanks</small></button>
       <button class="mode" id="btnTestCorde">Tester la corde<small>Lance directement le tir à la corde</small></button>
       <button class="mode" id="btnTestUno">Tester les cartes<small>Lance directement Dernière carte</small></button>
@@ -441,6 +460,15 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 
   <section class="screen" id="course" hidden>
     <canvas id="cvCourse"></canvas>
+  </section>
+
+  <section class="screen" id="quiz" hidden>
+    <p class="eyebrow" id="qzNum"></p>
+    <p class="qz-question" id="qzQ"></p>
+    <div class="qz-grille" id="qzGrille"></div>
+    <div class="qz-barre"><i id="qzBarre"></i></div>
+    <div class="cotes"><span class="cb" id="qzB"></span><span class="cv" id="qzV"></span></div>
+    <p class="sub" id="qzMsg"></p>
   </section>
 
   <section class="screen" id="duel" hidden>
@@ -576,6 +604,11 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
       <button class="pad pad4 v" data-side="v" data-d="1"><small>tourner</small><span>▶</span></button>
     </div>
   </section>
+  <section class="screen" id="m-quiz" hidden>
+    <p class="eyebrow" id="mQzInfo"></p>
+    <p class="sub" id="mQzQ"></p>
+    <div class="m-qz" id="mQzBtns"></div>
+  </section>
   <section class="screen" id="m-libre" hidden>
     <p class="eyebrow">Choix libre de jeu</p>
     <p class="sub">Jouez à un jeu de votre choix, puis dites qui a gagné.</p>
@@ -595,7 +628,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=16"></script>
+<script src="config.js?v=17"></script>
 <script>
 (function(){
 "use strict";
@@ -635,7 +668,8 @@ var JEUX = [
   {id:"course",  type:"Course",  nom:"Mini circuit"},
   {id:"uno",     type:"Cartes",  nom:"Dernière carte"},
   {id:"corde",   type:"Force",   nom:"Tir à la corde"},
-  {id:"duel",    type:"Combat",  nom:"Duel de tanks"}
+  {id:"duel",    type:"Combat",  nom:"Duel de tanks"},
+  {id:"quiz",    type:"Culture", nom:"Quiz culture G"}
 ];
 var VALEURS = {11:"V",12:"D",13:"R",14:"A"};
 
@@ -829,15 +863,15 @@ var gen = 0;
 function plus_tard(fn,ms){var g=gen;setTimeout(function(){if(g===gen)fn()},ms)}
 
 /* ---------- Affichage TV ---------- */
-var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","libre","resultat","gage","fin","banque"];
+var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","libre","resultat","gage","fin","banque"];
 function montrer(id){
   gen++;
   S.ecran = id;
   ECRANS.forEach(function(e){$(e).hidden = e!==id});
-  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","libre","resultat","gage"].indexOf(id)<0;
+  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","libre","resultat","gage"].indexOf(id)<0;
   if(id!=="gage") neon(null);
   $("btnQuitter").hidden = id==="accueil" || id==="banque";
-  $("btnPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel"].indexOf(id)<0; $("btnPasser").classList.remove("confirme"); $("btnPasser").textContent = "Passer ce jeu";
+  $("btnPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz"].indexOf(id)<0; $("btnPasser").classList.remove("confirme"); $("btnPasser").textContent = "Passer ce jeu";
   annulerQuitter();
   majHud();
   var p = $(id).querySelector("[data-primary]:not([disabled])") || $(id).querySelector("input,button:not([disabled])");
@@ -875,7 +909,7 @@ function majHud(){
 }
 var hudPrec = {b:0, v:0};
 /* Passer un mini-jeu : on joue à un jeu libre dans la vraie vie et on désigne le gagnant */
-var ECRANS_JEUX = ["roulette","reflexe","carte","chrono","course","uno","corde","duel"];
+var ECRANS_JEUX = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz"];
 function passerJeu(){
   if(ECRANS_JEUX.indexOf(S.ecran)<0) return;
   S.jeu = null; touches = {}; DIRK = {b:0,v:0};
@@ -960,6 +994,10 @@ $("btnClassique").onclick = function(){
 };
 
 $("btnBanque").onclick = function(){ ouvrirBanque(); };
+$("btnTestQuiz").onclick = function(){
+  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
+  quiz();
+};
 $("btnTestDuel").onclick = function(){
   S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
   duel();
@@ -1066,7 +1104,84 @@ function atterrir(choix){
   (function flash(){ var on = c%2===0; ampoules(function(a){ a.classList.toggle("on", on); }); c++; if(c<10) plus_tard(flash, 140); })();
   plus_tard(function(){ demarrer(JEUX[choix].id); }, 2200);
 }
-function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else if(id==="corde") corde(); else if(id==="duel") duel(); else carteHaute(); }
+function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else if(id==="corde") corde(); else if(id==="duel") duel(); else if(id==="quiz") quiz(); else carteHaute(); }
+
+/* Mini-jeu 8 : quiz culture générale (premier à 2 bonnes réponses, jamais deux fois la même question) */
+var QUESTIONS = [["Quelle est la capitale de l'Australie ?", "Canberra", "Sydney", "Melbourne", "Perth"], ["Quel est le plus long fleuve de France ?", "La Loire", "La Seine", "Le Rhône", "La Garonne"], ["Quelle est la capitale du Canada ?", "Ottawa", "Toronto", "Montréal", "Vancouver"], ["Quel pays a la plus grande superficie au monde ?", "La Russie", "Le Canada", "La Chine", "Les États-Unis"], ["Quel est le plus haut sommet du monde ?", "L'Everest", "Le K2", "Le Kilimandjaro", "Le mont Blanc"], ["Dans quel pays se trouve Marrakech ?", "Le Maroc", "La Tunisie", "L'Algérie", "L'Égypte"], ["Quelle est la capitale du Japon ?", "Tokyo", "Kyoto", "Osaka", "Yokohama"], ["Quel est le plus grand océan du monde ?", "Le Pacifique", "L'Atlantique", "L'océan Indien", "L'Arctique"], ["Quelle mer borde la ville de Marseille ?", "La Méditerranée", "La Manche", "La mer du Nord", "La mer Noire"], ["Quel est le plus grand désert chaud du monde ?", "Le Sahara", "Le Gobi", "Le Kalahari", "L'Atacama"], ["Quelle est la capitale de l'Espagne ?", "Madrid", "Barcelone", "Séville", "Valence"], ["Quelle est la capitale de l'Italie ?", "Rome", "Milan", "Naples", "Florence"], ["Dans quelle ville se trouve la statue du Christ Rédempteur ?", "Rio de Janeiro", "São Paulo", "Buenos Aires", "Lisbonne"], ["Quel pays a pour capitale Lisbonne ?", "Le Portugal", "L'Espagne", "Le Brésil", "L'Italie"], ["Quelle est la monnaie du Royaume-Uni ?", "La livre sterling", "L'euro", "Le dollar", "Le franc"], ["Quelle est la monnaie du Maroc ?", "Le dirham", "Le dinar", "Le riyal", "La livre"], ["Combien d'États compte les États-Unis ?", "50", "48", "51", "52"], ["Quel est le plus petit pays du monde ?", "Le Vatican", "Monaco", "Saint-Marin", "Le Liechtenstein"], ["Quelle est la capitale de l'Égypte ?", "Le Caire", "Alexandrie", "Louxor", "Gizeh"], ["Quel fleuve traverse Paris ?", "La Seine", "La Loire", "La Marne", "Le Rhin"], ["Quelle chaîne de montagnes sépare la France de l'Espagne ?", "Les Pyrénées", "Les Alpes", "Le Jura", "Les Vosges"], ["Quel est le plus long fleuve d'Afrique ?", "Le Nil", "Le Congo", "Le Niger", "Le Zambèze"], ["Quelle est la capitale de l'Allemagne ?", "Berlin", "Munich", "Francfort", "Hambourg"], ["Quelle ville est surnommée « la Grosse Pomme » ?", "New York", "Los Angeles", "Chicago", "San Francisco"], ["Dans quel pays se trouve le Machu Picchu ?", "Le Pérou", "Le Mexique", "La Bolivie", "Le Chili"], ["En quelle année a eu lieu la prise de la Bastille ?", "1789", "1792", "1776", "1815"], ["Qui a été le premier empereur des Français ?", "Napoléon Ier", "Louis XIV", "Charlemagne", "Napoléon III"], ["En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?", "1969", "1965", "1972", "1959"], ["Qui a été le premier homme à marcher sur la Lune ?", "Neil Armstrong", "Buzz Aldrin", "Youri Gagarine", "Michael Collins"], ["En quelle année a commencé la Première Guerre mondiale ?", "1914", "1918", "1912", "1939"], ["En quelle année s'est terminée la Seconde Guerre mondiale ?", "1945", "1944", "1946", "1939"], ["En quelle année le mur de Berlin est-il tombé ?", "1989", "1991", "1985", "1975"], ["Quel roi de France était surnommé le Roi-Soleil ?", "Louis XIV", "Louis XVI", "Louis XIII", "François Ier"], ["Quelle civilisation a construit les pyramides de Gizeh ?", "Les Égyptiens", "Les Romains", "Les Mayas", "Les Grecs"], ["Qui a atteint l'Amérique en 1492 ?", "Christophe Colomb", "Vasco de Gama", "Magellan", "Amerigo Vespucci"], ["Quelle reine de France a été guillotinée en 1793 ?", "Marie-Antoinette", "Catherine de Médicis", "Anne d'Autriche", "Marie de Médicis"], ["Quel paquebot a coulé en 1912 après avoir heurté un iceberg ?", "Le Titanic", "Le Lusitania", "Le Britannic", "Le Queen Mary"], ["Dans quelle ville Jules César a-t-il été assassiné ?", "Rome", "Athènes", "Alexandrie", "Carthage"], ["En quelle année le Maroc a-t-il obtenu son indépendance ?", "1956", "1962", "1945", "1960"], ["Quel pays a offert la statue de la Liberté aux États-Unis ?", "La France", "Le Royaume-Uni", "L'Espagne", "L'Italie"], ["Quelle guerre a opposé le Nord et le Sud des États-Unis ?", "La guerre de Sécession", "La guerre d'Indépendance", "La guerre de Cent Ans", "La guerre froide"], ["Qui a été le premier président de la Ve République ?", "Charles de Gaulle", "Georges Pompidou", "François Mitterrand", "Vincent Auriol"], ["Quel est le symbole chimique de l'or ?", "Au", "Or", "Ag", "Fe"], ["Quelle planète est la plus proche du Soleil ?", "Mercure", "Vénus", "Mars", "La Terre"], ["Quelle est la plus grande planète du système solaire ?", "Jupiter", "Saturne", "Neptune", "Uranus"], ["Combien d'os compte le squelette d'un adulte ?", "206", "186", "226", "250"], ["Quel gaz les plantes absorbent-elles pour la photosynthèse ?", "Le dioxyde de carbone", "L'oxygène", "L'azote", "L'hélium"], ["À quelle température l'eau bout-elle au niveau de la mer ?", "100 °C", "90 °C", "120 °C", "80 °C"], ["Quelle est la formule chimique de l'eau ?", "H₂O", "CO₂", "O₂", "H₂O₂"], ["Quelle planète est surnommée la planète rouge ?", "Mars", "Jupiter", "Vénus", "Saturne"], ["Combien de cœurs a une pieuvre ?", "3", "1", "2", "4"], ["Quel est le plus grand organe du corps humain ?", "La peau", "Le foie", "Les poumons", "L'intestin"], ["Qui a formulé la théorie de la relativité ?", "Albert Einstein", "Isaac Newton", "Galilée", "Niels Bohr"], ["Quel est le symbole chimique du fer ?", "Fe", "Fr", "Ir", "F"], ["Combien de pattes a une araignée ?", "8", "6", "10", "12"], ["Quel est l'animal terrestre le plus rapide ?", "Le guépard", "Le lion", "L'antilope", "Le lévrier"], ["Quel est le plus grand animal du monde ?", "La baleine bleue", "L'éléphant d'Afrique", "Le cachalot", "La girafe"], ["Combien de chromosomes possède une cellule humaine ordinaire ?", "46", "23", "44", "48"], ["Quelle est la vitesse approximative de la lumière dans le vide ?", "300 000 km/s", "30 000 km/s", "3 000 km/s", "3 millions de km/s"], ["Qui a découvert la pénicilline ?", "Alexander Fleming", "Louis Pasteur", "Marie Curie", "Robert Koch"], ["Qui a reçu un prix Nobel de physique et un prix Nobel de chimie ?", "Marie Curie", "Albert Einstein", "Louis Pasteur", "Niels Bohr"], ["Quel métal est liquide à température ambiante ?", "Le mercure", "Le plomb", "L'aluminium", "Le zinc"], ["Combien de temps met environ la lumière du Soleil pour atteindre la Terre ?", "8 minutes", "8 secondes", "1 heure", "1 seconde"], ["Quel est le plus grand oiseau vivant ?", "L'autruche", "L'émeu", "Le condor", "L'albatros"], ["Qui a peint la Joconde ?", "Léonard de Vinci", "Michel-Ange", "Raphaël", "Botticelli"], ["Qui a écrit « Les Misérables » ?", "Victor Hugo", "Émile Zola", "Gustave Flaubert", "Alexandre Dumas"], ["Qui a écrit « Le Petit Prince » ?", "Antoine de Saint-Exupéry", "Jules Verne", "Albert Camus", "Marcel Pagnol"], ["Dans quel musée est exposée la Joconde ?", "Le Louvre", "Le musée d'Orsay", "Le Prado", "Le British Museum"], ["Qui a peint « La Nuit étoilée » ?", "Vincent van Gogh", "Claude Monet", "Paul Cézanne", "Pablo Picasso"], ["Qui a écrit « Roméo et Juliette » ?", "William Shakespeare", "Molière", "Victor Hugo", "Charles Dickens"], ["Quel écrivain a créé le détective Sherlock Holmes ?", "Arthur Conan Doyle", "Agatha Christie", "Edgar Allan Poe", "Georges Simenon"], ["Qui a écrit « Vingt mille lieues sous les mers » ?", "Jules Verne", "Alexandre Dumas", "H. G. Wells", "Victor Hugo"], ["Qui a composé « La Flûte enchantée » ?", "Mozart", "Beethoven", "Bach", "Verdi"], ["Qui a peint le plafond de la chapelle Sixtine ?", "Michel-Ange", "Léonard de Vinci", "Raphaël", "Le Caravage"], ["Qui a écrit « Les Trois Mousquetaires » ?", "Alexandre Dumas", "Victor Hugo", "Honoré de Balzac", "Stendhal"], ["Qui a écrit « L'Étranger » ?", "Albert Camus", "Jean-Paul Sartre", "André Gide", "Marcel Proust"], ["Quel peintre est célèbre pour ses « Nymphéas » ?", "Claude Monet", "Édouard Manet", "Auguste Renoir", "Edgar Degas"], ["Qui est l'autrice de la saga « Harry Potter » ?", "J. K. Rowling", "J. R. R. Tolkien", "C. S. Lewis", "Stephen King"], ["Qui a écrit « Le Seigneur des anneaux » ?", "J. R. R. Tolkien", "C. S. Lewis", "George R. R. Martin", "J. K. Rowling"], ["Qui a peint « Guernica » ?", "Pablo Picasso", "Salvador Dalí", "Joan Miró", "Francisco Goya"], ["Combien de joueurs compte une équipe de football sur le terrain ?", "11", "10", "12", "9"], ["Tous les combien d'années ont lieu les Jeux olympiques d'été ?", "4 ans", "2 ans", "3 ans", "5 ans"], ["Quel pays a remporté la Coupe du monde de football 2018 ?", "La France", "La Croatie", "L'Allemagne", "Le Brésil"], ["Quel pays a remporté le plus de Coupes du monde de football ?", "Le Brésil", "L'Allemagne", "L'Italie", "L'Argentine"], ["Dans quel sport utilise-t-on un volant ?", "Le badminton", "Le tennis", "Le squash", "Le ping-pong"], ["Quelle est la distance officielle d'un marathon ?", "42,195 km", "40 km", "21,1 km", "50 km"], ["Combien de joueurs compte une équipe de basket sur le terrain ?", "5", "6", "7", "4"], ["Quel tournoi de tennis se joue sur terre battue à Paris ?", "Roland-Garros", "Wimbledon", "L'US Open", "L'Open d'Australie"], ["Quelle ville a accueilli les Jeux olympiques d'été de 2024 ?", "Paris", "Los Angeles", "Tokyo", "Londres"], ["Combien de points vaut un essai au rugby à XV, sans la transformation ?", "5", "3", "4", "7"], ["Quel pays a accueilli la Coupe du monde de football 2022 ?", "Le Qatar", "La Russie", "Le Brésil", "L'Afrique du Sud"], ["Combien de joueurs compte une équipe de volley-ball sur le terrain ?", "6", "5", "7", "4"], ["Combien de couleurs compte traditionnellement un arc-en-ciel ?", "7", "6", "5", "8"], ["Combien de jours compte une année bissextile ?", "366", "365", "364", "367"], ["Quel instrument possède généralement 88 touches ?", "Le piano", "L'orgue", "L'accordéon", "Le synthétiseur"], ["Quelle langue compte le plus de locuteurs natifs au monde ?", "Le mandarin", "L'anglais", "L'espagnol", "L'hindi"], ["Combien de cartes compte un jeu classique, sans les jokers ?", "52", "54", "48", "32"], ["Quel animal est le symbole du WWF ?", "Le panda", "Le koala", "Le tigre", "L'ours polaire"], ["Quel est l'ingrédient principal du guacamole ?", "L'avocat", "La tomate", "Le concombre", "Le poivron"], ["De quel pays la pizza Margherita est-elle originaire ?", "L'Italie", "La Grèce", "L'Espagne", "La France"], ["Combien de côtés a un hexagone ?", "6", "5", "7", "8"], ["Combien font 7 × 8 ?", "56", "54", "64", "48"], ["Combien de minutes compte une journée ?", "1 440", "1 200", "2 400", "1 040"], ["Quel film d'animation raconte l'histoire du poisson-clown Nemo ?", "Le Monde de Nemo", "Le Roi lion", "Toy Story", "Shrek"], ["Quel groupe britannique a chanté « Hey Jude » ?", "Les Beatles", "Les Rolling Stones", "Queen", "The Who"], ["Quel chanteur est surnommé « le roi de la pop » ?", "Michael Jackson", "Elvis Presley", "Prince", "Freddie Mercury"], ["Quel chanteur est surnommé « le King » du rock'n'roll ?", "Elvis Presley", "Michael Jackson", "Chuck Berry", "Johnny Hallyday"], ["Dans quelle ville se trouve le Colisée ?", "Rome", "Athènes", "Naples", "Milan"], ["Dans quelle ville se trouve la Sagrada Família ?", "Barcelone", "Madrid", "Lisbonne", "Séville"], ["Quel monument a été construit pour l'Exposition universelle de Paris en 1889 ?", "La tour Eiffel", "L'Arc de triomphe", "Le Sacré-Cœur", "Le Grand Palais"], ["Quelle est la langue officielle du Brésil ?", "Le portugais", "L'espagnol", "Le brésilien", "Le français"], ["Combien de secondes compte une heure ?", "3 600", "360", "6 000", "1 800"], ["De quel pays les sushis sont-ils originaires ?", "Le Japon", "La Chine", "La Corée du Sud", "La Thaïlande"], ["Quelle fête célèbre-t-on le 25 décembre ?", "Noël", "Pâques", "La Toussaint", "Le Nouvel An"], ["Quel plat marocain est cuit dans un plat en terre au couvercle conique ?", "Le tajine", "Le couscous", "La pastilla", "La harira"], ["Quelle est la nourriture principale du panda géant ?", "Le bambou", "L'eucalyptus", "Le riz", "Les fruits"], ["Quel insecte fabrique le miel que l'on mange ?", "L'abeille", "La guêpe", "La fourmi", "Le papillon"], ["Aux échecs, quelle pièce ne se déplace qu'en diagonale ?", "Le fou", "La tour", "Le cavalier", "Le roi"], ["Dans quel pays le papier a-t-il été inventé ?", "La Chine", "L'Égypte", "L'Inde", "La Grèce"], ["Quelle est la capitale de la Belgique ?", "Bruxelles", "Anvers", "Liège", "Bruges"], ["Quelle est la capitale de la Suisse ?", "Berne", "Zurich", "Genève", "Lausanne"], ["Quelle est la capitale de la Turquie ?", "Ankara", "Istanbul", "Izmir", "Antalya"], ["Quelle est la capitale du Brésil ?", "Brasília", "Rio de Janeiro", "São Paulo", "Salvador"], ["Quelle est la capitale de la Russie ?", "Moscou", "Saint-Pétersbourg", "Novossibirsk", "Kazan"], ["Quel est le symbole chimique de l'oxygène ?", "O", "Ox", "Om", "Og"], ["Quel animal est célèbre pour changer de couleur ?", "Le caméléon", "Le crocodile", "L'iguane", "La tortue"], ["Combien de dents compte en général un adulte, dents de sagesse comprises ?", "32", "28", "30", "36"], ["Quel est l'os le plus long du corps humain ?", "Le fémur", "Le tibia", "L'humérus", "Le péroné"], ["Quelle ville est la capitale du Maroc ?", "Rabat", "Casablanca", "Marrakech", "Fès"], ["Quel détroit sépare le Maroc de l'Espagne ?", "Le détroit de Gibraltar", "Le Bosphore", "Le détroit de Magellan", "Le détroit d'Ormuz"]];
+var QUIZ_POINTS = 2, QUIZ_TEMPS = 15000, QUIZ_MAX = 9;
+function tirerQuestion(){
+  var vus = [];
+  try{ vus = JSON.parse(localStorage.getItem("jdn-quiz-vus") || "[]"); }catch(e){}
+  var dispo = [];
+  for(var i=0;i<QUESTIONS.length;i++) if(vus.indexOf(i)<0) dispo.push(i);
+  if(!dispo.length){ vus = []; for(var j=0;j<QUESTIONS.length;j++) dispo.push(j); }
+  var id = dispo[rnd(dispo.length)]; vus.push(id);
+  try{ localStorage.setItem("jdn-quiz-vus", JSON.stringify(vus)); }catch(e){}
+  var q = QUESTIONS[id], ordre = melange([1,2,3,4]);
+  return {texte:q[0], opts:ordre.map(function(k){ return q[k]; }), bonne:ordre.indexOf(1)};
+}
+function quiz(){
+  S.jeu = {id:"quiz", score:{b:0, v:0}, n:0, phase:"pret"};
+  montrer("quiz");
+  quizQuestion();
+}
+function quizQuestion(){
+  var J = S.jeu; if(!J || J.id!=="quiz") return;
+  J.n++; J.q = tirerQuestion(); J.rep = {b:null, v:null}; J.phase = "question"; J.gagnantQ = null;
+  rendreQuiz();
+  var barre = $("qzBarre"); barre.style.transition = "none"; barre.style.width = "100%"; void barre.offsetWidth;
+  barre.style.transition = "width "+(QUIZ_TEMPS/1000)+"s linear"; barre.style.width = "0%";
+  bip(990, 0.08, 0.05);
+  var n = J.n;
+  plus_tard(function(){ if(S.jeu===J && J.phase==="question" && J.n===n) quizRevele(null, true); }, QUIZ_TEMPS);
+  diffuser();
+}
+function quizRepondre(side, i){
+  var J = S.jeu;
+  if(!J || J.id!=="quiz" || J.phase!=="question" || (side!=="b" && side!=="v") || J.rep[side]!==null) return;
+  i = i|0; if(i<0 || i>3) return;
+  J.rep[side] = i;
+  if(i===J.q.bonne) quizRevele(side, false);
+  else if(J.rep[autre(side)]!==null) quizRevele(null, false);
+  else { bip(220, 0.15, 0.07); rendreQuiz(); diffuser(); }
+}
+function quizRevele(g, temps){
+  var J = S.jeu; J.phase = "revele"; J.gagnantQ = g;
+  if(g){ J.score[g]++; bip(1320, 0.2, 0.07); } else bip(260, 0.25, 0.07);
+  $("qzBarre").style.transition = "none";
+  J.msg = g ? S.noms[g]+" a la bonne réponse !" : (temps ? "Temps écoulé !" : "Personne n'a trouvé.");
+  rendreQuiz(); diffuser();
+  var fin = null;
+  if(g && J.score[g]>=QUIZ_POINTS) fin = g;
+  else if(J.n>=QUIZ_MAX && J.score.b!==J.score.v) fin = J.score.b>J.score.v ? "b" : "v";
+  if(fin){
+    plus_tard(function(){ finManche(autre(fin), S.noms[fin]+" gagne le quiz ("+J.score[fin]+" à "+J.score[autre(fin)]+")"); }, 3000);
+  } else plus_tard(quizQuestion, 3000);
+}
+function rendreQuiz(){
+  var J = S.jeu, q = J.q;
+  $("qzNum").textContent = "Culture générale · question "+J.n;
+  $("qzQ").textContent = q.texte;
+  var g = $("qzGrille"); g.innerHTML = "";
+  q.opts.forEach(function(t, i){
+    var d = el("div","qz-rep qz"+i);
+    d.appendChild(el("span","lettre","ABCD".charAt(i)));
+    d.appendChild(el("span",null,t));
+    if(J.phase==="revele"){
+      if(i===q.bonne) d.classList.add("bonne"); else d.classList.add("fausse");
+      var tags = el("span","qz-tags");
+      ["b","v"].forEach(function(s){ if(J.rep[s]===i){ var tg = el("span","qz-tag c"+s, S.noms[s]); tags.appendChild(tg); } });
+      d.appendChild(tags);
+    }
+    g.appendChild(d);
+  });
+  ["b","v"].forEach(function(s){
+    var pts = "●".repeat(J.score[s]) + "○".repeat(Math.max(0, QUIZ_POINTS-J.score[s]));
+    var etat = J.phase==="question" ? (J.rep[s]!==null ? " · raté !" : "") : "";
+    $(s==="b"?"qzB":"qzV").textContent = (s==="b"?"← ":"") + S.noms[s]+" "+pts+etat + (s==="v"?" →":"");
+  });
+  $("qzMsg").textContent = J.phase==="revele" ? J.msg : "Le premier qui trouve la bonne réponse marque. Une seule réponse chacun !";
+}
 
 /* Mini-jeu 6 : tir à la corde (chaque tape tire la corde de son côté) */
 var CORDE_PAS = 0.05, CORDE_DUREE = 20000;
@@ -1754,6 +1869,11 @@ document.addEventListener("keydown", function(e){
   var enJeu = S.ecran==="reflexe" || S.ecran==="carte" || S.ecran==="chrono" || S.ecran==="corde";
   var k = e.key;
   if((k==="Escape"||k==="Backspace"||k==="GoBack"||k==="BrowserBack") && S.ecran!=="accueil" && document.activeElement.tagName!=="INPUT" && document.activeElement.tagName!=="TEXTAREA"){ e.preventDefault(); $("btnQuitter").click(); return; }
+  if(S.ecran==="quiz"){
+    var qi = "1234".indexOf(k), qv = "7890".indexOf(k);
+    if(qi>=0){ e.preventDefault(); quizRepondre("b", qi); } else if(qv>=0){ e.preventDefault(); quizRepondre("v", qv); }
+    return;
+  }
   if(S.ecran==="course" || S.ecran==="duel"){
     var kk = String(k).toLowerCase(), t = TOUCHES_COURSE[kk];
     if(t){ e.preventDefault(); touches[t] = true; majDirClavier(); }
@@ -1791,7 +1911,11 @@ function etat(){
          jouables:{b:U.mains.b.map(uJouable), v:U.mains.v.map(uJouable)},
          nb:{b:U.mains.b.length, v:U.mains.v.length}, msg:U.msg};
   }
-  return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u};
+  var qz = null;
+  if(S.ecran==="quiz" && U && U.id==="quiz" && U.q){
+    qz = {n:U.n, texte:U.q.texte, opts:U.q.opts, phase:U.phase, rep:U.rep, bonne: U.phase==="revele" ? U.q.bonne : null, score:U.score, msg:U.msg||""};
+  }
+  return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz};
 }
 function diffuser(){
   if(room && !estManette){ room.emit("etat", etat()).catch(function(){}); }
@@ -1821,6 +1945,7 @@ function brancherTV(){
   room.on("uno", function(m){ if(m.data && S.ecran==="uno") unoAction(m.data); });
   room.on("quitter", function(){ if(S.ecran!=="accueil") quitter(); });
   room.on("passer", function(){ passerJeu(); });
+  room.on("quiz", function(m){ if(m.data) quizRepondre(m.data.side, m.data.i); });
   room.on("libre", function(m){ if(m.data) libreGagne(m.data.g); });
   room.on("ok", function(){ if(["accueil","joueurs","modes","intro","fin"].indexOf(S.ecran)>=0) cliquerPrincipal(); });
   room.on("nom", function(m){
@@ -1838,7 +1963,7 @@ function brancherTV(){
 /* ---------- Vue manette ---------- */
 var M = {ecran:null};
 var COTE = null;  /* "b" (Lui) ou "v" (Elle) pour ce téléphone */
-var MV = ["m-attente","m-noms","m-pads","m-course","m-duel","m-uno","m-libre","m-gage","m-ok"];
+var MV = ["m-attente","m-noms","m-pads","m-course","m-duel","m-uno","m-quiz","m-libre","m-gage","m-ok"];
 function rendreUnoManette(u, noms){
   mMontrer("m-uno");
   var box = $("mUnoCorps"); box.innerHTML = "";
@@ -1905,7 +2030,25 @@ function rendreManette(e){
   neon(COTE);
   $("mCrB").textContent = noms.b || "Bleu"; $("mCrV").textContent = noms.v || "Violet";
   if((M.ecran==="course" || M.ecran==="duel") && e.ecran!==M.ecran){ tenu = {b:{}, v:{}}; envoyerDir(); }
-  if(e.ecran==="libre"){
+  if(e.ecran==="quiz" && e.quiz){
+    mMontrer("m-quiz");
+    var z = e.quiz, moi = z.rep ? z.rep[COTE] : null, cleQ = z.n+"|"+z.phase+"|"+moi;
+    var bx = $("mQzBtns");
+    if(bx.getAttribute("data-k")!==cleQ){
+      bx.setAttribute("data-k", cleQ); bx.innerHTML = "";
+      $("mQzQ").textContent = z.texte;
+      var pts = function(s){ return "●".repeat(z.score[s]) + "○".repeat(Math.max(0, 2-z.score[s])); };
+      $("mQzInfo").textContent = z.phase==="revele" ? (z.msg||"") : (moi!==null && moi!==undefined ? "Raté ! Attends l'autre…" : "Question "+z.n+" · "+(noms[COTE]||"")+" "+pts(COTE));
+      z.opts.forEach(function(t, i){
+        var b = el("button","qz-rep qz"+i);
+        b.appendChild(el("span","lettre","ABCD".charAt(i))); b.appendChild(el("span",null,t));
+        if(z.phase==="revele"){ b.disabled = i!==z.bonne; if(i===z.bonne) b.classList.add("choisie"); }
+        else if(moi!==null && moi!==undefined){ b.disabled = true; if(i===moi) b.classList.add("choisie"); }
+        b.onclick = function(){ envoyer("quiz",{i:i, side:COTE}); Array.prototype.forEach.call(bx.children, function(c){ c.disabled = true; }); b.classList.add("choisie"); };
+        bx.appendChild(b);
+      });
+    }
+  } else if(e.ecran==="libre"){
     mMontrer("m-libre");
     var lb = $("mLibreBtns");
     if(lb.getAttribute("data-k")!==noms.b+"|"+noms.v){
@@ -1953,7 +2096,7 @@ function rendreManette(e){
     $("mOk").textContent = e.ecran==="accueil" ? "Jouer" : e.ecran==="modes" ? "Mode classique" : e.ecran==="intro" ? "Lancer la partie" : "Continuer";
   }
   $("mQuitter").hidden = e.ecran==="accueil";
-  $("mPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel"].indexOf(e.ecran)<0;
+  $("mPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz"].indexOf(e.ecran)<0;
   M.ecran = e.ecran;
 }
 function brancherManette(){
@@ -1992,7 +2135,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "16";
+var VERSION_SITE = "17";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
