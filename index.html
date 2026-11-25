@@ -646,7 +646,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=18"></script>
+<script src="config.js?v=19"></script>
 <script>
 (function(){
 "use strict";
@@ -866,6 +866,7 @@ function ligneGage(g){
 }
 /* Durées proposées pour les gages à minuteur (en secondes) */
 var DUREES = [15,30,45,60,75,90,105,120,150,180,210,240,300,360,420,480,600,720,900,1200,1800];
+function fourchette(gt, mot, avant){ return gt.dmin===gt.dmax ? fmtDuree(gt.dmin) : (avant||"")+fmtDuree(gt.dmin)+mot+fmtDuree(gt.dmax); }
 function fmtDuree(sec){
   sec = Math.round(sec); var m = Math.floor(sec/60), r = sec%60;
   if(!m) return r+" s";
@@ -1851,13 +1852,13 @@ function afficherGage(){
 /* Texte du gage : X est remplacé par la fourchette, puis par la durée tirée */
 function afficherTexteGage(){
   var gt = S.gt, zone = $("gTexte"), morceaux = String(S.gtexte||"").split(/\bX\b/);
-  var val = gt ? (gt.duree ? fmtDuree(gt.duree) : fmtDuree(gt.dmin)+" à "+fmtDuree(gt.dmax)) : "X";
+  var val = gt ? (gt.duree ? fmtDuree(gt.duree) : fourchette(gt, " à ")) : "X";
   zone.textContent = "";
   morceaux.forEach(function(m, i){
     zone.appendChild(document.createTextNode(m));
     if(i<morceaux.length-1) zone.appendChild(el("span", gt ? "g-duree" : null, val));
   });
-  $("gDuree").textContent = (gt && morceaux.length===1) ? (gt.duree ? "Pendant "+fmtDuree(gt.duree) : "Durée : entre "+fmtDuree(gt.dmin)+" et "+fmtDuree(gt.dmax)) : "";
+  $("gDuree").textContent = (gt && morceaux.length===1) ? (gt.duree ? "Pendant "+fmtDuree(gt.duree) : "Durée : "+fourchette(gt, " et ", "entre ")) : "";
 }
 function tirerDuree(){
   var gt = S.gt; if(S.ecran!=="gage" || !gt || gt.duree || gt.tirage || S.fait) return;
@@ -2212,7 +2213,7 @@ function rendreManette(e){
         }
       } else if(gt && !gt.duree){
         if(e.perdant===COTE && !gt.tirage){
-          box.appendChild(el("p","sub","Durée : entre "+fmtDuree(gt.dmin)+" et "+fmtDuree(gt.dmax)));
+          box.appendChild(el("p","sub","Durée : "+fourchette(gt, " et ", "entre ")));
           var tdb = el("button","plein m-gros","Tirer la durée"); tdb.onclick = function(){ envoyer("choix",{c:"duree",side:COTE}); }; box.appendChild(tdb);
         } else box.appendChild(el("p","sub", gt.tirage ? "Tirage de la durée…" : (noms[e.perdant]||"L'autre")+" doit tirer la durée."));
       } else if(e.perdant!==COTE){
@@ -2284,7 +2285,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "18";
+var VERSION_SITE = "19";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
