@@ -85,6 +85,33 @@ button.petit{font-size:clamp(13px,1.3vw,18px);padding:.55em 1.3em;border-color:v
 .joueur.pret{box-shadow:0 0 12px var(--c),0 0 55px var(--c),inset 0 0 18px color-mix(in srgb,var(--c) 40%,transparent)}
 @keyframes respireCarte{50%{box-shadow:0 0 4px var(--c),0 0 16px color-mix(in srgb,var(--c) 35%,transparent)}}
 .joueur svg{width:60%;height:auto;color:var(--c);filter:drop-shadow(0 0 6px var(--c))}
+/* Avatars cartoon des joueurs */
+.av{display:block;height:100%;width:auto;max-width:100%;object-fit:contain;transform-origin:50% 100%;filter:drop-shadow(0 10px 14px rgba(0,0,0,.65))}
+.av-zone{height:clamp(150px,30vh,300px);display:flex;justify-content:center;align-items:flex-end;position:relative}
+.av-zone::after{content:"";position:absolute;bottom:-6px;left:50%;width:60%;height:14px;transform:translateX(-50%);border-radius:50%;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--c,#fff) 55%,transparent),transparent);filter:blur(2px);z-index:-1}
+.av.repos{animation:avRepos 3.4s ease-in-out infinite}
+.av.hop{animation:avHop .7s cubic-bezier(.3,1.6,.5,1) 1,avRepos 3.4s ease-in-out .7s infinite}
+.av.saute{animation:avSaute .75s ease-in-out infinite}
+.av.tremble{animation:avTremble .32s linear infinite;filter:grayscale(.45) brightness(.8) drop-shadow(0 10px 14px rgba(0,0,0,.65))}
+.av.boit{animation:avBoit 1.6s ease-in-out 1 both}
+.av.danse{animation:avDanse .5s ease-in-out infinite}
+@keyframes avRepos{0%,100%{transform:none}50%{transform:translateY(-1.5%) scaleY(1.02) rotate(.8deg)}}
+@keyframes avHop{0%{transform:none}30%{transform:translateY(-16%) scaleY(1.05)}55%{transform:translateY(0) scale(1.05,.92)}75%{transform:translateY(-4%)}100%{transform:none}}
+@keyframes avSaute{0%,100%{transform:translateY(0) scale(1.03,.97)}45%{transform:translateY(-14%) rotate(-3deg) scale(.98,1.03)}}
+@keyframes avTremble{0%,100%{transform:translateX(0)}25%{transform:translateX(-3%) rotate(-2deg)}75%{transform:translateX(3%) rotate(2deg)}}
+@keyframes avBoit{0%{transform:none}30%{transform:rotate(-12deg) translateX(-4%)}70%{transform:rotate(-12deg) translateX(-4%)}85%{transform:rotate(3deg)}100%{transform:none}}
+@keyframes avDanse{0%,100%{transform:rotate(-6deg) translateY(0)}50%{transform:rotate(6deg) translateY(-5%)}}
+.joueur .av-zone{height:clamp(150px,28vh,280px)}
+.res-avatars{display:flex;gap:clamp(30px,10vw,180px);align-items:flex-end}
+.res-avatars .av-zone.b{--c:var(--bleu)} .res-avatars .av-zone.v{--c:var(--violet)}
+.res-avatars .av-zone.gagnant::after{background:radial-gradient(closest-side,var(--c),transparent);height:18px}
+#gage .av-zone{height:clamp(110px,24vh,240px)}
+#gage.b .av-zone{--c:var(--bleu)} #gage.v .av-zone{--c:var(--violet)}
+.hud-ava{width:28px;height:28px;border-radius:50%;overflow:hidden;border:2px solid currentColor;flex:none;background:var(--bg2);box-shadow:0 0 8px currentColor}
+.hud-ava img{width:100%;height:100%;object-fit:cover;display:block}
+.m-avatar{height:clamp(120px,26vh,220px);width:auto;animation:avRepos 3.4s ease-in-out infinite;transform-origin:50% 100%;filter:drop-shadow(0 8px 12px rgba(0,0,0,.6))}
+@media (prefers-reduced-motion:reduce){.av,.m-avatar{animation:none!important}}
 .joueur input{width:100%;font:600 clamp(16px,1.8vw,26px) var(--text);text-align:center;color:var(--fg);background:transparent;border:0;
   border-bottom:2px solid var(--line);padding:.35em 0;outline:none}
 .joueur input:focus{border-color:var(--c)}
@@ -398,11 +425,13 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
   </section>
 
   <section class="screen" id="resultat" hidden>
+    <div class="res-avatars" id="resAv"></div>
     <p class="big" id="resTitre"></p>
     <p class="sub" id="resSub"></p>
   </section>
 
   <section class="screen" id="gage" hidden>
+    <div class="av-zone" id="gAv" hidden></div>
     <p class="qui" id="gQui"></p>
     <p class="texte" id="gTexte"></p>
     <p class="sub" id="gNote"></p>
@@ -496,7 +525,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=10"></script>
+<script src="config.js?v=11"></script>
 <script>
 (function(){
 "use strict";
@@ -587,8 +616,32 @@ function brancherDb(){
       .filter(function(g){ return g.texte && (g.pour==="lui"||g.pour==="elle") && NOM_NIV[g.niveau]; });
     rendreBanque();
   }, function(){ clearTimeout(t); banqueEtat = "erreur"; rendreBanque(); });
+  chargerAvatars();
 }
 function nomPour(p){ return p==="lui" ? "Lui" : "Elle"; }
+
+/* ---------- Avatars cartoon (rangés en privé : salons/<clé>/medias/avatars) ---------- */
+var AVATARS = null;   /* {b, v, tb, tv} : images entières et têtes, en data: URL */
+function imgAvatar(cote, cls){
+  var i = document.createElement("img"); i.src = AVATARS[cote]; i.alt = ""; i.className = "av" + (cls ? " "+cls : ""); i.draggable = false;
+  return i;
+}
+function chargerAvatars(){
+  if(!db || !CLE) return;
+  db.collection("salons").doc(CLE).collection("medias").doc("avatars").get().then(function(d){
+    var x = d.exists ? d.data() : null;
+    if(x && /^data:image\//.test(x.b||"") && /^data:image\//.test(x.v||"")){ AVATARS = x; majAvatars(); }
+  }).catch(function(){});
+}
+function majAvatars(){
+  if(!AVATARS) return;
+  [["carteB","b"],["carteV","v"]].forEach(function(c){
+    var carte = $(c[0]), svg = carte.querySelector("svg"), zone = carte.querySelector(".av-zone");
+    if(!zone){ zone = el("div","av-zone"); if(svg) carte.replaceChild(zone, svg); else carte.insertBefore(zone, carte.querySelector("input")); }
+    zone.innerHTML = ""; zone.appendChild(imgAvatar(c[1], carte.classList.contains("pret") ? "hop" : "repos"));
+  });
+  majHud();
+}
 function el(tag, cls, txt){ var e = document.createElement(tag); if(cls) e.className = cls; if(txt!=null) e.textContent = txt; return e; }
 function rendreBanque(){
   var total = BANQUE.length;
@@ -742,6 +795,7 @@ function majHud(){
     var n = S.st[s].bois, prec = hudPrec[s] || 0;
     var g = el("span","hud-verres c"+s);
     g.title = n+" verre"+(n>1?"s":"")+" bu"+(n>1?"s":"")+" pour "+(S.noms[s]||"?");
+    if(AVATARS && AVATARS["t"+s]){ var ha = el("span","hud-ava"), hi = document.createElement("img"); hi.src = AVATARS["t"+s]; hi.alt = ""; ha.appendChild(hi); g.appendChild(ha); }
     g.appendChild(el("span","hud-nom", S.noms[s]||"?"));
     var box = el("span","hud-icones"), max = 8, visibles = Math.min(n, max);
     if(!n) box.appendChild(verreSVG(false));
@@ -791,8 +845,12 @@ $("btnBanqueAccueil").onclick = function(){ ouvrirBanque(); };
 /* Joueurs */
 function majNoms(){
   S.noms.b = $("nomB").value.trim(); S.noms.v = $("nomV").value.trim();
-  $("carteB").classList.toggle("pret", !!S.noms.b);
-  $("carteV").classList.toggle("pret", !!S.noms.v);
+  [["carteB","b"],["carteV","v"]].forEach(function(c){
+    var carte = $(c[0]), avant = carte.classList.contains("pret"), apres = !!S.noms[c[1]];
+    carte.classList.toggle("pret", apres);
+    var im = carte.querySelector(".av");
+    if(im && apres && !avant){ im.className = "av"; void im.offsetWidth; im.className = "av hop"; }
+  });
   $("btnParti").disabled = !(S.noms.b && S.noms.v);
 }
 $("nomB").oninput = majNoms; $("nomV").oninput = majNoms;
@@ -1318,6 +1376,13 @@ function finManche(perdant, detail){
   montrer("resultat");
   $("resTitre").textContent = S.noms[autre(perdant)]+" gagne la manche";
   $("resSub").textContent = detail;
+  var ra = $("resAv"); ra.innerHTML = ""; ra.hidden = !AVATARS;
+  if(AVATARS){
+    ["b","v"].forEach(function(c){
+      var gagne = c!==perdant, z = el("div","av-zone "+c+(gagne?" gagnant":""));
+      z.appendChild(imgAvatar(c, gagne ? "saute" : "tremble")); ra.appendChild(z);
+    });
+  }
   plus_tard(afficherGage, 2400);
 }
 function afficherGage(){
@@ -1326,6 +1391,8 @@ function afficherGage(){
   $("gage").className = "screen "+S.perdant;
   $("gQui").textContent = S.noms[S.perdant];
   $("gTexte").textContent = g.texte;
+  var ga = $("gAv"); ga.innerHTML = ""; ga.hidden = !AVATARS;
+  if(AVATARS) ga.appendChild(imgAvatar(S.perdant, "repos"));
   $("gNote").textContent = g.exemple ? "Gage d'exemple : la banque n'a pas encore de gage "+NOM_NIV[g.niveau]+" pour "+(S.perdant==="b"?"lui":"elle")+"." : "";
   neon(S.perdant);
   boutonsGage();
@@ -1344,10 +1411,11 @@ function boutonsGage(){
 }
 function choisir(c){
   if(S.ecran!=="gage") return;
-  if(c==="fais" && !S.fait){ S.fait = true; boutonsGage(); diffuser(); }
+  if(c==="fais" && !S.fait){ S.fait = true; boutonsGage(); diffuser(); var ia = $("gAv").querySelector(".av"); if(ia) ia.className = "av danse"; }
   else if(c==="bois" && !S.fait){
     S.st[S.perdant].bois++; S.tot[S.perdant].bois++; majHud();
     var a = $("gActions"); a.innerHTML = ""; a.appendChild(verreBu(S.perdant));
+    var ib = $("gAv").querySelector(".av"); if(ib){ ib.className = "av"; void ib.offsetWidth; ib.className = "av boit"; }
     S.fait = "bu"; diffuser();
     plus_tard(mancheSuivante, 1500);
   } else if(c==="fait" && S.fait===true){
@@ -1520,7 +1588,23 @@ Array.prototype.forEach.call(document.querySelectorAll(".pad4"), function(p){
     p.addEventListener(ev, function(){ if(tenu[s][d]){ tenu[s][d] = false; p.classList.remove("appui"); envoyerDir(); } });
   });
 });
-function mMontrer(id){ MV.forEach(function(v){$(v).hidden = v!==id}); }
+function mMontrer(id){
+  MV.forEach(function(v){$(v).hidden = v!==id});
+  var a = $("mAvatar");
+  if(a){ if(["m-attente","m-ok","m-noms"].indexOf(id)>=0){ var sec = $(id); if(a.parentNode!==sec) sec.insertBefore(a, sec.firstChild); a.hidden = false; } else a.hidden = true; }
+}
+function chargerAvatarManette(){
+  var cle = null; try{ cle = localStorage.getItem("jdn-cle"); }catch(e){}
+  if(!cle || cle.length!==64 || !COTE) return;
+  try{
+    firebase.firestore().collection("salons").doc(cle).collection("medias").doc("avatars").get().then(function(d){
+      var x = d.exists ? d.data() : null; if(!x || !/^data:image\//.test(x[COTE]||"")) return;
+      var i = document.createElement("img"); i.id = "mAvatar"; i.className = "m-avatar"; i.alt = ""; i.src = x[COTE];
+      var vis = MV.filter(function(v){ return !$(v).hidden; })[0] || "m-attente";
+      document.body.appendChild(i); mMontrer(vis);
+    }).catch(function(){});
+  }catch(e){}
+}
 function envoyer(topic,data){ if(room) room.emit(topic,data).catch(function(){}); if(navigator.vibrate) try{navigator.vibrate(25)}catch(e){} }
 
 function rendreManette(e){
@@ -1599,7 +1683,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "10";
+var VERSION_SITE = "11";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
@@ -1730,6 +1814,7 @@ function demarrerManette(){
   neon(COTE);
   room = SalonRT(id, "tel_"+COTE);
   brancherManette();
+  chargerAvatarManette();
   $("mAttTitre").textContent = "Recherche de la télé…";
   $("mAttSub").textContent = "Garde le jeu ouvert sur la télé.";
   var t = setTimeout(function(){
