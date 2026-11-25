@@ -22,7 +22,17 @@ html,body{height:100%;margin:0}
 img{max-width:100%}
 *{box-sizing:border-box}
 .qr{background:#fff;padding:12px;border-radius:16px;line-height:0;box-shadow:0 0 30px rgba(255,255,255,.15)}
-.qr img,.qr canvas{display:block;width:clamp(120px,14vw,200px)!important;height:auto!important}
+.qr img,.qr canvas{display:block;width:clamp(110px,11vw,170px)!important;height:auto!important}
+.qr-joueur{--c:var(--bleu);display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 12px 10px;border-radius:22px;border:2px solid var(--c);box-shadow:0 0 10px var(--c),0 0 28px color-mix(in srgb,var(--c) 40%,transparent)}
+.qr-joueur.v{--c:var(--violet)}
+.qr-nom{font-weight:800;color:var(--c);letter-spacing:.25em;text-transform:uppercase;font-size:clamp(12px,1.2vw,16px)}
+.qr-etat{font-size:clamp(11px,1vw,14px);color:var(--mute)}
+.qr-joueur.connecte .qr-etat{color:var(--c);font-weight:700}
+.accueil-bas .txt{align-items:center;text-align:center;max-width:260px}
+.pads.solo,.pads4.solo{grid-template-columns:1fr 1fr}
+.pads.solo{grid-template-columns:1fr}
+.m-choix-cote{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.m-choix-cote .b{border-color:var(--bleu);color:var(--bleu)} .m-choix-cote .v{border-color:var(--violet);color:var(--violet)}
 .accueil-bas{display:flex;align-items:center;gap:clamp(16px,3vw,40px);flex-wrap:wrap;justify-content:center}
 .accueil-bas .txt{display:flex;flex-direction:column;gap:10px;align-items:flex-start;text-align:left}
 .bq-cle{display:flex;flex-direction:column;gap:12px;border:1px solid var(--line);border-radius:16px;padding:16px}
@@ -266,12 +276,13 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
     <h1 class="titre">Le Jeu de Noël</h1>
     <button class="plein jouer" data-primary id="btnJouer">JOUER</button>
     <div class="accueil-bas">
-      <div class="qr" id="qr" aria-label="QR code de la manette"></div>
+      <div class="qr-joueur b" id="qrBoxB"><div class="qr" id="qrB" aria-label="QR code de la manette de Lui"></div><span class="qr-nom">Lui</span><span class="qr-etat" id="etatB">en attente</span></div>
       <div class="txt">
-        <p class="etat-manette">Scanne le code avec ton téléphone pour en faire la manette</p>
-        <p class="etat-manette" id="etatManette">Manette : en attente</p>
+        <p class="etat-manette">Chacun scanne son code avec son téléphone pour en faire sa manette</p>
+        <p class="etat-manette" id="etatManette">Manettes : en attente</p>
         <button class="petit" id="btnBanqueAccueil">Banque à gages</button>
       </div>
+      <div class="qr-joueur v" id="qrBoxV"><div class="qr" id="qrV" aria-label="QR code de la manette d'Elle"></div><span class="qr-nom">Elle</span><span class="qr-etat" id="etatV">en attente</span></div>
     </div>
   </section>
 
@@ -425,8 +436,8 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
   </section>
   <section id="m-pads" hidden>
     <div class="pads">
-      <button class="pad b" data-side="b"><small>Gauche</small><span id="mPadB">Bleu</span></button>
-      <button class="pad v" data-side="v"><small>Droite</small><span id="mPadV">Violet</span></button>
+      <button class="pad b" data-side="b"><small>Tape ici</small><span id="mPadB">Bleu</span></button>
+      <button class="pad v" data-side="v"><small>Tape ici</small><span id="mPadV">Violet</span></button>
     </div>
   </section>
   <section class="screen" id="m-uno" hidden>
@@ -455,7 +466,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=7"></script>
+<script src="config.js?v=8"></script>
 <script>
 (function(){
 "use strict";
@@ -889,6 +900,7 @@ function uno(){
 function unoAction(d){
   var U = S.jeu;
   if(!U || U.id!=="uno" || U.phase!=="jeu" || !d) return;
+  if(d.side && d.side!==U.tour) return;
   var s = U.tour, main = U.mains[s];
   if(d.a==="voir"){ U.revele = true; }
   else if(d.a==="couleur"){
@@ -1351,9 +1363,10 @@ var room = null;
 function etat(){
   var u = null, U = S.jeu;
   if(S.ecran==="uno" && U && U.id==="uno"){
-    var m = U.revele ? U.mains[U.tour] : null;
-    u = {tour:U.tour, phase:U.phase, revele:U.revele, att:U.attenteCouleur, aPioche:U.aPioche,
-         main:m, jouables: m ? m.map(uJouable) : null, nb:{b:U.mains.b.length, v:U.mains.v.length}, msg:U.msg};
+    u = {tour:U.tour, phase:U.phase, att:U.attenteCouleur, aPioche:U.aPioche,
+         mains:{b:U.mains.b.slice(), v:U.mains.v.slice()},
+         jouables:{b:U.mains.b.map(uJouable), v:U.mains.v.map(uJouable)},
+         nb:{b:U.mains.b.length, v:U.mains.v.length}, msg:U.msg};
   }
   return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u};
 }
@@ -1365,18 +1378,23 @@ function cliquerPrincipal(){
   if(b) b.click();
 }
 function majEtatManette(){
-  if(estManette || !room) { if(!estManette) $("etatManette").textContent = "Pas de manette ici : joue au clavier (← / →) ou à la souris"; return; }
-  var n = room.peers().filter(function(p){return p.presence && p.presence.role==="manette"}).length;
-  $("etatManette").innerHTML = "";
-  var t = document.createTextNode("Manette : "); var b = document.createElement("b");
-  b.textContent = n ? "connectée" : "en attente (ouvre ce lien sur ton téléphone)";
-  $("etatManette").appendChild(t); $("etatManette").appendChild(b);
+  if(estManette) return;
+  if(!room){ $("etatManette").textContent = "Pas de manette ici : joue au clavier (Q / D et ← / →) ou à la souris"; return; }
+  var cotes = {};
+  room.peers().forEach(function(p){ if(p.presence && p.presence.role==="manette") cotes[p.presence.cote] = true; });
+  ["b","v"].forEach(function(c){
+    var box = $(c==="b"?"qrBoxB":"qrBoxV");
+    box.classList.toggle("connecte", !!cotes[c]);
+    $(c==="b"?"etatB":"etatV").textContent = cotes[c] ? "connecté" : "en attente";
+  });
+  var n = (cotes.b?1:0) + (cotes.v?1:0);
+  $("etatManette").textContent = n===2 ? "Les deux manettes sont connectées" : n===1 ? "Une manette connectée sur deux" : "Manettes : en attente";
 }
 
 function brancherTV(){
   room.presence({role:"tv"}).catch(function(){});
   room.on("tap", function(m){ if(m.data) appui(m.data.side); });
-  room.on("choix", function(m){ if(m.data) choisir(m.data.c); });
+  room.on("choix", function(m){ if(m.data && (!m.data.side || m.data.side===S.perdant)) choisir(m.data.c); });
   room.on("uno", function(m){ if(m.data && S.ecran==="uno") unoAction(m.data); });
   room.on("quitter", function(){ if(S.ecran!=="accueil") quitter(); });
   room.on("ok", function(){ if(["accueil","joueurs","modes","intro","fin"].indexOf(S.ecran)>=0) cliquerPrincipal(); });
@@ -1394,30 +1412,29 @@ function brancherTV(){
 
 /* ---------- Vue manette ---------- */
 var M = {ecran:null};
+var COTE = null;  /* "b" (Lui) ou "v" (Elle) pour ce téléphone */
 var MV = ["m-attente","m-noms","m-pads","m-course","m-uno","m-gage","m-ok"];
 function rendreUnoManette(u, noms){
   mMontrer("m-uno");
   var box = $("mUnoCorps"); box.innerHTML = "";
+  var aMoi = u.tour===COTE && u.phase==="jeu";
   $("mUnoInfo").className = "eyebrow c"+u.tour;
-  $("mUnoInfo").textContent = u.phase!=="jeu" ? "Partie terminée" : u.att ? noms[u.tour]+" choisit une couleur" : "Au tour de "+noms[u.tour];
-  if(u.phase!=="jeu"){ box.appendChild(el("p","sub",u.msg||"")); return; }
-  if(u.att){
-    var g = el("div","m-uno-choix");
-    UC.forEach(function(c){ var b = el("button","m-gros k-"+c, NOM_COUL[c]); b.onclick = function(){ envoyer("uno",{a:"couleur", c:c}); }; g.appendChild(b); });
-    box.appendChild(g); return;
-  }
-  if(!u.revele){
-    box.appendChild(el("p","sub","Passe le téléphone à "+noms[u.tour]+", puis appuie pour voir tes cartes."));
-    var v = el("button","plein m-gros","Je suis "+noms[u.tour]+" · voir mes cartes");
-    v.onclick = function(){ envoyer("uno",{a:"voir"}); }; box.appendChild(v); return;
-  }
+  $("mUnoInfo").textContent = u.phase!=="jeu" ? "Partie terminée" : aMoi ? (u.att ? "Choisis une couleur" : "À toi de jouer") : (u.att ? noms[u.tour]+" choisit une couleur" : "Au tour de "+noms[u.tour]);
   if(u.msg) box.appendChild(el("p","sub",u.msg));
+  if(aMoi && u.att){
+    var g = el("div","m-uno-choix");
+    UC.forEach(function(c){ var b = el("button","m-gros k-"+c, NOM_COUL[c]); b.onclick = function(){ envoyer("uno",{a:"couleur", c:c, side:COTE}); }; g.appendChild(b); });
+    box.appendChild(g);
+  }
+  var maMain = (u.mains && u.mains[COTE]) || [], jou = (u.jouables && u.jouables[COTE]) || [];
   var main = el("div","m-main");
-  (u.main||[]).forEach(function(k,i){ var b = carteEl(k,"",true); b.disabled = !(u.jouables && u.jouables[i]); b.onclick = function(){ envoyer("uno",{a:"jouer", i:i}); }; main.appendChild(b); });
+  maMain.forEach(function(k,i){ var b = carteEl(k,"",true); b.disabled = !(aMoi && !u.att && jou[i]); b.onclick = function(){ envoyer("uno",{a:"jouer", i:i, side:COTE}); }; main.appendChild(b); });
   box.appendChild(main);
-  var act = el("button","m-gros", u.aPioche ? "Passer" : "Piocher");
-  act.onclick = function(){ envoyer("uno",{a: u.aPioche ? "passer" : "piocher"}); };
-  box.appendChild(act);
+  if(aMoi && !u.att){
+    var act = el("button","m-gros", u.aPioche ? "Passer" : "Piocher");
+    act.onclick = function(){ envoyer("uno",{a: u.aPioche ? "passer" : "piocher", side:COTE}); };
+    box.appendChild(act);
+  }
 }
 function lireDirManette(peers){
   var d = {b:0,v:0};
@@ -1444,7 +1461,7 @@ function envoyer(topic,data){ if(room) room.emit(topic,data).catch(function(){})
 function rendreManette(e){
   var noms = e.noms||{b:"",v:""};
   $("mPadB").textContent = noms.b || "Bleu"; $("mPadV").textContent = noms.v || "Violet";
-  neon(e.ecran==="gage" ? e.perdant : null);
+  neon(COTE);
   $("mCrB").textContent = noms.b || "Bleu"; $("mCrV").textContent = noms.v || "Violet";
   if(e.ecran!=="course" && M.ecran==="course"){ tenu = {b:{}, v:{}}; envoyerDir(); }
   if(e.ecran==="course"){
@@ -1452,7 +1469,7 @@ function rendreManette(e){
   } else if(e.ecran==="uno" && e.uno){
     rendreUnoManette(e.uno, noms);
   } else if(e.ecran==="joueurs"){
-    if(M.ecran!=="joueurs"){ $("mNomB").value = noms.b||""; $("mNomV").value = noms.v||""; }
+    if(M.ecran!=="joueurs"){ $(COTE==="b"?"mNomB":"mNomV").value = noms[COTE]||""; }
     mMontrer("m-noms");
   } else if(e.ecran==="reflexe" || e.ecran==="carte" || e.ecran==="chrono"){
     mMontrer("m-pads");
@@ -1463,12 +1480,14 @@ function rendreManette(e){
     var cle = e.perdant+"|"+e.fait+"|"+e.manche;
     if(box.getAttribute("data-k")!==cle){
       box.setAttribute("data-k",cle); box.innerHTML = "";
-      if(e.fait===false){
-        var f=document.createElement("button"); f.className="plein m-gros"; f.textContent="Je le fais"; f.onclick=function(){envoyer("choix",{c:"fais"})};
-        var b=document.createElement("button"); b.className="m-gros"; b.textContent="Je bois"; b.onclick=function(){envoyer("choix",{c:"bois"})};
+      if(e.perdant!==COTE){
+        box.appendChild(el("p","sub", (e.fait===false ? "C'est à "+(noms[e.perdant]||"l'autre")+" de choisir : le faire ou boire." : e.fait===true ? (noms[e.perdant]||"L'autre")+" fait son gage. Surveille bien !" : (noms[e.perdant]||"L'autre")+" a bu.")));
+      } else if(e.fait===false){
+        var f=document.createElement("button"); f.className="plein m-gros"; f.textContent="Je le fais"; f.onclick=function(){envoyer("choix",{c:"fais",side:COTE})};
+        var b=document.createElement("button"); b.className="m-gros"; b.textContent="Je bois"; b.onclick=function(){envoyer("choix",{c:"bois",side:COTE})};
         box.appendChild(f); box.appendChild(b);
       } else if(e.fait===true){
-        var ok=document.createElement("button"); ok.className="plein m-gros"; ok.textContent="C'est fait"; ok.onclick=function(){envoyer("choix",{c:"fait"})};
+        var ok=document.createElement("button"); ok.className="plein m-gros"; ok.textContent="C'est fait"; ok.onclick=function(){envoyer("choix",{c:"fait",side:COTE})};
         box.appendChild(ok);
       } else {
         var p=document.createElement("p"); p.className="verre"; p.textContent="+1 verre"; box.appendChild(p);
@@ -1487,7 +1506,7 @@ function rendreManette(e){
   M.ecran = e.ecran;
 }
 function brancherManette(){
-  room.presence({role:"manette"}).catch(function(){});
+  room.presence({role:"manette", cote:COTE}).catch(function(){});
   $("mAttTitre").textContent = "Connexion à la télé…";
   $("mAttSub").textContent = "Garde le jeu ouvert sur la télé.";
   room.on("etat", function(m){ if(m.data && !m.sameTab) rendreManette(m.data); });
@@ -1499,7 +1518,7 @@ Array.prototype.forEach.call(document.querySelectorAll(".pad"), function(p){
     envoyer("tap",{side:s});
   });
 });
-$("mValiderNoms").onclick = function(){ envoyer("nom",{b:$("mNomB").value.trim(), v:$("mNomV").value.trim()}); };
+$("mValiderNoms").onclick = function(){ var d = {}; d[COTE] = $(COTE==="b"?"mNomB":"mNomV").value.trim(); envoyer("nom", d); };
 $("mOk").onclick = function(){ envoyer("ok",{}); };
 var mqT=null;
 $("mQuitter").addEventListener("pointerdown", function(e){ e.stopPropagation(); });
@@ -1515,7 +1534,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "7";
+var VERSION_SITE = "8";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
@@ -1524,8 +1543,8 @@ var VERSION_SITE = "7";
 function nettoyer(v){ try{ return JSON.parse(JSON.stringify(v===undefined ? null : v)); }catch(e){ return null; } }
 function SalonRT(id, role){
   var base = firebase.database().ref("salles/"+id);
-  var autreRole = role==="tv" ? "tel" : "tv";
-  var handlers = {}, peersFns = [], moi = {en_ligne:true}, presAutre = null;
+  var autresRoles = role==="tv" ? ["tel_b","tel_v"] : ["tv"];
+  var handlers = {}, peersFns = [], moi = {en_ligne:true}, pres = {};
   var instance = Math.random().toString(36).slice(2, 12);
   if(role==="tv") moi.instance = instance;
   function declencher(t, d){ (handlers[t] || []).forEach(function(fn){ try{ fn({topic:t, data:d, sameTab:false}); }catch(e){} }); }
@@ -1534,7 +1553,7 @@ function SalonRT(id, role){
     emit: function(t, d){
       if(role==="tv" && !api.actif) return Promise.resolve();
       if(role==="tv" && t==="etat") base.child("etat").set({d:nettoyer(d), ts:Date.now()}).catch(function(){});
-      else if(role==="tel") base.child("vers_tv").push({t:t, d:nettoyer(d)}).catch(function(){});
+      else if(role!=="tv") base.child("vers_tv").push({t:t, d:nettoyer(d)}).catch(function(){});
       return Promise.resolve();
     },
     on: function(t, fn){ (handlers[t] = handlers[t] || []).push(fn); return function(){}; },
@@ -1544,7 +1563,7 @@ function SalonRT(id, role){
       base.child("presence/"+role).set(nettoyer(moi)).catch(function(){});
       return Promise.resolve();
     },
-    peers: function(){ return presAutre ? [{presence:presAutre}] : []; },
+    peers: function(){ return autresRoles.filter(function(r){ return pres[r]; }).map(function(r){ return {presence:pres[r]}; }); },
     onPeers: function(fn){ peersFns.push(fn); return function(){}; },
     onClose: null, onOpen: null, onActif: null, actif: true,
     reprendre: function(){ api.actif = true; maPresence.onDisconnect().remove(); maPresence.set(nettoyer(moi)).catch(function(){}); if(api.onActif) api.onActif(true); }
@@ -1553,12 +1572,14 @@ function SalonRT(id, role){
   firebase.database().ref(".info/connected").on("value", function(s){
     if(s.val()===true && api.actif){ maPresence.onDisconnect().remove(); maPresence.set(nettoyer(moi)).catch(function(){}); }
   });
-  base.child("presence/"+autreRole).on("value", function(s){
-    var avant = !!presAutre, v = s.val();
-    presAutre = (v && typeof v==="object") ? v : null;
-    if(!avant && presAutre){ notifier([1], []); if(api.onOpen) api.onOpen(); }
-    else if(avant && !presAutre){ notifier([], [1]); if(api.onClose) api.onClose(); }
-    else notifier([], []);
+  autresRoles.forEach(function(r){
+    base.child("presence/"+r).on("value", function(s){
+      var avant = !!pres[r], v = s.val();
+      if(v && typeof v==="object") pres[r] = v; else delete pres[r];
+      if(!avant && pres[r]){ notifier([1], []); if(api.onOpen) api.onOpen(); }
+      else if(avant && !pres[r]){ notifier([], [1]); if(api.onClose) api.onClose(); }
+      else notifier([], []);
+    });
   });
   if(role==="tv"){
     /* Une seule télé pilote le salon : la dernière ouverte prend la main */
@@ -1579,16 +1600,18 @@ function SalonRT(id, role){
       if(m && typeof m.t==="string") declencher(m.t, m.d);
     });
   } else {
-    base.child("etat").on("value", function(s){ var v = s.val(); if(v && v.d && presAutre) declencher("etat", v.d); });
+    base.child("etat").on("value", function(s){ var v = s.val(); if(v && v.d && pres.tv) declencher("etat", v.d); });
   }
   return api;
 }
 function idAleatoire(){ return "jdn"+Math.random().toString(36).slice(2,12)+Math.random().toString(36).slice(2,8); }
 function afficherQR(id){
-  var url = location.origin + location.pathname + "?v=" + VERSION_SITE + "#manette=" + id;
-  var box = $("qr"); box.innerHTML = "";
-  if(window.QRCode){ try{ new QRCode(box, {text:url, width:220, height:220, colorDark:"#000000", colorLight:"#ffffff", correctLevel:QRCode.CorrectLevel.M}); }catch(e){} }
-  box.title = url;
+  ["b","v"].forEach(function(c){
+    var url = location.origin + location.pathname + "?v=" + VERSION_SITE + "#manette=" + id + "&j=" + c;
+    var box = $(c==="b"?"qrB":"qrV"); box.innerHTML = "";
+    if(window.QRCode){ try{ new QRCode(box, {text:url, width:220, height:220, colorDark:"#000000", colorLight:"#ffffff", correctLevel:QRCode.CorrectLevel.M}); }catch(e){} }
+    box.title = url;
+  });
 }
 function firebaseOK(){
   var cfg = window.FIREBASE_CONFIG;
@@ -1596,7 +1619,7 @@ function firebaseOK(){
   try{ if(!firebase.apps.length) firebase.initializeApp(cfg); return true; }catch(e){ return false; }
 }
 function demarrerTV(){
-  if(!firebaseOK() || !firebase.database){ $("qr").hidden = true; $("etatManette").textContent = "Manette indisponible : vérifie la connexion internet de la télé."; return; }
+  if(!firebaseOK() || !firebase.database){ $("qrBoxB").hidden = true; $("qrBoxV").hidden = true; $("etatManette").textContent = "Manette indisponible : vérifie la connexion internet de la télé."; return; }
   var id = null; try{ id = localStorage.getItem("jdn-salle"); }catch(e){}
   if(!id || !/^jdn[a-z0-9]{10,}$/.test(id)){ id = idAleatoire(); try{ localStorage.setItem("jdn-salle", id); }catch(e){} }
   room = SalonRT(id, "tv");
@@ -1612,14 +1635,35 @@ function demarrerTV(){
   afficherQR(id);
   majEtatManette();
 }
+function lireHash(){
+  var o = {};
+  location.hash.replace(/^#/, "").split("&").forEach(function(kv){ var p = kv.split("="); if(p[0]) o[p[0]] = decodeURIComponent(p[1]||""); });
+  return o;
+}
 function demarrerManette(){
-  var id = decodeURIComponent((location.hash.split("=")[1] || "")).replace(/[^a-z0-9]/gi, "");
+  var h = lireHash();
+  var id = (h.manette || "").replace(/[^a-z0-9]/gi, "");
+  COTE = h.j==="b" || h.j==="v" ? h.j : null;
+  if(id && !COTE){
+    $("mAttTitre").textContent = "Qui es-tu ?";
+    $("mAttSub").textContent = "Choisis ton joueur pour cette manette.";
+    var ch = el("div","m-choix-cote");
+    [["b","Lui"],["v","Elle"]].forEach(function(x){ var b = el("button","m-gros "+x[0], x[1]); b.onclick = function(){ location.hash = "manette="+id+"&j="+x[0]; location.reload(); }; ch.appendChild(b); });
+    $("m-attente").insertBefore(ch, $("btnRetourTV"));
+    return;
+  }
   if(!id || id.length < 12 || !firebaseOK() || !firebase.database){
     $("mAttTitre").textContent = "Scanne le QR code";
     $("mAttSub").textContent = "Ouvre le jeu sur la télé et scanne le code affiché sur l'écran d'accueil.";
     return;
   }
-  room = SalonRT(id, "tel");
+  /* Ce téléphone ne garde que les commandes de son joueur */
+  Array.prototype.forEach.call(document.querySelectorAll(".pad, .pad4"), function(p){ if(p.getAttribute("data-side")!==COTE) p.hidden = true; });
+  document.querySelector(".pads").classList.add("solo"); document.querySelector(".pads4").classList.add("solo");
+  $(COTE==="b"?"mNomV":"mNomB").hidden = true;
+  $(COTE==="b"?"mNomB":"mNomV").placeholder = "Ton prénom";
+  neon(COTE);
+  room = SalonRT(id, "tel_"+COTE);
   brancherManette();
   $("mAttTitre").textContent = "Recherche de la télé…";
   $("mAttSub").textContent = "Garde le jeu ouvert sur la télé.";
