@@ -455,7 +455,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=6"></script>
+<script src="config.js?v=7"></script>
 <script>
 (function(){
 "use strict";
@@ -1515,7 +1515,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "6";
+var VERSION_SITE = "7";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
@@ -1526,10 +1526,13 @@ function SalonRT(id, role){
   var base = firebase.database().ref("salles/"+id);
   var autreRole = role==="tv" ? "tel" : "tv";
   var handlers = {}, peersFns = [], moi = {en_ligne:true}, presAutre = null;
+  var instance = Math.random().toString(36).slice(2, 12);
+  if(role==="tv") moi.instance = instance;
   function declencher(t, d){ (handlers[t] || []).forEach(function(fn){ try{ fn({topic:t, data:d, sameTab:false}); }catch(e){} }); }
   function notifier(j, l){ var ps = api.peers(); peersFns.forEach(function(fn){ try{ fn({peers:ps, joined:j, left:l, updated:[]}); }catch(e){} }); }
   var api = {
     emit: function(t, d){
+      if(role==="tv" && !api.actif) return Promise.resolve();
       if(role==="tv" && t==="etat") base.child("etat").set({d:nettoyer(d), ts:Date.now()}).catch(function(){});
       else if(role==="tel") base.child("vers_tv").push({t:t, d:nettoyer(d)}).catch(function(){});
       return Promise.resolve();
@@ -1537,16 +1540,18 @@ function SalonRT(id, role){
     on: function(t, fn){ (handlers[t] = handlers[t] || []).push(fn); return function(){}; },
     presence: function(p){
       for(var k in p){ if(p[k]===null) delete moi[k]; else moi[k] = p[k]; }
+      if(role==="tv" && !api.actif) return Promise.resolve();
       base.child("presence/"+role).set(nettoyer(moi)).catch(function(){});
       return Promise.resolve();
     },
     peers: function(){ return presAutre ? [{presence:presAutre}] : []; },
     onPeers: function(fn){ peersFns.push(fn); return function(){}; },
-    onClose: null, onOpen: null
+    onClose: null, onOpen: null, onActif: null, actif: true,
+    reprendre: function(){ api.actif = true; maPresence.onDisconnect().remove(); maPresence.set(nettoyer(moi)).catch(function(){}); if(api.onActif) api.onActif(true); }
   };
   var maPresence = base.child("presence/"+role);
   firebase.database().ref(".info/connected").on("value", function(s){
-    if(s.val()===true){ maPresence.onDisconnect().remove(); maPresence.set(nettoyer(moi)).catch(function(){}); }
+    if(s.val()===true && api.actif){ maPresence.onDisconnect().remove(); maPresence.set(nettoyer(moi)).catch(function(){}); }
   });
   base.child("presence/"+autreRole).on("value", function(s){
     var avant = !!presAutre, v = s.val();
@@ -1556,9 +1561,20 @@ function SalonRT(id, role){
     else notifier([], []);
   });
   if(role==="tv"){
+    /* Une seule télé pilote le salon : la dernière ouverte prend la main */
+    var revendique = false;
+    maPresence.set(nettoyer(moi)).then(function(){ revendique = true; }).catch(function(){ revendique = true; });
+    maPresence.on("value", function(s){
+      if(!revendique) return;
+      var v = s.val();
+      if(!v){ if(api.actif){ maPresence.onDisconnect().remove(); maPresence.set(nettoyer(moi)).catch(function(){}); } return; }
+      var actif = v.instance===instance;
+      if(actif!==api.actif){ api.actif = actif; if(!actif) maPresence.onDisconnect().cancel(); if(api.onActif) api.onActif(actif); }
+    });
     var inbox = base.child("vers_tv");
     inbox.remove().catch(function(){});
     inbox.on("child_added", function(s){
+      if(!api.actif) return;
       var m = s.val(); s.ref.remove().catch(function(){});
       if(m && typeof m.t==="string") declencher(m.t, m.d);
     });
@@ -1584,6 +1600,13 @@ function demarrerTV(){
   var id = null; try{ id = localStorage.getItem("jdn-salle"); }catch(e){}
   if(!id || !/^jdn[a-z0-9]{10,}$/.test(id)){ id = idAleatoire(); try{ localStorage.setItem("jdn-salle", id); }catch(e){} }
   room = SalonRT(id, "tv");
+  var ov = document.createElement("section");
+  ov.className = "screen"; ov.hidden = true; ov.style.zIndex = "60"; ov.style.background = "var(--bg)";
+  ov.appendChild(el("p","big","Le jeu est ouvert sur un autre écran"));
+  ov.appendChild(el("p","sub","Une seule télé peut piloter la partie à la fois. Ferme cet onglet, ou reprends la main ici."));
+  var rp = el("button","plein","Jouer sur cet écran"); rp.onclick = function(){ room.reprendre(); diffuser(); };
+  ov.appendChild(rp); document.body.appendChild(ov);
+  room.onActif = function(a){ ov.hidden = a; if(a) diffuser(); };
   brancherTV();
   room.presence({role:"tv"});
   afficherQR(id);
