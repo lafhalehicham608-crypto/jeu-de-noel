@@ -226,6 +226,24 @@ thead td{font-weight:600}
 .pad4 span{font-size:44px;line-height:1}
 #course{padding-top:max(56px,env(safe-area-inset-top,0px))}
 #cvCourse{width:100%;flex:1 1 auto;min-height:0;max-width:100%;display:block}
+/* Tir à la corde */
+.arene{position:relative;width:min(92vw,1100px);height:clamp(90px,17vh,170px)}
+.arene .zone{position:absolute;top:0;bottom:0;width:18%;border-radius:18px;border:2px solid var(--c);background:color-mix(in srgb,var(--c) 12%,transparent);
+  box-shadow:0 0 16px color-mix(in srgb,var(--c) 40%,transparent),inset 0 0 22px color-mix(in srgb,var(--c) 22%,transparent);transition:box-shadow .15s,background .15s}
+.arene .zone.b{left:0;--c:var(--bleu)} .arene .zone.v{right:0;--c:var(--violet)}
+.arene .zone.flash{background:color-mix(in srgb,var(--c) 26%,transparent);box-shadow:0 0 34px var(--c),inset 0 0 36px color-mix(in srgb,var(--c) 45%,transparent)}
+.arene .zone span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:clamp(18px,2.4vw,40px);color:var(--c);font-variant-numeric:tabular-nums;opacity:.85}
+.arene .centre{position:absolute;left:50%;top:-10%;bottom:-10%;width:2px;margin-left:-1px;background:repeating-linear-gradient(to bottom,var(--fg) 0 8px,transparent 8px 16px);opacity:.4}
+.corde{--p:0;position:absolute;left:10%;width:80%;top:50%;height:clamp(12px,2vh,22px);border-radius:99px;
+  background:repeating-linear-gradient(115deg,#ecd6ab 0 9px,#b38d55 9px 13px,#ecd6ab 13px 22px);
+  box-shadow:0 0 14px rgba(236,214,171,.35),0 5px 12px rgba(0,0,0,.6);
+  transform:translate(calc(var(--p) * 40%),-50%);transition:transform .12s ease-out}
+.corde.secoue{animation:cordeSecoue .12s linear}
+@keyframes cordeSecoue{50%{margin-top:2px}}
+.noeud{position:absolute;left:50%;top:50%;width:clamp(24px,2.6vw,40px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,#ff4d5e 45%,#9e1420);box-shadow:0 0 18px #ff4d5e}
+.noeud::after{content:"";position:absolute;left:50%;top:85%;width:clamp(8px,.9vw,14px);height:clamp(26px,3vw,46px);transform:translateX(-50%);
+  background:linear-gradient(#ff4d5e,#9e1420);clip-path:polygon(0 0,100% 0,100% 100%,50% 80%,0 100%)}
 /* Dernière carte */
 .k-r{--k:#e0303d;--k2:#9e1420} .k-j{--k:#f7c51e;--k2:#c48a00} .k-v{--k:#2ea44f;--k2:#16692e} .k-b{--k:#1f6fd6;--k2:#0d4396} .k-w{--k:#262626;--k2:#0a0a0a}
 /* Cartes façon vraies cartes : bord blanc, face colorée brillante, losange central, coins indexés */
@@ -366,6 +384,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
       <button class="plein mode" data-primary id="btnClassique">Mode classique<small>Parties de 10 manches · mini-jeux et gages</small></button>
       <button class="mode" disabled>Arcade<small>Bientôt</small></button>
       <button class="mode" id="btnTestCourse">Tester la course<small>Lance directement le mini circuit</small></button>
+      <button class="mode" id="btnTestCorde">Tester la corde<small>Lance directement le tir à la corde</small></button>
       <button class="mode" id="btnTestUno">Tester les cartes<small>Lance directement Dernière carte</small></button>
       <button class="mode" id="btnBanque">Banque à gages<small>Ajouter et gérer vos gages</small></button>
     </div>
@@ -409,6 +428,19 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 
   <section class="screen" id="course" hidden>
     <canvas id="cvCourse"></canvas>
+  </section>
+
+  <section class="screen" id="corde" hidden>
+    <p class="eyebrow">Force · tir à la corde</p>
+    <p class="mega" id="crMsg"></p>
+    <div class="arene">
+      <div class="zone b" id="crZoneB"><span id="crTapB">0</span></div>
+      <div class="zone v" id="crZoneV"><span id="crTapV">0</span></div>
+      <div class="centre"></div>
+      <div class="corde" id="crCorde"><div class="noeud"></div></div>
+    </div>
+    <div class="cotes"><span class="cb" id="crB"></span><span class="cv" id="crV"></span></div>
+    <p class="sub" id="crSub"></p>
   </section>
 
   <section class="screen" id="uno" hidden>
@@ -523,7 +555,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=12"></script>
+<script src="config.js?v=13"></script>
 <script>
 (function(){
 "use strict";
@@ -561,7 +593,8 @@ var JEUX = [
   {id:"carte",   type:"Chance",  nom:"Carte haute"},
   {id:"chrono",  type:"Feeling", nom:"Chrono à l'aveugle"},
   {id:"course",  type:"Course",  nom:"Mini circuit"},
-  {id:"uno",     type:"Cartes",  nom:"Dernière carte"}
+  {id:"uno",     type:"Cartes",  nom:"Dernière carte"},
+  {id:"corde",   type:"Force",   nom:"Tir à la corde"}
 ];
 var VALEURS = {11:"V",12:"D",13:"R",14:"A"};
 
@@ -755,12 +788,12 @@ var gen = 0;
 function plus_tard(fn,ms){var g=gen;setTimeout(function(){if(g===gen)fn()},ms)}
 
 /* ---------- Affichage TV ---------- */
-var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","resultat","gage","fin","banque"];
+var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","resultat","gage","fin","banque"];
 function montrer(id){
   gen++;
   S.ecran = id;
   ECRANS.forEach(function(e){$(e).hidden = e!==id});
-  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","resultat","gage"].indexOf(id)<0;
+  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","resultat","gage"].indexOf(id)<0;
   if(id!=="gage") neon(null);
   $("btnQuitter").hidden = id==="accueil" || id==="banque";
   annulerQuitter();
@@ -854,6 +887,10 @@ $("btnClassique").onclick = function(){
 };
 
 $("btnBanque").onclick = function(){ ouvrirBanque(); };
+$("btnTestCorde").onclick = function(){
+  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
+  corde();
+};
 $("btnTestUno").onclick = function(){
   S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
   uno();
@@ -952,7 +989,49 @@ function atterrir(choix){
   (function flash(){ var on = c%2===0; ampoules(function(a){ a.classList.toggle("on", on); }); c++; if(c<10) plus_tard(flash, 140); })();
   plus_tard(function(){ demarrer(JEUX[choix].id); }, 2200);
 }
-function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else carteHaute(); }
+function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else if(id==="corde") corde(); else carteHaute(); }
+
+/* Mini-jeu 6 : tir à la corde (chaque tape tire la corde de son côté) */
+var CORDE_PAS = 0.05, CORDE_DUREE = 20000;
+function majCorde(side){
+  var J = S.jeu;
+  $("crCorde").style.setProperty("--p", J.p.toFixed(3));
+  $("crTapB").textContent = J.taps.b; $("crTapV").textContent = J.taps.v;
+  if(side){
+    var z = $(side==="b"?"crZoneB":"crZoneV"); z.classList.add("flash"); clearTimeout(z._t); z._t = setTimeout(function(){ z.classList.remove("flash"); }, 120);
+    var c = $("crCorde"); c.classList.remove("secoue"); void c.offsetWidth; c.classList.add("secoue");
+  }
+}
+function corde(){
+  S.jeu = {id:"corde", phase:"pret", p:0, taps:{b:0, v:0}};
+  montrer("corde");
+  $("crB").textContent = "← "+S.noms.b; $("crV").textContent = S.noms.v+" →";
+  $("crSub").textContent = "Tapez le plus vite possible sur votre téléphone pour tirer le nœud dans votre zone.";
+  majCorde();
+  var n = 3; $("crMsg").textContent = "3"; bip(660, 0.15, 0.07);
+  (function decompte(){
+    plus_tard(function(){
+      n--;
+      if(n>0){ $("crMsg").textContent = String(n); bip(660, 0.15, 0.07); decompte(); return; }
+      $("crMsg").textContent = "TIREZ !"; bip(1320, 0.25, 0.08);
+      S.jeu.phase = "go"; diffuser();
+      plus_tard(function(){ if(S.jeu && S.jeu.phase==="go") $("crMsg").textContent = ""; }, 900);
+      plus_tard(function(){
+        if(!S.jeu || S.jeu.phase!=="go") return;
+        if(S.jeu.p===0){ S.jeu.phase = "fini"; $("crMsg").textContent = "Égalité !"; $("crSub").textContent = "On recommence."; plus_tard(corde, 2000); }
+        else gagnerCorde(S.jeu.p<0 ? "b" : "v", true);
+      }, CORDE_DUREE);
+    }, 900);
+  })();
+}
+function gagnerCorde(g, parTemps){
+  var J = S.jeu; J.phase = "fini";
+  $("crMsg").textContent = S.noms[g]+" gagne !";
+  $("crSub").textContent = parTemps ? "Temps écoulé : le nœud était de son côté." : "";
+  bip(880, 0.15, 0.07); plus_tard(function(){ bip(1320, 0.3, 0.07); }, 150);
+  diffuser();
+  plus_tard(function(){ finManche(autre(g), S.noms[g]+" a tiré la corde ("+J.taps[g]+" tapes contre "+J.taps[autre(g)]+")"); }, 2400);
+}
 
 /* Mini-jeu 5 : Dernière carte (premier à vider sa main) */
 var UC = ["r","j","v","b"], NOM_COUL = {r:"Rouge", j:"Jaune", v:"Vert", b:"Bleu"}, MAIN_DEPART = 5;
@@ -1343,6 +1422,11 @@ function appui(side){
       var ms = Math.round(performance.now()-S.jeu.t0);
       finManche(autre(side), S.noms[side]+" a tapé en "+(ms/1000).toFixed(2).replace(".",",")+" s");
     }
+  } else if(S.ecran==="corde" && S.jeu.phase==="go"){
+    S.jeu.taps[side]++;
+    S.jeu.p = Math.max(-1, Math.min(1, S.jeu.p + (side==="b" ? -CORDE_PAS : CORDE_PAS)));
+    majCorde(side);
+    if(Math.abs(S.jeu.p) >= 1) gagnerCorde(S.jeu.p<0 ? "b" : "v", false);
   } else if(S.ecran==="chrono" && S.jeu.phase==="go" && S.jeu.t[side]===null){
     S.jeu.t[side] = (performance.now()-S.jeu.t0)/1000;
     $(side==="b"?"chB":"chV").textContent = S.noms[side]+" · a tapé ✓";
@@ -1447,7 +1531,7 @@ document.addEventListener("keyup", function(e){ var t = TOUCHES_COURSE[String(e.
 window.addEventListener("blur", function(){ touches = {}; majDirClavier(); });
 document.addEventListener("keydown", function(e){
   if(estManette) return;
-  var enJeu = S.ecran==="reflexe" || S.ecran==="carte" || S.ecran==="chrono";
+  var enJeu = S.ecran==="reflexe" || S.ecran==="carte" || S.ecran==="chrono" || S.ecran==="corde";
   var k = e.key;
   if((k==="Escape"||k==="Backspace"||k==="GoBack"||k==="BrowserBack") && S.ecran!=="accueil" && document.activeElement.tagName!=="INPUT" && document.activeElement.tagName!=="TEXTAREA"){ e.preventDefault(); $("btnQuitter").click(); return; }
   if(S.ecran==="course"){ var t = TOUCHES_COURSE[String(k).toLowerCase()]; if(t){ e.preventDefault(); touches[t] = true; majDirClavier(); } return; }
@@ -1468,7 +1552,7 @@ document.addEventListener("keydown", function(e){
     els[i].focus();
   }
 });
-["reflexe","carte","chrono"].forEach(function(id){
+["reflexe","carte","chrono","corde"].forEach(function(id){
   $(id).addEventListener("pointerdown", function(e){ appui(e.clientX < window.innerWidth/2 ? "b" : "v"); });
 });
 
@@ -1601,7 +1685,7 @@ function rendreManette(e){
   } else if(e.ecran==="joueurs"){
     if(M.ecran!=="joueurs"){ $(COTE==="b"?"mNomB":"mNomV").value = noms[COTE]||""; }
     mMontrer("m-noms");
-  } else if(e.ecran==="reflexe" || e.ecran==="carte" || e.ecran==="chrono"){
+  } else if(e.ecran==="reflexe" || e.ecran==="carte" || e.ecran==="chrono" || e.ecran==="corde"){
     mMontrer("m-pads");
   } else if(e.ecran==="gage" && (e.perdant==="b"||e.perdant==="v")){
     mMontrer("m-gage");
@@ -1664,7 +1748,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "12";
+var VERSION_SITE = "13";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
