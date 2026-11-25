@@ -1,0 +1,1642 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#06060d">
+<title>Le Jeu de Noël</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Sora:wght@300;400;600;800&display=swap">
+<style>
+/* Écran TV plein cadre, fond nuit, néon bleu (lui) / violet (elle). Thème unique sombre, voulu. */
+:root{
+  --bg:#06060d; --bg2:#0d0d1c; --fg:#f3f2f8; --mute:#8b89a8; --line:#24243c;
+  --bleu:#2fa8ff; --violet:#b84dff; --go:#ffffff;
+  --n-medium:#ffc24b; --n-hard:#ff7a3d; --n-impossible:#ff3b6b; --danger:#ff5a6e;
+  --display:"Monoton","Sora",system-ui,sans-serif;
+  --text:"Sora",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0}
+*{box-sizing:border-box}
+.qr{background:#fff;padding:12px;border-radius:16px;line-height:0;box-shadow:0 0 30px rgba(255,255,255,.15)}
+.qr img,.qr canvas{display:block;width:clamp(120px,14vw,200px)!important;height:auto!important}
+.accueil-bas{display:flex;align-items:center;gap:clamp(16px,3vw,40px);flex-wrap:wrap;justify-content:center}
+.accueil-bas .txt{display:flex;flex-direction:column;gap:10px;align-items:flex-start;text-align:left}
+.bq-cle{display:flex;flex-direction:column;gap:12px;border:1px solid var(--line);border-radius:16px;padding:16px}
+.bq-cle .row{justify-content:flex-start}
+.bq-cle input{flex:1 1 220px;font:600 18px var(--text);color:var(--fg);background:var(--bg2);border:2px solid var(--line);border-radius:12px;padding:.6em .8em;outline:none}
+.bq-cle input:focus{border-color:var(--fg)}
+body{background:var(--bg);color:var(--fg);font-family:var(--text);overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 120%,rgba(60,60,140,.18),transparent 60%)}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,3vh,36px);
+  padding:max(48px,env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) max(40px,env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));text-align:center}
+h1,h2,p{margin:0}
+.eyebrow{font-size:clamp(11px,1.1vw,16px);letter-spacing:.32em;text-transform:uppercase;color:var(--mute)}
+.titre{font-family:var(--display);font-weight:400;font-size:clamp(42px,9vw,150px);line-height:1;letter-spacing:.02em;
+  color:var(--fg);text-shadow:0 0 6px rgba(184,77,255,.8),0 0 26px rgba(47,168,255,.55),0 0 60px rgba(184,77,255,.35);text-wrap:balance}
+.big{font-size:clamp(28px,5vw,80px);font-weight:800;line-height:1.1;text-wrap:balance}
+.sub{font-size:clamp(14px,1.8vw,26px);color:var(--mute);font-weight:300;max-width:40ch}
+.row{display:flex;gap:clamp(12px,2vw,28px);flex-wrap:wrap;justify-content:center}
+button{font-family:var(--text);cursor:pointer;border-radius:999px;border:2px solid var(--fg);background:transparent;color:var(--fg);
+  font-size:clamp(16px,2vw,30px);font-weight:600;padding:.7em 1.8em;letter-spacing:.04em;transition:transform .15s,box-shadow .15s,background .15s}
+button:focus-visible,button:hover{outline:none;transform:scale(1.05);box-shadow:0 0 0 4px rgba(255,255,255,.15),0 0 28px rgba(255,255,255,.25)}
+button.plein{background:var(--fg);color:var(--bg)}
+button:disabled{opacity:.3;transform:none;box-shadow:none;cursor:default}
+button.petit{font-size:clamp(13px,1.3vw,18px);padding:.55em 1.3em;border-color:var(--line);color:var(--mute)}
+.jouer{font-size:clamp(22px,3vw,44px);padding:.6em 2.6em;letter-spacing:.3em}
+
+/* Cadre néon autour de l'écran */
+#neon{position:fixed;inset:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));
+  border-radius:22px;border:3px solid transparent;pointer-events:none;opacity:0;z-index:5}
+#neon.b{--c:var(--bleu)} #neon.v{--c:var(--violet)}
+#neon.on{opacity:1;border-color:var(--c);box-shadow:0 0 10px var(--c),0 0 40px var(--c),inset 0 0 10px var(--c),inset 0 0 40px var(--c);
+  animation:gresille .7s steps(1) both,respire 3s ease-in-out .7s infinite}
+@keyframes gresille{0%{opacity:0}12%{opacity:1}22%{opacity:.15}34%{opacity:1}46%{opacity:.3}60%{opacity:1}100%{opacity:1}}
+@keyframes respire{50%{box-shadow:0 0 6px var(--c),0 0 26px var(--c),inset 0 0 6px var(--c),inset 0 0 24px var(--c)}}
+
+/* HUD */
+#hud{position:fixed;top:max(18px,env(safe-area-inset-top,0px));left:max(28px,env(safe-area-inset-left,0px));right:max(28px,env(safe-area-inset-right,0px));
+  display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:clamp(12px,1.2vw,18px);color:var(--mute);z-index:6;font-variant-numeric:tabular-nums}
+#hud b{color:var(--fg);font-weight:600}
+.cb{color:var(--bleu)} .cv{color:var(--violet)}
+
+/* Cartes joueurs */
+.cartes{display:flex;gap:clamp(16px,4vw,70px);flex-wrap:wrap;justify-content:center}
+.joueur{--c:var(--bleu);width:clamp(150px,24vw,340px);border:2px solid var(--c);border-radius:22px;padding:clamp(16px,2.4vw,32px);
+  display:flex;flex-direction:column;align-items:center;gap:14px;background:var(--bg2);
+  box-shadow:0 0 8px var(--c),0 0 30px color-mix(in srgb,var(--c) 45%,transparent);animation:respireCarte 3.2s ease-in-out infinite}
+.joueur.v{--c:var(--violet)}
+.joueur.pret{box-shadow:0 0 12px var(--c),0 0 55px var(--c),inset 0 0 18px color-mix(in srgb,var(--c) 40%,transparent)}
+@keyframes respireCarte{50%{box-shadow:0 0 4px var(--c),0 0 16px color-mix(in srgb,var(--c) 35%,transparent)}}
+.joueur svg{width:60%;height:auto;color:var(--c);filter:drop-shadow(0 0 6px var(--c))}
+.joueur input{width:100%;font:600 clamp(16px,1.8vw,26px) var(--text);text-align:center;color:var(--fg);background:transparent;border:0;
+  border-bottom:2px solid var(--line);padding:.35em 0;outline:none}
+.joueur input:focus{border-color:var(--c)}
+.joueur .role{font-size:clamp(11px,1vw,14px);letter-spacing:.25em;text-transform:uppercase;color:var(--c)}
+
+/* Modes */
+.mode{display:flex;flex-direction:column;gap:6px;border-radius:20px;padding:1em 2em;min-width:min(80vw,300px)}
+.mode small{font-size:.5em;font-weight:300;color:inherit;opacity:.7;letter-spacing:.02em}
+
+/* Roulette */
+.roue-zone{width:min(62vh,82vw);aspect-ratio:1;max-width:100%}
+.roue-zone svg{width:100%;height:100%;overflow:visible;display:block}
+#roueSvg .seg{stroke:rgba(255,255,255,.3);stroke-width:.6;transition:fill .2s}
+#roueSvg .s0{fill:rgba(47,168,255,.24)} #roueSvg .s1{fill:rgba(184,77,255,.24)} #roueSvg .s2{fill:rgba(255,255,255,.07)}
+#roueSvg .seg.gagne{fill:var(--fg)}
+#roueSvg .lbl{fill:var(--fg);font-family:var(--text);font-weight:800;font-size:9.5px}
+#roueSvg .typ{fill:var(--mute);font-family:var(--text);font-size:5.5px;letter-spacing:1.2px;text-transform:uppercase}
+#roueSvg .gagne-t{fill:var(--bg)}
+#roueSvg .rim{fill:none;stroke:var(--fg);stroke-width:2.4}
+#roueSvg .rim2{fill:none;stroke:var(--line);stroke-width:7}
+#roueSvg .ampoule{fill:#34324a}
+#roueSvg .ampoule.on{fill:#fff4c9}
+#roueSvg .hub{fill:var(--bg);stroke:var(--fg);stroke-width:1.6}
+#roueSvg .pointeur{fill:var(--fg)}
+#rouletteNom{font-size:clamp(24px,3.6vw,54px);font-weight:800;min-height:1.2em;text-shadow:0 0 18px rgba(255,255,255,.45)}
+#chAff{font-variant-numeric:tabular-nums;transition:opacity .3s}
+#chAff.cache{opacity:.25}
+.tuiles{display:flex;gap:clamp(14px,3vw,48px);flex-wrap:wrap;justify-content:center}
+.tuile{width:clamp(150px,26vw,380px);border:2px solid var(--line);border-radius:20px;padding:clamp(18px,3vw,40px) 16px;display:flex;flex-direction:column;gap:8px;transition:all .08s}
+.tuile .t{font-size:clamp(11px,1vw,15px);letter-spacing:.3em;text-transform:uppercase;color:var(--mute)}
+.tuile .n{font-size:clamp(20px,2.8vw,42px);font-weight:800}
+.tuile.lit{border-color:var(--fg);box-shadow:0 0 14px rgba(255,255,255,.55),0 0 50px rgba(255,255,255,.2);transform:scale(1.04)}
+.tuile.choisi{animation:pop .5s ease-out}
+@keyframes pop{40%{transform:scale(1.12)}}
+
+/* Réflexe */
+#reflexe.go{background:var(--go);color:var(--bg)}
+#reflexe.go .sub{color:var(--bg)}
+.mega{font-size:clamp(48px,11vw,190px);font-weight:800;line-height:1;letter-spacing:-.02em}
+.cotes{display:flex;justify-content:space-between;width:100%;max-width:1100px;font-size:clamp(14px,1.6vw,24px);font-weight:600}
+
+/* Carte haute */
+.duo{display:flex;gap:clamp(24px,8vw,140px);justify-content:center;flex-wrap:wrap}
+.pc{display:flex;flex-direction:column;align-items:center;gap:14px}
+.carte{--c:var(--bleu);width:clamp(110px,15vw,220px);aspect-ratio:5/7;max-width:100%;border-radius:16px;border:2px solid var(--c);
+  display:flex;align-items:center;justify-content:center;font-size:clamp(44px,7vw,110px);font-weight:800;color:var(--c);
+  background:repeating-linear-gradient(45deg,var(--bg2) 0 10px,var(--bg) 10px 20px);box-shadow:0 0 14px color-mix(in srgb,var(--c) 60%,transparent)}
+.carte.v{--c:var(--violet)}
+.carte.face{background:var(--fg);color:var(--bg);animation:flip .35s ease-out}
+@keyframes flip{0%{transform:rotateY(90deg)}100%{transform:none}}
+.pc .nom{font-weight:600;font-size:clamp(14px,1.6vw,24px)}
+
+/* Gage */
+#gage .qui{font-size:clamp(14px,1.6vw,24px);letter-spacing:.3em;text-transform:uppercase;font-weight:600}
+#gage .texte{font-size:clamp(26px,4.6vw,72px);font-weight:600;line-height:1.2;max-width:24ch;text-wrap:balance}
+#gage .actions{position:absolute;bottom:max(56px,calc(env(safe-area-inset-bottom,0px) + 40px));left:0;right:0;display:flex;justify-content:center;gap:clamp(14px,3vw,48px);flex-wrap:wrap;padding:0 24px}
+#gage.b .qui{color:var(--bleu)} #gage.v .qui{color:var(--violet)}
+#gage.b button{border-color:var(--bleu)} #gage.v button{border-color:var(--violet)}
+#gage.b button.plein{background:var(--bleu);color:var(--bg)} #gage.v button.plein{background:var(--violet);color:var(--bg)}
+.verre{font-size:clamp(22px,3vw,44px);font-weight:800}
+
+/* Fin de partie */
+table{border-collapse:collapse;font-size:clamp(14px,1.8vw,26px);font-variant-numeric:tabular-nums}
+th,td{padding:.45em 1.2em;border-bottom:1px solid var(--line)}
+th{font-weight:400;color:var(--mute);text-align:left}
+td{font-weight:800;text-align:center}
+thead td{font-weight:600}
+
+.etat-manette{font-size:clamp(12px,1.2vw,17px);color:var(--mute)}
+.etat-manette b{color:var(--fg)}
+
+/* ===== Manette (téléphone) ===== */
+.manette .screen{gap:18px}
+.pads{position:fixed;inset:0;display:grid;grid-template-columns:1fr 1fr}
+.pad{border-radius:0;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-size:22px;font-weight:800;
+  touch-action:none;color:var(--fg);transform:none!important}
+.pad.b{background:linear-gradient(180deg,#0a2440,#06111f);box-shadow:inset 0 0 0 3px var(--bleu),inset 0 0 40px rgba(47,168,255,.35)}
+.pad.v{background:linear-gradient(180deg,#2a0e40,#14061f);box-shadow:inset 0 0 0 3px var(--violet),inset 0 0 40px rgba(184,77,255,.35)}
+.pad small{font-size:12px;font-weight:400;letter-spacing:.25em;text-transform:uppercase;opacity:.7}
+.pad.appui{filter:brightness(1.8)}
+.pads4{position:fixed;inset:0;display:grid;grid-template-columns:repeat(4,1fr)}
+.pad4 span{font-size:44px;line-height:1}
+#course{padding-top:max(56px,env(safe-area-inset-top,0px))}
+#cvCourse{width:100%;flex:1 1 auto;min-height:0;max-width:100%;display:block}
+/* Dernière carte */
+.k-r{--k:#e0303d;--k2:#9e1420} .k-j{--k:#f7c51e;--k2:#c48a00} .k-v{--k:#2ea44f;--k2:#16692e} .k-b{--k:#1f6fd6;--k2:#0d4396} .k-w{--k:#262626;--k2:#0a0a0a}
+/* Cartes façon vraies cartes : bord blanc, face colorée brillante, losange central, coins indexés */
+.uc{position:relative;width:clamp(54px,6vw,110px);aspect-ratio:5/7.6;max-width:100%;box-sizing:border-box;border:0;border-radius:9%/6%;background:#fbfaf7;
+  font-family:"Sora",system-ui,sans-serif;font-weight:800;font-size:clamp(19px,2.1vw,38px);letter-spacing:0;padding:0;color:#fff;overflow:hidden;flex:none;
+  box-shadow:0 1px 0 rgba(0,0,0,.2),0 6px 14px rgba(0,0,0,.5)}
+.uc::before{content:"";position:absolute;inset:6.5%;border-radius:7%/5%;background:radial-gradient(130% 100% at 28% 18%,color-mix(in srgb,var(--k) 75%,#fff) 0,var(--k) 45%,var(--k2) 100%)}
+.uc::after{content:"";position:absolute;inset:6.5%;border-radius:7%/5%;background:linear-gradient(125deg,rgba(255,255,255,.32) 0,rgba(255,255,255,0) 38%);pointer-events:none}
+button.uc{border-radius:9%/6%;padding:0;border:0}
+button.uc:hover,button.uc:focus-visible{transform:translateY(-8%);box-shadow:0 1px 0 rgba(0,0,0,.2),0 12px 22px rgba(0,0,0,.6),0 0 0 3px #fff}
+.uc .ui-coin{position:absolute;z-index:1;top:9%;left:12%;font-size:.36em;line-height:1;text-shadow:1px 1px 0 rgba(0,0,0,.35)}
+.uc .ui-coin.bas{top:auto;left:auto;bottom:9%;right:12%;transform:rotate(180deg)}
+.uc .ui-centre{position:absolute;z-index:1;left:50%;top:50%;width:58%;aspect-ratio:1;transform:translate(-50%,-50%) rotate(45deg);border-radius:16%;background:#fbfaf7;
+  box-shadow:inset 0 0 0 .06em var(--k2),0 .05em .12em rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
+.uc .ui-centre span{transform:rotate(-45deg);color:var(--k);font-size:.95em;line-height:1;text-shadow:.04em .04em 0 var(--k2)}
+.uc.k-w .ui-centre{background:conic-gradient(#e0303d 0 25%,#1f6fd6 0 50%,#2ea44f 0 75%,#f7c51e 0);box-shadow:inset 0 0 0 .06em #fbfaf7,0 .05em .12em rgba(0,0,0,.5)}
+.uc.k-w .ui-centre span{color:#fff;text-shadow:.05em .05em 0 rgba(0,0,0,.6)}
+.uc.dos::before{background:repeating-linear-gradient(45deg,rgba(255,255,255,.07) 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,rgba(255,255,255,.07) 0 2px,transparent 2px 9px),radial-gradient(circle at 50% 45%,#7a1a2a,#3d0a14);
+  box-shadow:inset 0 0 0 2px #c9a24a,inset 0 0 0 5px #3d0a14,inset 0 0 0 6px rgba(201,162,74,.6)}
+.uc.dos::after{background:none}
+.uc.grand{width:clamp(100px,11vw,190px);font-size:clamp(36px,4vw,68px)}
+button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.uno-table{background:radial-gradient(120% 120% at 50% 40%,#1f6b42 0,#124a2c 60%,#0b2e1b 100%);border-radius:28px;padding:clamp(18px,3vw,44px) clamp(20px,4vw,60px);
+  box-shadow:inset 0 0 0 3px #5a3a1e,inset 0 0 0 9px #3a2412,inset 0 0 40px rgba(0,0,0,.55),0 20px 50px rgba(0,0,0,.5)}
+.uno-joueur .sub{color:#d9e7dc}
+.choix,.m-uno-choix button{background:var(--k)!important;border-color:var(--k)!important;color:#fff!important}
+.uno-table{display:flex;align-items:center;justify-content:center;gap:clamp(20px,5vw,90px);flex-wrap:wrap}
+.uno-joueur{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:clamp(110px,16vw,260px);font-weight:600;font-size:clamp(15px,1.6vw,24px)}
+.uno-dos{display:flex;padding-left:14px}
+.uno-dos .uc{width:clamp(26px,2.6vw,44px);margin-left:-14px;box-shadow:0 3px 6px rgba(0,0,0,.5)}
+.uno-centre{display:flex;align-items:center;gap:clamp(14px,2vw,30px)}
+.uno-coul{font-weight:600;color:var(--k);font-size:clamp(14px,1.5vw,22px)}
+.uno-tour{font-size:clamp(20px,2.6vw,40px);font-weight:800}
+#unoMain{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;max-width:95vw}
+#unoMain .uc{width:clamp(46px,4.4vw,78px);font-size:clamp(16px,1.6vw,28px)}
+#unoMain .choix,.m-uno-choix button{border-color:var(--k);color:var(--k)}
+#m-uno{overflow-y:auto;justify-content:flex-start;padding-top:max(64px,env(safe-area-inset-top,0px))}
+.m-main{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}
+.m-main .uc{width:62px;font-size:22px}
+.m-uno-choix{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:min(100%,380px)}
+.m-inputs{display:flex;flex-direction:column;gap:14px;width:min(100%,360px)}
+.m-inputs input{font:600 20px var(--text);color:var(--fg);background:var(--bg2);border:2px solid var(--bleu);border-radius:14px;padding:.6em .8em;text-align:center;outline:none}
+.m-inputs input.v{border-color:var(--violet)}
+.m-gros{width:min(100%,380px);font-size:22px;padding:1em}
+.m-gage{display:flex;flex-direction:column;gap:16px;width:min(100%,380px)}
+.m-gage.b button{border-color:var(--bleu)} .m-gage.v button{border-color:var(--violet)}
+.m-gage.b button.plein{background:var(--bleu);color:var(--bg)} .m-gage.v button.plein{background:var(--violet);color:var(--bg)}
+
+#btnQuitter,#mQuitter{position:fixed;z-index:8;left:max(24px,env(safe-area-inset-left,0px));bottom:max(20px,env(safe-area-inset-bottom,0px));font-size:clamp(12px,1.1vw,16px);padding:.5em 1.2em;border-color:var(--line);color:var(--mute);background:var(--bg)}
+#btnQuitter.confirme,#mQuitter.confirme{border-color:#ff5a6e;color:#ff5a6e}
+#mQuitter{left:50%;transform:translateX(-50%)!important;bottom:auto;top:max(10px,env(safe-area-inset-top,0px))}
+/* Banque à gages */
+.bq li.bq-bloc{display:flex;flex-direction:column;align-items:stretch;gap:8px;border:0;padding:18px 0 0}
+.bq-bloc h3{margin:0;font-size:clamp(18px,2vw,28px);font-weight:800}
+.bq-bloc.lui h3{color:var(--bleu)} .bq-bloc.elle h3{color:var(--violet)}
+.bq-sec{border:1px solid var(--line);border-radius:14px;padding:4px 16px}
+.bq-sec summary{cursor:pointer;padding:10px 0;font-weight:600;font-size:clamp(15px,1.5vw,20px);font-variant-numeric:tabular-nums}
+.bq-sec.medium summary{color:var(--n-medium)} .bq-sec.hard summary{color:var(--n-hard)} .bq-sec.impossible summary{color:var(--n-impossible)}
+.bq li.bq-rien{color:var(--mute);font-size:14px;border:0}
+.bq-bloc-tete{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.bq-verrou{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px dashed var(--line);border-radius:14px;padding:14px 16px}
+.bq-verrou .sub{flex:1 1 220px}
+.bq-verrou input{width:8em;font:600 18px var(--text);letter-spacing:.3em;text-align:center;color:var(--fg);background:var(--bg2);border:2px solid var(--line);border-radius:10px;padding:.4em .6em;outline:none}
+.bq-verrou input:focus{border-color:var(--fg)}
+.bq-err{color:var(--danger);font-size:14px;font-weight:600}
+#banque{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
+.bq{width:min(100%,900px);display:flex;flex-direction:column;gap:18px;text-align:left}
+.bq .sub{max-width:none}
+.bq-tete{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.bq-tete h2{font-size:clamp(26px,3.6vw,52px);font-weight:800}
+.jauge{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:8px}
+.jauge i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--bleu),var(--violet));transition:width .4s}
+.seg{display:flex;gap:10px;flex-wrap:wrap}
+.seg button{font-size:clamp(14px,1.4vw,20px);padding:.5em 1.2em;border-color:var(--line);color:var(--mute);font-variant-numeric:tabular-nums}
+.seg button[aria-pressed="true"]{color:var(--bg);background:var(--c);border-color:var(--c)}
+.seg .lui{--c:var(--bleu)} .seg .elle{--c:var(--violet)}
+.seg .medium{--c:var(--n-medium)} .seg .hard{--c:var(--n-hard)} .seg .impossible{--c:var(--n-impossible)}
+.bq textarea{width:100%;box-sizing:border-box;font:400 clamp(15px,1.5vw,20px)/1.45 var(--text);color:var(--fg);background:var(--bg2);border:2px solid var(--line);border-radius:16px;padding:.8em 1em;resize:vertical;outline:none}
+.bq textarea:focus{border-color:var(--fg)}
+.ajout{display:flex;flex-direction:column;gap:12px}
+.ajout .row{justify-content:flex-start;align-items:center}
+.ajout button{font-size:clamp(14px,1.4vw,20px);padding:.6em 1.5em}
+.bq ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.bq li{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bq li p{flex:1 1 260px;min-width:0;font-size:clamp(15px,1.5vw,21px);line-height:1.4;overflow-wrap:anywhere}
+.bq li textarea{flex:1 1 100%}
+.acts{display:flex;gap:8px}
+.mini{font-size:13px;padding:.45em 1em;border-color:var(--line);color:var(--mute)}
+.mini.danger{border-color:var(--danger);color:var(--danger)}
+.mini.ok{border-color:var(--fg);color:var(--fg)}
+#gNote{font-size:clamp(12px,1.1vw,16px)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="neon"></div>
+<button id="btnQuitter" hidden>Arrêter le jeu</button>
+<div id="hud" hidden><span id="hudG"></span><span id="hudD"></span></div>
+
+<!-- ============ TV ============ -->
+<div id="tv">
+  <section class="screen" id="accueil">
+    <p class="eyebrow">Vodka games · gage ou verre</p>
+    <h1 class="titre">Le Jeu de Noël</h1>
+    <button class="plein jouer" data-primary id="btnJouer">JOUER</button>
+    <div class="accueil-bas">
+      <div class="qr" id="qr" aria-label="QR code de la manette"></div>
+      <div class="txt">
+        <p class="etat-manette">Scanne le code avec ton téléphone pour en faire la manette</p>
+        <p class="etat-manette" id="etatManette">Manette : en attente</p>
+        <button class="petit" id="btnBanqueAccueil">Banque à gages</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="joueurs" hidden>
+    <p class="eyebrow">Qui joue ce soir ?</p>
+    <div class="cartes">
+      <div class="joueur b" id="carteB">
+        <span class="role">Joueur</span>
+        <svg viewBox="0 0 100 110" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="50" cy="32" r="18"/><path d="M32 24c4-10 30-12 36 0"/><path d="M14 106c2-26 16-40 36-40s34 14 36 40"/><path d="M40 66l10 14 10-14"/></svg>
+        <input id="nomB" maxlength="16" placeholder="Prénom" autocomplete="off">
+      </div>
+      <div class="joueur v" id="carteV">
+        <span class="role">Joueuse</span>
+        <svg viewBox="0 0 100 110" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="50" cy="32" r="17"/><path d="M33 30c-4 18-6 30-12 34M67 30c4 18 6 30 12 34"/><path d="M33 28c2-16 32-16 34 0"/><path d="M18 106c3-24 15-36 32-36s29 12 32 36"/><path d="M42 72c4 6 12 6 16 0"/></svg>
+        <input id="nomV" maxlength="16" placeholder="Prénom" autocomplete="off">
+      </div>
+    </div>
+    <button class="plein" data-primary id="btnParti" disabled>C'est parti</button>
+  </section>
+
+  <section class="screen" id="modes" hidden>
+    <p class="eyebrow">Choisis un mode</p>
+    <div class="row">
+      <button class="plein mode" data-primary id="btnClassique">Mode classique<small>Parties de 10 manches · mini-jeux et gages</small></button>
+      <button class="mode" disabled>Arcade<small>Bientôt</small></button>
+      <button class="mode" id="btnTestCourse">Tester la course<small>Lance directement le mini circuit</small></button>
+      <button class="mode" id="btnTestUno">Tester les cartes<small>Lance directement Dernière carte</small></button>
+      <button class="mode" id="btnBanque">Banque à gages<small>Ajouter et gérer vos gages</small></button>
+    </div>
+  </section>
+
+  <section class="screen" id="intro" hidden>
+    <p class="eyebrow" id="introNum"></p>
+    <h2 class="titre" id="introNiv"></h2>
+    <p class="sub" id="introSub"></p>
+    <button class="plein" data-primary id="btnLancer">Lancer la partie</button>
+  </section>
+
+  <section class="screen" id="roulette" hidden>
+    <p class="eyebrow" id="rouletteTitre"></p>
+    <div class="roue-zone"><svg id="roueSvg" viewBox="-118 -118 236 236" aria-hidden="true"></svg></div>
+    <p id="rouletteNom"></p>
+  </section>
+
+  <section class="screen" id="reflexe" hidden>
+    <p class="eyebrow">Réflexe · premier qui tape</p>
+    <p class="mega" id="rfTexte"></p>
+    <p class="sub" id="rfSub"></p>
+    <div class="cotes"><span class="cb" id="rfB"></span><span class="cv" id="rfV"></span></div>
+  </section>
+
+  <section class="screen" id="carte" hidden>
+    <p class="eyebrow">Chance · carte haute</p>
+    <div class="duo">
+      <div class="pc"><div class="carte" id="cB">?</div><span class="nom cb" id="cnB"></span></div>
+      <div class="pc"><div class="carte v" id="cV">?</div><span class="nom cv" id="cnV"></span></div>
+    </div>
+    <p class="sub" id="cSub">Chacun tape sur sa moitié pour retourner sa carte</p>
+  </section>
+
+  <section class="screen" id="chrono" hidden>
+    <p class="eyebrow">Feeling · chrono à l'aveugle</p>
+    <p class="mega" id="chAff"></p>
+    <p class="sub" id="chSub"></p>
+    <div class="cotes"><span class="cb" id="chB"></span><span class="cv" id="chV"></span></div>
+  </section>
+
+  <section class="screen" id="course" hidden>
+    <canvas id="cvCourse"></canvas>
+  </section>
+
+  <section class="screen" id="uno" hidden>
+    <p class="eyebrow">Cartes · dernière carte</p>
+    <div class="uno-table">
+      <div class="uno-joueur"><span class="cb" id="unoNomB"></span><div class="uno-dos" id="unoDosB"></div><span class="sub" id="unoNbB"></span></div>
+      <div class="uno-centre"><div class="uc dos grand"></div><div id="unoHaut"></div></div>
+      <div class="uno-joueur"><span class="cv" id="unoNomV"></span><div class="uno-dos" id="unoDosV"></div><span class="sub" id="unoNbV"></span></div>
+    </div>
+    <p class="uno-coul" id="unoCoul"></p>
+    <p class="uno-tour" id="unoTour"></p>
+    <p class="sub" id="unoMsg"></p>
+    <div id="unoMain"></div>
+  </section>
+
+  <section class="screen" id="resultat" hidden>
+    <p class="big" id="resTitre"></p>
+    <p class="sub" id="resSub"></p>
+  </section>
+
+  <section class="screen" id="gage" hidden>
+    <p class="qui" id="gQui"></p>
+    <p class="texte" id="gTexte"></p>
+    <p class="sub" id="gNote"></p>
+    <div class="actions" id="gActions"></div>
+  </section>
+
+  <section class="screen" id="fin" hidden>
+    <p class="eyebrow" id="finTitre"></p>
+    <p class="big" id="finPerdant"></p>
+    <table><thead><tr><th></th><td class="cb" id="fnB"></td><td class="cv" id="fnV"></td></tr></thead>
+      <tbody id="finCorps"></tbody></table>
+    <div class="row"><button class="plein" data-primary id="btnSuite"></button><button id="btnMenu">Menu</button></div>
+  </section>
+  <section class="screen" id="banque" hidden>
+    <div class="bq">
+      <div class="bq-tete">
+        <div><p class="eyebrow">Mode</p><h2>Banque à gages</h2></div>
+        <div class="row"><button class="petit" id="bqChangerCle">Changer de clé</button><button class="petit" id="bqRetour">Retour</button></div>
+      </div>
+      <div class="bq-cle" id="bqCle" hidden>
+        <p class="sub">Entre la clé de votre banque. Utilisez la même phrase sur tous vos appareils (télé, ton téléphone, le sien) : c'est elle qui relie vos gages. 8 caractères minimum.</p>
+        <div class="row"><input id="bqCleTxt" type="password" autocomplete="off" placeholder="Votre phrase secrète"><button class="plein" id="bqCleOk">Relier la banque</button></div>
+        <p class="bq-err" id="bqCleErr"></p>
+      </div>
+      <div><p class="sub" id="bqTotal"></p><div class="jauge"><i id="bqJauge"></i></div></div>
+      <div class="seg" id="bqPour">
+        <button class="lui" data-pour="lui">Lui</button>
+        <button class="elle" data-pour="elle">Elle</button>
+      </div>
+      <div class="seg" id="bqNiv">
+        <button class="medium" data-niv="medium">Medium</button>
+        <button class="hard" data-niv="hard">Hard</button>
+        <button class="impossible" data-niv="impossible">Impossible</button>
+      </div>
+      <div class="ajout">
+        <textarea id="bqTexte" rows="3" maxlength="6000" placeholder="Écris un gage. Pour en ajouter plusieurs d'un coup, mets-en un par ligne."></textarea>
+        <div class="row"><button class="plein" id="bqAjouter" data-primary>Ajouter</button><span class="sub" id="bqMsg"></span></div>
+      </div>
+      <ul id="bqListe"></ul>
+      <p class="sub" id="bqVide"></p>
+    </div>
+  </section>
+</div>
+
+<!-- ============ MANETTE ============ -->
+<div id="manette" class="manette" hidden>
+  <button id="mQuitter" hidden>Arrêter le jeu</button>
+  <section class="screen" id="m-attente">
+    <p class="eyebrow">Manette</p>
+    <p class="big" id="mAttTitre">Connexion à la télé…</p>
+    <p class="sub" id="mAttSub">Ouvre le jeu sur la télé, cette manette s'y connecte toute seule.</p>
+    <button class="petit" id="btnRetourTV">Ouvrir le jeu sur cet appareil</button>
+  </section>
+  <section class="screen" id="m-noms" hidden>
+    <p class="eyebrow">Vos prénoms</p>
+    <div class="m-inputs">
+      <input id="mNomB" maxlength="16" placeholder="Prénom (bleu)" autocomplete="off">
+      <input id="mNomV" class="v" maxlength="16" placeholder="Prénom (violet)" autocomplete="off">
+    </div>
+    <button class="plein m-gros" id="mValiderNoms">Valider</button>
+  </section>
+  <section id="m-pads" hidden>
+    <div class="pads">
+      <button class="pad b" data-side="b"><small>Gauche</small><span id="mPadB">Bleu</span></button>
+      <button class="pad v" data-side="v"><small>Droite</small><span id="mPadV">Violet</span></button>
+    </div>
+  </section>
+  <section class="screen" id="m-uno" hidden>
+    <p class="eyebrow" id="mUnoInfo"></p>
+    <div id="mUnoCorps" class="m-gage"></div>
+  </section>
+  <section id="m-course" hidden>
+    <div class="pads4">
+      <button class="pad pad4 b" data-side="b" data-d="-1"><small id="mCrB">Bleu</small><span>◀</span></button>
+      <button class="pad pad4 b" data-side="b" data-d="1"><small>tourner</small><span>▶</span></button>
+      <button class="pad pad4 v" data-side="v" data-d="-1"><small id="mCrV">Violet</small><span>◀</span></button>
+      <button class="pad pad4 v" data-side="v" data-d="1"><small>tourner</small><span>▶</span></button>
+    </div>
+  </section>
+  <section class="screen" id="m-gage" hidden>
+    <p class="eyebrow" id="mGageQui"></p>
+    <div class="m-gage" id="mGageBtns"></div>
+  </section>
+  <section class="screen" id="m-ok" hidden>
+    <p class="eyebrow" id="mOkTitre"></p>
+    <button class="plein m-gros" id="mOk">Continuer</button>
+  </section>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+"use strict";
+/* ---------- Contenu du prototype ---------- */
+var MANCHES = 10;
+var SEQUENCE = [
+  {nom:"Medium",     manches:5,  niveaux:["medium"],            desc:"Partie d'introduction, que des gages medium"},
+  {nom:"Hard",       manches:10, niveaux:["medium","hard"],     desc:"Gages tirés au hasard entre medium et hard"},
+  {nom:"Impossible", manches:10, niveaux:["hard","impossible"], desc:"Gages tirés au hasard entre hard et impossible"}
+];
+function nbManches(){ return SEQUENCE[S.partie].manches || MANCHES; }
+var OBJECTIF = 500;
+var NOM_NIV = {medium:"Medium", hard:"Hard", impossible:"Impossible"};
+/* Gages d'exemple, utilisés seulement quand la banque n'a rien pour ce perdant et ce niveau */
+var GAGES = {
+  impossible:[
+    "Fais 30 pompes d'affilée.",
+    "Échange un vêtement avec l'autre jusqu'à la fin de la partie."
+  ],
+  medium:[
+    "Imite l'autre pendant 20 secondes, sans rire.",
+    "Raconte ton moment le plus gênant de l'année.",
+    "Montre la dernière photo de ta galerie.",
+    "Chante le refrain d'une chanson choisie par l'autre.",
+    "Fais 15 squats pendant que l'autre compte à voix haute."
+  ],
+  hard:[
+    "L'autre choisit ta photo de profil pour 24 heures.",
+    "Danse 30 secondes sur une musique choisie par l'autre.",
+    "Donne un massage des épaules d'une minute à l'autre."
+  ]
+};
+var JEUX = [
+  {id:"reflexe", type:"Réflexe", nom:"Premier qui tape"},
+  {id:"carte",   type:"Chance",  nom:"Carte haute"},
+  {id:"chrono",  type:"Feeling", nom:"Chrono à l'aveugle"},
+  {id:"course",  type:"Course",  nom:"Mini circuit"},
+  {id:"uno",     type:"Cartes",  nom:"Dernière carte"}
+];
+var VALEURS = {11:"V",12:"D",13:"R",14:"A"};
+
+/* ---------- Outils ---------- */
+function $(id){return document.getElementById(id)}
+function rnd(n){return Math.floor(Math.random()*n)}
+function melange(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+function autre(s){return s==="b"?"v":"b"}
+function stats0(){return {perdu:0,fait:0,bois:0}}
+
+var estManette = location.hash.indexOf("#manette")===0;
+
+/* ---------- État du jeu ---------- */
+var S = {
+  ecran:"accueil", noms:{b:"",v:""}, partie:0, manche:1,
+  st:{b:stats0(),v:stats0()}, tot:{b:stats0(),v:stats0()},
+  jeu:null, perdant:null, fait:false
+};
+var paquets = {}, utilises = {};
+function tirerGage(){
+  var niv = SEQUENCE[S.partie].niveaux;
+  var pour = S.perdant==="b" ? "lui" : "elle";
+  var ok = function(g){ return g.pour===pour && niv.indexOf(g.niveau)>=0; };
+  var dispo = BANQUE.filter(function(g){ return ok(g) && !utilises[g.id]; });
+  if(!dispo.length){
+    dispo = BANQUE.filter(ok);
+    dispo.forEach(function(g){ delete utilises[g.id]; });
+  }
+  if(dispo.length){
+    var g = dispo[rnd(dispo.length)]; utilises[g.id] = 1;
+    return {niveau:g.niveau, texte:g.texte};
+  }
+  var n = niv[rnd(niv.length)];
+  if(!paquets[n] || !paquets[n].length) paquets[n] = melange(GAGES[n]);
+  return {niveau:n, texte:paquets[n].pop(), exemple:true};
+}
+
+/* ---------- Banque à gages (sauvegardée en ligne) ---------- */
+var db = null, BANQUE = [], banqueEtat = "chargement";
+var F = {pour:"lui", niveau:"medium"};
+var editId = null, editTexte = "", supId = null, supT = null;
+var CLE = null, unsubBanque = null;
+function gagesCol(){ return db.collection("salons").doc(CLE).collection("gages"); }
+function brancherDb(){
+  var t = setTimeout(function(){ if(banqueEtat==="chargement"){ banqueEtat="lent"; rendreBanque(); } }, 10000);
+  if(unsubBanque) unsubBanque();
+  unsubBanque = gagesCol().onSnapshot(function(snap){
+    clearTimeout(t); banqueEtat = "ok";
+    BANQUE = snap.docs.map(function(d){ var x = d.data()||{}; return {id:d.id, texte:String(x.texte||""), pour:x.pour, niveau:x.niveau, cree:+x.cree||0}; })
+      .filter(function(g){ return g.texte && (g.pour==="lui"||g.pour==="elle") && NOM_NIV[g.niveau]; });
+    rendreBanque();
+  }, function(){ clearTimeout(t); banqueEtat = "erreur"; rendreBanque(); });
+}
+function nomPour(p){ return p==="lui" ? "Lui" : "Elle"; }
+function el(tag, cls, txt){ var e = document.createElement(tag); if(cls) e.className = cls; if(txt!=null) e.textContent = txt; return e; }
+function rendreBanque(){
+  var total = BANQUE.length;
+  $("bqTotal").textContent = total+" / "+OBJECTIF+" gages écrits";
+  $("bqJauge").style.width = Math.min(100, total/OBJECTIF*100)+"%";
+  Array.prototype.forEach.call($("bqPour").children, function(b){
+    var p = b.getAttribute("data-pour");
+    b.textContent = nomPour(p)+" · "+BANQUE.filter(function(g){return g.pour===p}).length;
+    b.setAttribute("aria-pressed", String(F.pour===p));
+  });
+  Array.prototype.forEach.call($("bqNiv").children, function(b){
+    var n = b.getAttribute("data-niv");
+    b.textContent = NOM_NIV[n]+" · "+BANQUE.filter(function(g){return g.pour===F.pour && g.niveau===n}).length;
+    b.setAttribute("aria-pressed", String(F.niveau===n));
+  });
+  $("bqAjouter").textContent = "Ajouter · "+nomPour(F.pour)+" · "+NOM_NIV[F.niveau];
+  $("bqAjouter").disabled = !db || !CLE;
+  $("bqCle").hidden = banqueEtat!=="cle";
+  var courant = F.pour+"|"+F.niveau;
+  if(courant!==dernierFiltre){ ouverts[courant] = true; dernierFiltre = courant; }
+  var ul = $("bqListe"); ul.innerHTML = "";
+  ["lui","elle"].forEach(function(p){
+    var bloc = el("li","bq-bloc "+p);
+    var tete = el("div","bq-bloc-tete");
+    tete.appendChild(el("h3",null,nomPour(p)+" · "+BANQUE.filter(function(g){return g.pour===p}).length+" gages"));
+    bloc.appendChild(tete);
+    if(!deverrouille[p]){
+      var v = el("div","bq-verrou");
+      v.appendChild(el("span","sub","Gages cachés. Entre le code pour les voir."));
+      var inp = el("input"); inp.id = "code-"+p; inp.type = "password"; inp.inputMode = "numeric"; inp.maxLength = 8; inp.autocomplete = "off"; inp.placeholder = "Code";
+      inp.value = codeSaisi[p]||""; inp.oninput = function(){ codeSaisi[p] = inp.value; };
+      var ok = el("button","mini ok","Déverrouiller");
+      var essayer = function(){
+        if((codeSaisi[p]||"") === (CODES[p]||"0000")){ deverrouille[p] = true; codeErreur[p] = false; }
+        else codeErreur[p] = true;
+        codeSaisi[p] = ""; rendreBanque();
+      };
+      ok.onclick = essayer;
+      inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); essayer(); } });
+      v.appendChild(inp); v.appendChild(ok);
+      if(codeErreur[p]) v.appendChild(el("span","bq-err","Code incorrect"));
+      bloc.appendChild(v); ul.appendChild(bloc);
+      return;
+    }
+    var lock = el("button","mini","Verrouiller");
+    lock.onclick = function(){ deverrouille[p] = false; editId = null; rendreBanque(); };
+    tete.appendChild(lock);
+    ["medium","hard","impossible"].forEach(function(n){
+      var items = BANQUE.filter(function(g){ return g.pour===p && g.niveau===n; }).sort(function(a,b){ return b.cree-a.cree; });
+      var key = p+"|"+n, det = el("details","bq-sec "+n);
+      if(ouverts[key]) det.open = true;
+      det.addEventListener("toggle", function(){ ouverts[key] = det.open; });
+      det.appendChild(el("summary",null,NOM_NIV[n]+" · "+items.length));
+      var liste = el("ul");
+      items.forEach(function(g){ liste.appendChild(ligneGage(g)); });
+      if(!items.length) liste.appendChild(el("li","bq-rien","Aucun gage pour l'instant."));
+      det.appendChild(liste); bloc.appendChild(det);
+    });
+    ul.appendChild(bloc);
+  });
+  var vide = "";
+  if(banqueEtat==="config") vide = "La banque n'est pas encore reliée à Firebase : remplis le fichier config.js (voir le guide).";
+  else if(banqueEtat==="cle") vide = "";
+  else if(banqueEtat==="indispo") vide = "Impossible de joindre la banque. Vérifie la connexion internet.";
+  else if(banqueEtat==="chargement") vide = "Chargement des gages…";
+  else if(banqueEtat==="lent") vide = "Le chargement prend du temps. Vérifie ta connexion.";
+  else if(banqueEtat==="erreur") vide = "Impossible de lire la banque. Recharge la page.";
+  $("bqVide").textContent = vide;
+}
+var ouverts = {}, dernierFiltre = null;
+/* Codes de la banque : chacun ne voit que les gages dont il a le code */
+var CODES = {lui:"0000", elle:"0000"}, deverrouille = {lui:false, elle:false}, codeSaisi = {}, codeErreur = {};
+function ligneGage(g){
+    var li = el("li"), acts = el("div","acts");
+    if(editId===g.id){
+      var ta = el("textarea"); ta.rows = 2; ta.value = editTexte; ta.oninput = function(){ editTexte = ta.value; };
+      var sv = el("button","mini ok","Enregistrer"), an = el("button","mini","Annuler");
+      sv.onclick = function(){
+        var t = editTexte.trim().slice(0,300); if(!t) return;
+        gagesCol().doc(g.id).update({texte:t}).catch(function(){ $("bqMsg").textContent = "La modification n'a pas été enregistrée, réessaie."; });
+        editId = null; rendreBanque();
+      };
+      an.onclick = function(){ editId = null; rendreBanque(); };
+      li.appendChild(ta); acts.appendChild(sv); acts.appendChild(an);
+    } else {
+      li.appendChild(el("p",null,g.texte));
+      var md = el("button","mini","Modifier");
+      md.onclick = function(){ editId = g.id; editTexte = g.texte; rendreBanque(); };
+      var sp = el("button","mini danger", supId===g.id ? "Confirmer" : "Supprimer");
+      sp.onclick = function(){
+        if(supId===g.id){ supId = null; gagesCol().doc(g.id).delete().catch(function(){ $("bqMsg").textContent = "La suppression a échoué, réessaie."; }); return; }
+        supId = g.id; clearTimeout(supT); supT = setTimeout(function(){ supId = null; rendreBanque(); }, 3000); rendreBanque();
+      };
+      acts.appendChild(md); acts.appendChild(sp);
+    }
+    li.appendChild(acts);
+    return li;
+}
+function ajouterGages(){
+  if(!db) return;
+  var lignes = $("bqTexte").value.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
+  if(!lignes.length){ $("bqMsg").textContent = "Écris d'abord un gage."; return; }
+  var base = Date.now();
+  Promise.all(lignes.map(function(l,i){
+    return gagesCol().add({texte:l.slice(0,300), pour:F.pour, niveau:F.niveau, cree:base+i});
+  })).then(function(){
+    $("bqMsg").textContent = lignes.length===1 ? "Gage ajouté." : lignes.length+" gages ajoutés.";
+  }).catch(function(){ $("bqMsg").textContent = "Certains gages n'ont pas été enregistrés, vérifie la liste."; });
+  $("bqTexte").value = "";
+}
+function ouvrirBanque(){ deverrouille = {lui:false, elle:false}; codeSaisi = {}; codeErreur = {}; editId = null; montrer("banque"); $("bqMsg").textContent = ""; rendreBanque(); try{ $("bqTexte").focus({preventScroll:true}); }catch(e){} }
+$("bqRetour").onclick = function(){ editId = null; deverrouille = {lui:false, elle:false}; montrer(S.noms.b && S.noms.v ? "modes" : "accueil"); };
+$("bqAjouter").onclick = ajouterGages;
+$("bqTexte").addEventListener("keydown", function(e){ if(e.key==="Enter" && (e.ctrlKey||e.metaKey)){ e.preventDefault(); ajouterGages(); } });
+Array.prototype.forEach.call($("bqPour").children, function(b){ b.onclick = function(){ F.pour = b.getAttribute("data-pour"); editId = null; rendreBanque(); }; });
+Array.prototype.forEach.call($("bqNiv").children, function(b){ b.onclick = function(){ F.niveau = b.getAttribute("data-niv"); editId = null; rendreBanque(); }; });
+
+/* ---------- Minuteries annulables ---------- */
+var gen = 0;
+function plus_tard(fn,ms){var g=gen;setTimeout(function(){if(g===gen)fn()},ms)}
+
+/* ---------- Affichage TV ---------- */
+var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","resultat","gage","fin","banque"];
+function montrer(id){
+  gen++;
+  S.ecran = id;
+  ECRANS.forEach(function(e){$(e).hidden = e!==id});
+  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","resultat","gage"].indexOf(id)<0;
+  if(id!=="gage") neon(null);
+  $("btnQuitter").hidden = id==="accueil" || id==="banque";
+  annulerQuitter();
+  majHud();
+  var p = $(id).querySelector("[data-primary]:not([disabled])") || $(id).querySelector("input,button:not([disabled])");
+  if(p) try{p.focus({preventScroll:true})}catch(e){}
+  diffuser();
+}
+function neon(side){
+  var n = $("neon");
+  n.className = "";
+  if(side){ void n.offsetWidth; n.className = side+" on"; }
+}
+function majHud(){
+  $("hudG").innerHTML = "";
+  var g = document.createElement("span");
+  g.innerHTML = "Partie <b></b> · Manche <b></b>";
+  g.children[0].textContent = (S.partie+1)+" "+SEQUENCE[S.partie].nom;
+  g.children[1].textContent = S.manche+"/"+nbManches();
+  $("hudG").appendChild(g);
+  $("hudD").textContent = "";
+  ["b","v"].forEach(function(s,i){
+    var sp = document.createElement("span");
+    sp.className = "c"+s;
+    sp.textContent = (S.noms[s]||"?")+" · "+S.st[s].bois+" verre"+(S.st[s].bois>1?"s":"");
+    if(i) $("hudD").appendChild(document.createTextNode("   "));
+    $("hudD").appendChild(sp);
+  });
+}
+
+/* Arrêter le jeu : 1er appui demande confirmation, 2e appui ramène à l'accueil */
+var quitterTimer = null;
+function annulerQuitter(){ clearTimeout(quitterTimer); quitterTimer=null; var b=$("btnQuitter"); b.classList.remove("confirme"); b.textContent="Arrêter le jeu"; }
+function quitter(){ S.jeu=null; S.perdant=null; S.fait=false; montrer("accueil"); }
+$("btnQuitter").onclick = function(){
+  var b=$("btnQuitter");
+  if(b.classList.contains("confirme")){ quitter(); return; }
+  b.classList.add("confirme"); b.textContent="Appuie encore pour quitter";
+  quitterTimer = setTimeout(annulerQuitter, 3000);
+};
+
+/* Accueil */
+$("btnJouer").onclick = function(){ montrer("joueurs"); majNoms(); };
+$("btnBanqueAccueil").onclick = function(){ ouvrirBanque(); };
+
+/* Joueurs */
+function majNoms(){
+  S.noms.b = $("nomB").value.trim(); S.noms.v = $("nomV").value.trim();
+  $("carteB").classList.toggle("pret", !!S.noms.b);
+  $("carteV").classList.toggle("pret", !!S.noms.v);
+  $("btnParti").disabled = !(S.noms.b && S.noms.v);
+}
+$("nomB").oninput = majNoms; $("nomV").oninput = majNoms;
+$("btnParti").onclick = function(){ majNoms(); if(S.noms.b&&S.noms.v) montrer("modes"); };
+
+/* Modes */
+$("btnClassique").onclick = function(){
+  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; paquets = {};
+  lancerIntro();
+};
+
+$("btnBanque").onclick = function(){ ouvrirBanque(); };
+$("btnTestUno").onclick = function(){
+  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
+  uno();
+};
+$("btnTestCourse").onclick = function(){
+  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
+  course();
+};
+
+/* Intro de partie */
+function lancerIntro(){
+  S.manche = 1; S.st = {b:stats0(),v:stats0()};
+  $("introNum").textContent = "Partie "+(S.partie+1)+" sur "+SEQUENCE.length;
+  $("introNiv").textContent = SEQUENCE[S.partie].nom;
+  $("introSub").textContent = SEQUENCE[S.partie].desc+" · "+nbManches()+" manches";
+  montrer("intro");
+}
+$("btnLancer").onclick = function(){ roulette(); };
+
+/* Roulette */
+/* Sons courts (débloqués au premier clic ou touche sur la télé) */
+var audio = null;
+function debloquerSon(){ try{ if(!audio){ var AC = window.AudioContext||window.webkitAudioContext; if(AC) audio = new AC(); } if(audio && audio.state==="suspended") audio.resume(); }catch(e){} }
+document.addEventListener("pointerdown", debloquerSon);
+document.addEventListener("keydown", debloquerSon);
+function bip(freq, duree, vol){
+  if(!audio || audio.state!=="running") return;
+  try{
+    var t = audio.currentTime, o = audio.createOscillator(), g = audio.createGain();
+    o.type = "triangle"; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol||0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t+duree);
+    o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t+duree+0.02);
+  }catch(e){}
+}
+
+/* La roue */
+var NS = "http://www.w3.org/2000/svg", rot = 0;
+function sv(tag, attrs){ var e = document.createElementNS(NS, tag); for(var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+function construireRoue(){
+  var svg = $("roueSvg");
+  if(svg.getAttribute("data-n")===String(JEUX.length)) return;
+  svg.innerHTML = ""; svg.setAttribute("data-n", String(JEUX.length));
+  var defs = sv("defs",{}), f = sv("filter",{id:"lueur",x:"-50%",y:"-50%",width:"200%",height:"200%"});
+  f.appendChild(sv("feGaussianBlur",{stdDeviation:"2.2",result:"b"}));
+  var m = sv("feMerge",{}); m.appendChild(sv("feMergeNode",{in:"b"})); m.appendChild(sv("feMergeNode",{in:"SourceGraphic"})); f.appendChild(m);
+  defs.appendChild(f); svg.appendChild(defs);
+  svg.appendChild(sv("circle",{class:"rim2",r:"100"}));
+  var n = JEUX.length, seg = 360/n, R = 94, g = sv("g",{id:"roueG",transform:"rotate("+rot+")"});
+  JEUX.forEach(function(j,i){
+    var a0 = (i*seg-90)*Math.PI/180, a1 = ((i+1)*seg-90)*Math.PI/180;
+    var d = "M0 0 L"+(R*Math.cos(a0)).toFixed(2)+" "+(R*Math.sin(a0)).toFixed(2)+" A"+R+" "+R+" 0 "+(seg>180?1:0)+" 1 "+(R*Math.cos(a1)).toFixed(2)+" "+(R*Math.sin(a1)).toFixed(2)+" Z";
+    g.appendChild(sv("path",{d:d,id:"seg"+i,class:"seg s"+(i%3)}));
+    var c = i*seg+seg/2;
+    var t1 = sv("text",{id:"lbl"+i,class:"lbl",x:"0",y:"-58","text-anchor":"middle",transform:"rotate("+c+")"}); t1.textContent = j.nom;
+    var t2 = sv("text",{id:"typ"+i,class:"typ",x:"0",y:"-72","text-anchor":"middle",transform:"rotate("+c+")"}); t2.textContent = j.type;
+    g.appendChild(t2); g.appendChild(t1);
+  });
+  svg.appendChild(g);
+  svg.appendChild(sv("circle",{class:"rim",r:"95",filter:"url(#lueur)"}));
+  for(var k=0;k<28;k++){
+    var a = k*360/28*Math.PI/180;
+    svg.appendChild(sv("circle",{class:"ampoule"+(k%2?"":" on"),cx:(105*Math.cos(a)).toFixed(2),cy:(105*Math.sin(a)).toFixed(2),r:"2.6",filter:"url(#lueur)"}));
+  }
+  svg.appendChild(sv("circle",{class:"hub",r:"15"}));
+  svg.appendChild(sv("circle",{class:"pointeur",r:"3.5",filter:"url(#lueur)"}));
+  svg.appendChild(sv("polygon",{class:"pointeur",points:"0,-84 -9,-112 9,-112",filter:"url(#lueur)"}));
+}
+function ampoules(fn){ Array.prototype.forEach.call($("roueSvg").querySelectorAll(".ampoule"), fn); }
+function roulette(){
+  montrer("roulette");
+  $("rouletteTitre").textContent = "Manche "+S.manche+" · tirage du mini-jeu";
+  $("rouletteNom").textContent = "";
+  construireRoue();
+  JEUX.forEach(function(j,i){ $("seg"+i).classList.remove("gagne"); $("lbl"+i).classList.remove("gagne-t"); $("typ"+i).classList.remove("gagne-t"); });
+  var n = JEUX.length, seg = 360/n, choix = rnd(n);
+  var cible = (((-(choix*seg + seg/2 + (Math.random()-0.5)*seg*0.6)) % 360) + 360) % 360;
+  var depart = rot, fin = depart + 360*5 + (((cible - depart) % 360) + 360) % 360;
+  var duree = 5200, g0 = gen, dernier = null, t0 = null;
+  function frame(now){
+    if(g0!==gen) return;
+    if(t0===null) t0 = now;
+    var p = Math.min(1, (now-t0)/duree), e = 1 - Math.pow(1-p, 4);
+    rot = depart + (fin-depart)*e;
+    $("roueG").setAttribute("transform","rotate("+rot.toFixed(2)+")");
+    var s = Math.floor(((((-rot) % 360) + 360) % 360) / seg);
+    if(s!==dernier){ dernier = s; bip(1500, 0.03, 0.05); var k=0; ampoules(function(a){ a.classList.toggle("on", (k++ + s) % 2 === 0); }); }
+    if(p<1) requestAnimationFrame(frame); else { rot = rot % 360; atterrir(choix); }
+  }
+  plus_tard(function(){ requestAnimationFrame(frame); }, 500);
+}
+function atterrir(choix){
+  $("seg"+choix).classList.add("gagne"); $("lbl"+choix).classList.add("gagne-t"); $("typ"+choix).classList.add("gagne-t");
+  $("rouletteNom").textContent = JEUX[choix].nom;
+  bip(880, 0.15, 0.07); plus_tard(function(){ bip(1320, 0.25, 0.07); }, 130);
+  var c = 0;
+  (function flash(){ var on = c%2===0; ampoules(function(a){ a.classList.toggle("on", on); }); c++; if(c<10) plus_tard(flash, 140); })();
+  plus_tard(function(){ demarrer(JEUX[choix].id); }, 2200);
+}
+function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else carteHaute(); }
+
+/* Mini-jeu 5 : Dernière carte (premier à vider sa main) */
+var UC = ["r","j","v","b"], NOM_COUL = {r:"Rouge", j:"Jaune", v:"Vert", b:"Bleu"}, MAIN_DEPART = 5;
+function unoPaquet(){
+  var d = [];
+  UC.forEach(function(c){ d.push(c+"0"); for(var n=1;n<=9;n++){ d.push(c+n); d.push(c+n); } ["+2","R","S"].forEach(function(x){ d.push(c+x); d.push(c+x); }); });
+  for(var i=0;i<4;i++){ d.push("W"); d.push("W4"); }
+  return melange(d);
+}
+function uCoul(k){ return k.charAt(0)==="W" ? null : k.charAt(0); }
+function uVal(k){ return k.charAt(0)==="W" ? k : k.slice(1); }
+function uJouable(k){
+  var U = S.jeu, h = U.defausse[U.defausse.length-1];
+  if(k.charAt(0)==="W") return true;
+  return uCoul(k)===U.couleur || (uCoul(h)!==null && uVal(k)===uVal(h));
+}
+function uPiocher1(){
+  var U = S.jeu;
+  if(!U.pioche.length && U.defausse.length>1){ var top = U.defausse.pop(); U.pioche = melange(U.defausse); U.defausse = [top]; }
+  return U.pioche.length ? U.pioche.pop() : null;
+}
+function nomCarte(k){
+  var v = uVal(k), c = NOM_COUL[uCoul(k)];
+  if(v==="W") return "un joker"; if(v==="W4") return "un +4";
+  if(v==="R") return "une inversion "+c; if(v==="S") return "un passe "+c;
+  return v+" "+c;
+}
+function carteEl(k, cls, bouton){
+  var e = document.createElement(bouton ? "button" : "div"), c = uCoul(k), v = uVal(k);
+  e.className = "uc "+(c ? "k-"+c : "k-w")+(cls ? " "+cls : "");
+  var sym = v==="R" ? "⇄" : v==="S" ? "⊘" : v==="W" ? "★" : v==="W4" ? "+4" : v;
+  var c1 = el("span","ui-coin",sym), c2 = el("span","ui-coin bas",sym), mid = el("span","ui-centre");
+  mid.appendChild(el("span",null, v==="W" ? "" : sym));
+  e.appendChild(c1); e.appendChild(mid); e.appendChild(c2);
+  e.setAttribute("aria-label", nomCarte(k));
+  return e;
+}
+function uno(){
+  var p = unoPaquet();
+  var U = {id:"uno", phase:"jeu", pioche:p, defausse:[], mains:{b:[],v:[]}, tour:Math.random()<0.5?"b":"v", couleur:null, revele:false, aPioche:false, attenteCouleur:false, effet:null, msg:""};
+  S.jeu = U;
+  for(var i=0;i<MAIN_DEPART;i++){ U.mains.b.push(p.pop()); U.mains.v.push(p.pop()); }
+  var k = p.pop(), essais = 0;
+  while(!/^[rjvb]\d$/.test(k) && essais++ < 50){ p.unshift(k); k = p.pop(); }
+  U.defausse.push(k); U.couleur = uCoul(k);
+  U.msg = S.noms[U.tour]+" commence";
+  montrer("uno"); rendreUno();
+  plus_tard(function(){ if(S.jeu===U && U.phase==="jeu") finUno(null); }, 300000);
+}
+function unoAction(d){
+  var U = S.jeu;
+  if(!U || U.id!=="uno" || U.phase!=="jeu" || !d) return;
+  var s = U.tour, main = U.mains[s];
+  if(d.a==="voir"){ U.revele = true; }
+  else if(d.a==="couleur"){
+    if(!U.attenteCouleur || !NOM_COUL[d.c]) return;
+    U.couleur = d.c; U.attenteCouleur = false; U.msg += " · couleur "+NOM_COUL[d.c];
+    apresCoup(U.effet);
+  }
+  else if(U.attenteCouleur) return;
+  else if(d.a==="jouer"){
+    var i = d.i|0, k = main[i];
+    if(!k || !uJouable(k)) return;
+    main.splice(i,1); U.defausse.push(k); bip(990, 0.06, 0.05);
+    U.msg = S.noms[s]+" joue "+nomCarte(k);
+    if(!main.length){ if(uCoul(k)) U.couleur = uCoul(k); finUno(s); }
+    else if(k.charAt(0)==="W"){ U.attenteCouleur = true; U.effet = uVal(k); }
+    else { U.couleur = uCoul(k); apresCoup(uVal(k)); }
+  }
+  else if(d.a==="piocher"){
+    if(U.aPioche) return;
+    var c = uPiocher1(); if(c) main.push(c);
+    U.aPioche = true; U.msg = S.noms[s]+" pioche une carte";
+  }
+  else if(d.a==="passer"){
+    if(!U.aPioche) return;
+    U.msg = S.noms[s]+" passe"; changerTour();
+  }
+  rendreUno(); diffuser();
+}
+function apresCoup(eff){
+  var U = S.jeu, s = U.tour, o = autre(s);
+  if(eff==="+2" || eff==="W4"){
+    var n = eff==="+2" ? 2 : 4;
+    for(var i=0;i<n;i++){ var c = uPiocher1(); if(c) U.mains[o].push(c); }
+    U.msg += " · "+S.noms[o]+" pioche "+n+" et passe son tour"; U.aPioche = false;
+  } else if(eff==="R" || eff==="S"){
+    U.msg += " · "+S.noms[o]+" passe son tour"; U.aPioche = false;
+  } else changerTour();
+}
+function changerTour(){ var U = S.jeu; U.tour = autre(U.tour); U.revele = false; U.aPioche = false; }
+function finUno(gagnant){
+  var U = S.jeu; U.phase = "fini";
+  var parTemps = gagnant===null;
+  if(parTemps) gagnant = U.mains.b.length <= U.mains.v.length ? "b" : "v";
+  var perd = autre(gagnant);
+  U.msg = parTemps ? "Temps écoulé : "+S.noms[gagnant]+" a le moins de cartes" : S.noms[gagnant]+" a posé sa dernière carte !";
+  bip(880,0.15,0.07); plus_tard(function(){ bip(1320,0.3,0.07); },150);
+  rendreUno(); diffuser();
+  plus_tard(function(){ finManche(perd, U.msg); }, 2800);
+}
+function manetteConnectee(){
+  return !!(room && room.peers().some(function(p){ return p.presence && p.presence.role==="manette"; }));
+}
+function rendreUno(){
+  var U = S.jeu; if(!U || U.id!=="uno") return;
+  var h = U.defausse[U.defausse.length-1];
+  $("unoNomB").textContent = S.noms.b; $("unoNomV").textContent = S.noms.v;
+  ["b","v"].forEach(function(s){
+    var n = U.mains[s].length, dos = $(s==="b"?"unoDosB":"unoDosV"); dos.innerHTML = "";
+    for(var i=0;i<Math.min(n,12);i++) dos.appendChild(el("div","uc dos"));
+    $(s==="b"?"unoNbB":"unoNbV").textContent = n+" carte"+(n>1?"s":"");
+  });
+  $("unoHaut").innerHTML = ""; $("unoHaut").appendChild(carteEl(h, "grand"));
+  $("unoCoul").textContent = U.couleur ? "Couleur demandée : "+NOM_COUL[U.couleur] : "";
+  $("unoCoul").className = "uno-coul k-"+(U.couleur||"w");
+  $("unoTour").className = "uno-tour c"+U.tour;
+  $("unoTour").textContent = U.phase!=="jeu" ? "" : U.attenteCouleur ? S.noms[U.tour]+" choisit une couleur" : "Au tour de "+S.noms[U.tour];
+  $("unoMsg").textContent = U.msg;
+  neon(U.phase==="jeu" ? U.tour : null);
+  var zone = $("unoMain"); zone.innerHTML = "";
+  var tv = !manetteConnectee() && U.phase==="jeu";
+  zone.hidden = !tv;
+  if(!tv) return;
+  if(U.attenteCouleur){
+    UC.forEach(function(c){ var b = el("button","choix k-"+c, NOM_COUL[c]); b.onclick = function(){ unoAction({a:"couleur", c:c}); }; zone.appendChild(b); });
+    return;
+  }
+  U.mains[U.tour].forEach(function(k,i){ var b = carteEl(k, "", true); b.disabled = !uJouable(k); b.onclick = function(){ unoAction({a:"jouer", i:i}); }; zone.appendChild(b); });
+  var act = el("button", "petit", U.aPioche ? "Passer" : "Piocher");
+  act.onclick = function(){ unoAction({a: U.aPioche ? "passer" : "piocher"}); };
+  zone.appendChild(act);
+}
+
+/* Mini-jeu 4 : mini circuit (vue de dessus, 2 tours) */
+var CIRCUIT = [[70,300],[100,130],[290,70],[490,150],[650,80],[860,90],[935,230],[850,345],[915,470],[740,540],[480,470],[280,540],[85,470]];
+var ROUTE = 96, TOURS = 2, DUREE_MAX = 100, MARGE = 4, piste = null;
+var DIRK = {b:0,v:0}, DIRM = {b:0,v:0}, touches = {};
+function construirePiste(){
+  if(piste) return;
+  var P = CIRCUIT, n = P.length, pts = [];
+  for(var i=0;i<n;i++){
+    var p0=P[(i-1+n)%n], p1=P[i], p2=P[(i+1)%n], p3=P[(i+2)%n];
+    for(var s=0;s<30;s++){
+      var t=s/30, t2=t*t, t3=t2*t, q=[];
+      for(var a=0;a<2;a++) q.push(0.5*(2*p1[a] + (-p0[a]+p2[a])*t + (2*p0[a]-5*p1[a]+4*p2[a]-p3[a])*t2 + (-p0[a]+3*p1[a]-3*p2[a]+p3[a])*t3));
+      pts.push(q);
+    }
+  }
+  var d = [0];
+  for(var k=1;k<pts.length;k++) d.push(d[k-1] + Math.hypot(pts[k][0]-pts[k-1][0], pts[k][1]-pts[k-1][1]));
+  piste = {pts:pts, d:d, L:d[d.length-1] + Math.hypot(pts[0][0]-pts[pts.length-1][0], pts[0][1]-pts[pts.length-1][1])};
+}
+function plusProche(x, y, idx){
+  var pts = piste.pts, N = pts.length, best = idx, bd = 1e18;
+  for(var k=idx-25;k<=idx+25;k++){
+    var i = ((k%N)+N)%N, dx = pts[i][0]-x, dy = pts[i][1]-y, dd = dx*dx+dy*dy;
+    if(dd<bd){ bd = dd; best = i; }
+  }
+  return {i:best, dist:Math.sqrt(bd)};
+}
+function couleur(nom){ return getComputedStyle(document.documentElement).getPropertyValue(nom).trim(); }
+function course(){
+  construirePiste();
+  var i0 = 5, p = piste.pts[i0], q = piste.pts[i0+3];
+  var ang = Math.atan2(q[1]-p[1], q[0]-p[0]), nx = -Math.sin(ang), ny = Math.cos(ang);
+  function voiture(off){ return {x:p[0]+nx*off, y:p[1]+ny*off, a:ang, v:0, idx:i0, tours:0, fini:false, mort:0, bx:p[0]+nx*off, by:p[1]+ny*off, ba:ang, bi:i0, booms:0}; }
+  touches = {}; DIRK = {b:0,v:0};
+  S.jeu = {id:"course", phase:"decompte", car:{b:voiture(-20), v:voiture(20)}, msg:"3", parts:[]};
+  montrer("course");
+  var cv = $("cvCourse"), ctx = cv.getContext("2d");
+  var r = Math.min(window.devicePixelRatio||1, 1.5);
+  cv.width = Math.max(300, cv.clientWidth*r); cv.height = Math.max(200, cv.clientHeight*r);
+  var C = {bg:couleur("--bg"), b:couleur("--bleu"), v:couleur("--violet"), fg:couleur("--fg"), mute:couleur("--mute")};
+  var g0 = gen, last = null, debut = performance.now(), dernierMsg = null;
+  function boucle(now){
+    if(g0!==gen) return;
+    var dt = last===null ? 0 : Math.min(0.05, (now-last)/1000); last = now;
+    var e = (now-debut)/1000;
+    if(S.jeu.phase==="decompte"){
+      S.jeu.msg = e<3 ? String(3-Math.floor(e)) : "GO";
+      if(S.jeu.msg!==dernierMsg){ dernierMsg = S.jeu.msg; bip(S.jeu.msg==="GO"?1320:660, 0.18, 0.07); }
+      if(e>=3){ S.jeu.phase = "course"; diffuser(); }
+    } else if(S.jeu.phase==="course"){
+      if(e>4.2) S.jeu.msg = "";
+      physique(dt);
+      var cb = S.jeu.car.b, cvv = S.jeu.car.v, gagnant = null;
+      if(cb.fini && !cvv.fini) gagnant = "b"; else if(cvv.fini && !cb.fini) gagnant = "v";
+      else if(e-3 > DUREE_MAX){ gagnant = avance(cb) >= avance(cvv) ? "b" : "v"; }
+      if(gagnant){
+        S.jeu.phase = "fini"; S.jeu.msg = S.noms[gagnant]+" gagne !"; bip(880,0.15,0.07); plus_tard(function(){ bip(1320,0.3,0.07); },150);
+        var perd = autre(gagnant);
+        plus_tard(function(){ finManche(perd, S.noms[gagnant]+" a bouclé les "+TOURS+" tours en premier"); }, 2600);
+      }
+    } else if(S.jeu.phase==="fini"){
+      ["b","v"].forEach(function(s){ S.jeu.car[s].v *= 0.92; S.jeu.car[s].x += Math.cos(S.jeu.car[s].a)*S.jeu.car[s].v*dt; S.jeu.car[s].y += Math.sin(S.jeu.car[s].a)*S.jeu.car[s].v*dt; });
+    }
+    dessinerCourse(ctx, cv, C);
+    requestAnimationFrame(boucle);
+  }
+  requestAnimationFrame(boucle);
+}
+function avance(c){ return c.tours*piste.L + piste.d[c.idx]; }
+function physique(dt){
+  var N = piste.pts.length;
+  majParticules(dt);
+  ["b","v"].forEach(function(s){
+    var c = S.jeu.car[s];
+    if(c.mort > 0){
+      c.mort -= dt;
+      if(c.mort <= 0){ c.mort = 0; c.x = c.bx; c.y = c.by; c.a = c.ba; c.idx = c.bi; c.v = 0; c.revient = 1; }
+      return;
+    }
+    if(c.revient > 0) c.revient -= dt;
+    var pp = plusProche(c.x, c.y, c.idx);
+    c.v += (270 - c.v) * Math.min(1, dt*1.3);
+    var dir = Math.max(-1, Math.min(1, DIRK[s] + DIRM[s]));
+    c.a += dir * 3.8 * dt * Math.min(1, c.v/120);
+    c.x = Math.max(8, Math.min(992, c.x + Math.cos(c.a)*c.v*dt));
+    c.y = Math.max(8, Math.min(592, c.y + Math.sin(c.a)*c.v*dt));
+    var ni = plusProche(c.x, c.y, pp.i).i;
+    if(plusProche(c.x, c.y, ni).dist > ROUTE/2 + MARGE){ exploser(c, s); return; }
+    if(c.idx > N*0.85 && ni < N*0.15) c.tours++;
+    else if(c.idx < N*0.15 && ni > N*0.85) c.tours--;
+    c.idx = ni;
+    if(c.tours >= TOURS) c.fini = true;
+  });
+  var a = S.jeu.car.b, b = S.jeu.car.v, dx = b.x-a.x, dy = b.y-a.y, dist = Math.hypot(dx,dy);
+  if(!a.mort && !b.mort && dist < 22 && dist > 0.01){
+    var o = (22-dist)/2, ux = dx/dist, uy = dy/dist;
+    a.x -= ux*o; a.y -= uy*o; b.x += ux*o; b.y += uy*o; a.v *= 0.92; b.v *= 0.92;
+  }
+}
+function exploser(c, s){
+  c.mort = 1.3; c.booms++;
+  var cols = [c===S.jeu.car.b ? couleur("--bleu") : couleur("--violet"), "#ffb347", "#ffffff", "#ff5a3d"];
+  for(var i=0;i<44;i++){
+    var an = Math.random()*Math.PI*2, sp = 60 + Math.random()*260;
+    S.jeu.parts.push({x:c.x, y:c.y, vx:Math.cos(an)*sp + Math.cos(c.a)*c.v*0.3, vy:Math.sin(an)*sp + Math.sin(c.a)*c.v*0.3, vie:0.5+Math.random()*0.6, max:1.1, t:2+Math.random()*4, col:cols[i%cols.length]});
+  }
+  S.jeu.parts.push({x:c.x, y:c.y, vx:0, vy:0, vie:0.35, max:0.35, flash:true, col:"#ffffff"});
+  boum();
+}
+function majParticules(dt){
+  var ps = S.jeu.parts;
+  for(var i=ps.length-1;i>=0;i--){ var p = ps[i]; p.vie -= dt; if(p.vie <= 0){ ps.splice(i,1); continue; } p.x += p.vx*dt; p.y += p.vy*dt; p.vx *= 0.94; p.vy *= 0.94; }
+}
+function boum(){
+  if(!audio || audio.state!=="running") return;
+  try{
+    var t = audio.currentTime, len = Math.floor(audio.sampleRate*0.6), buf = audio.createBuffer(1, len, audio.sampleRate), d = buf.getChannelData(0);
+    for(var i=0;i<len;i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/len, 2.5);
+    var src = audio.createBufferSource(), f = audio.createBiquadFilter(), g = audio.createGain();
+    src.buffer = buf; f.type = "lowpass"; f.frequency.value = 700; g.gain.value = 0.35;
+    src.connect(f); f.connect(g); g.connect(audio.destination); src.start(t);
+  }catch(e){}
+}
+function tracerPiste(ctx){
+  var pts = piste.pts; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  for(var i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.closePath();
+}
+function dessinerCourse(ctx, cv, C){
+  var W = cv.width, H = cv.height, sc = Math.min(W/1000, H/600), ox = (W-1000*sc)/2, oy = (H-600*sc)/2;
+  ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = C.bg; ctx.fillRect(0,0,W,H);
+  ctx.setTransform(sc,0,0,sc,ox,oy);
+  ctx.lineJoin = "round"; ctx.lineCap = "round";
+  tracerPiste(ctx);
+  ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = ROUTE+22; ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = ROUTE+5; ctx.stroke();
+  ctx.strokeStyle = "#13132b"; ctx.lineWidth = ROUTE; ctx.stroke();
+  ctx.setLineDash([14,18]); ctx.strokeStyle = "rgba(255,255,255,0.16)"; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+  var p0 = piste.pts[0], p1 = piste.pts[2], an = Math.atan2(p1[1]-p0[1], p1[0]-p0[0]);
+  ctx.save(); ctx.translate(p0[0], p0[1]); ctx.rotate(an);
+  for(var r=0;r<2;r++) for(var k=0;k<8;k++){ ctx.fillStyle = (r+k)%2 ? "#ffffff" : "#000000"; ctx.fillRect(r*9-9, -ROUTE/2 + k*ROUTE/8, 9, ROUTE/8); }
+  ctx.restore();
+  S.jeu.parts.forEach(function(p){
+    var k = Math.max(0, p.vie/p.max);
+    ctx.globalAlpha = k;
+    ctx.fillStyle = p.col;
+    if(p.flash){ ctx.beginPath(); ctx.arc(p.x, p.y, 70*(1-k)+10, 0, Math.PI*2); ctx.fill(); }
+    else ctx.fillRect(p.x-p.t/2, p.y-p.t/2, p.t, p.t);
+  });
+  ctx.globalAlpha = 1;
+  ["b","v"].forEach(function(s){
+    var c = S.jeu.car[s], col = C[s];
+    if(c.mort > 0) return;
+    if(c.revient > 0 && Math.floor(c.revient*10)%2) return;
+    ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.a);
+    ctx.shadowColor = col; ctx.shadowBlur = 16; ctx.fillStyle = col; ctx.fillRect(-15,-8,30,16);
+    ctx.shadowBlur = 0; ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.fillRect(4,-6,6,12);
+    ctx.fillStyle = "#000"; ctx.fillRect(-12,-10,7,3); ctx.fillRect(-12,7,7,3); ctx.fillRect(6,-10,7,3); ctx.fillRect(6,7,7,3);
+    ctx.restore();
+  });
+  ctx.setTransform(1,0,0,1,0,0);
+  var fs = Math.max(14, Math.round(H/26));
+  ctx.font = "700 "+fs+"px Sora, system-ui, sans-serif"; ctx.textBaseline = "top";
+  ["b","v"].forEach(function(s,i){
+    var c = S.jeu.car[s], t = S.noms[s]+" · tour "+Math.min(TOURS, Math.max(1, c.tours+1))+"/"+TOURS+(c.mort>0?" · BOUM":"");
+    ctx.fillStyle = C[s]; ctx.textAlign = i ? "right" : "left";
+    ctx.fillText(t, i ? W-fs : fs, fs*0.4);
+  });
+  if(S.jeu.msg){
+    var big = Math.round(H/6);
+    ctx.font = "800 "+big+"px Sora, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillStyle = C.fg; ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 20;
+    ctx.fillText(S.jeu.msg, W/2, H/2); ctx.shadowBlur = 0;
+  }
+}
+
+/* Mini-jeu 3 : chrono à l'aveugle */
+function fmt(s){ return s.toFixed(2).replace(".",","); }
+function chrono(){
+  S.jeu = {id:"chrono", phase:"pret", t:{b:null,v:null}};
+  montrer("chrono");
+  S.jeu.cible = 5 + rnd(11);
+  $("chAff").classList.remove("cache"); $("chAff").textContent = fmt(S.jeu.cible);
+  $("chSub").textContent = "Visez "+S.jeu.cible+" secondes pile. Le chrono disparaît au bout de 3 s, tapez sur votre moitié quand vous pensez y être.";
+  $("chB").textContent = "← "+S.noms.b; $("chV").textContent = S.noms.v+" →";
+  plus_tard(function(){
+    S.jeu.phase = "go"; S.jeu.t0 = performance.now(); $("chSub").textContent = ""; diffuser();
+    var g0 = gen;
+    (function tick(){
+      if(g0!==gen || !S.jeu || S.jeu.phase!=="go") return;
+      var e = (performance.now()-S.jeu.t0)/1000;
+      if(e < 3){ $("chAff").textContent = fmt(e); requestAnimationFrame(tick); }
+      else { $("chAff").textContent = "?,??"; $("chAff").classList.add("cache"); }
+    })();
+    plus_tard(function(){ if(S.jeu && S.jeu.phase==="go") revelerChrono(); }, 25000);
+  }, 3500);
+}
+function revelerChrono(){
+  S.jeu.phase = "fini";
+  var tb = S.jeu.t.b, tv = S.jeu.t.v;
+  var cb = S.jeu.cible;
+  var eb = tb===null ? Infinity : Math.abs(tb-cb), ev = tv===null ? Infinity : Math.abs(tv-cb);
+  $("chAff").classList.remove("cache"); $("chAff").textContent = fmt(cb);
+  $("chB").textContent = S.noms.b+" · "+(tb===null ? "pas tapé" : fmt(tb)+" s");
+  $("chV").textContent = S.noms.v+" · "+(tv===null ? "pas tapé" : fmt(tv)+" s");
+  if(eb===ev){ $("chSub").textContent = "Égalité parfaite, on rejoue !"; plus_tard(chrono, 2500); return; }
+  var perd = eb > ev ? "b" : "v";
+  $("chSub").textContent = S.noms[autre(perd)]+" est le plus proche";
+  diffuser();
+  plus_tard(function(){
+    finManche(perd, S.noms.b+" "+(tb===null?"pas tapé":fmt(tb)+" s")+" · "+S.noms.v+" "+(tv===null?"pas tapé":fmt(tv)+" s"));
+  }, 2800);
+}
+
+/* Mini-jeu 1 : réflexe */
+function reflexe(){
+  S.jeu = {id:"reflexe", phase:"pret"};
+  montrer("reflexe");
+  $("reflexe").classList.remove("go");
+  $("rfTexte").textContent = "Doigts prêts";
+  $("rfSub").textContent = "Tapez sur votre moitié dès que l'écran devient blanc. Trop tôt = perdu.";
+  $("rfB").textContent = "← "+S.noms.b; $("rfV").textContent = S.noms.v+" →";
+  plus_tard(function(){
+    S.jeu.phase = "attends"; $("rfTexte").textContent = "Attendez…"; $("rfSub").textContent = ""; diffuser();
+    plus_tard(function(){
+      S.jeu.phase = "go"; S.jeu.t0 = performance.now();
+      $("reflexe").classList.add("go"); $("rfTexte").textContent = "TAPEZ !"; diffuser();
+    }, 1500 + rnd(3000));
+  }, 1800);
+}
+
+/* Mini-jeu 2 : carte haute */
+function carteHaute(){
+  S.jeu = {id:"carte", phase:"tirage", c:{b:null,v:null}};
+  montrer("carte");
+  resetCartes();
+}
+function resetCartes(){
+  S.jeu.c = {b:null,v:null}; S.jeu.phase = "tirage";
+  ["B","V"].forEach(function(x){ var c=$("c"+x); c.classList.remove("face"); c.textContent="?"; });
+  $("cnB").textContent = S.noms.b; $("cnV").textContent = S.noms.v;
+  $("cSub").textContent = "Chacun tape sur sa moitié pour retourner sa carte";
+  diffuser();
+}
+
+/* Appui d'un joueur (téléphone, clavier ou clic) */
+function appui(side){
+  if(!S.jeu || (side!=="b" && side!=="v")) return;
+  if(S.ecran==="reflexe"){
+    if(S.jeu.phase==="attends"){ S.jeu.phase="fini"; finManche(side, "Faux départ de "+S.noms[side]+" !"); }
+    else if(S.jeu.phase==="go"){
+      S.jeu.phase="fini";
+      var ms = Math.round(performance.now()-S.jeu.t0);
+      finManche(autre(side), S.noms[side]+" a tapé en "+(ms/1000).toFixed(2).replace(".",",")+" s");
+    }
+  } else if(S.ecran==="chrono" && S.jeu.phase==="go" && S.jeu.t[side]===null){
+    S.jeu.t[side] = (performance.now()-S.jeu.t0)/1000;
+    $(side==="b"?"chB":"chV").textContent = S.noms[side]+" · a tapé ✓";
+    bip(990, 0.06, 0.05);
+    if(S.jeu.t.b!==null && S.jeu.t.v!==null) revelerChrono();
+  } else if(S.ecran==="carte" && S.jeu.phase==="tirage" && S.jeu.c[side]===null){
+    var v = 2 + rnd(13); S.jeu.c[side] = v;
+    var el = $(side==="b"?"cB":"cV"); el.textContent = VALEURS[v]||String(v); el.classList.add("face");
+    if(S.jeu.c.b!==null && S.jeu.c.v!==null){
+      S.jeu.phase = "compare";
+      plus_tard(function(){
+        if(S.jeu.c.b===S.jeu.c.v){ $("cSub").textContent = "Égalité ! On retire."; plus_tard(resetCartes,1600); }
+        else { var perd = S.jeu.c.b < S.jeu.c.v ? "b" : "v"; finManche(perd, "Carte la plus basse"); }
+      }, 900);
+    }
+  }
+}
+
+/* Résultat puis gage */
+function finManche(perdant, detail){
+  S.perdant = perdant; S.st[perdant].perdu++; S.tot[perdant].perdu++;
+  montrer("resultat");
+  $("resTitre").textContent = S.noms[autre(perdant)]+" gagne la manche";
+  $("resSub").textContent = detail;
+  plus_tard(afficherGage, 2400);
+}
+function afficherGage(){
+  var g = tirerGage(); S.fait = false;
+  montrer("gage");
+  $("gage").className = "screen "+S.perdant;
+  $("gQui").textContent = S.noms[S.perdant];
+  $("gTexte").textContent = g.texte;
+  $("gNote").textContent = g.exemple ? "Gage d'exemple : la banque n'a pas encore de gage "+NOM_NIV[g.niveau]+" pour "+(S.perdant==="b"?"lui":"elle")+"." : "";
+  neon(S.perdant);
+  boutonsGage();
+}
+function boutonsGage(){
+  var a = $("gActions"); a.innerHTML = "";
+  if(!S.fait){
+    var f = document.createElement("button"); f.className="plein"; f.textContent="Je le fais"; f.setAttribute("data-primary",""); f.onclick=function(){choisir("fais")};
+    var b = document.createElement("button"); b.textContent="Je bois"; b.onclick=function(){choisir("bois")};
+    a.appendChild(f); a.appendChild(b); try{f.focus({preventScroll:true})}catch(e){}
+  } else {
+    var ok = document.createElement("button"); ok.className="plein"; ok.textContent="C'est fait · manche suivante"; ok.setAttribute("data-primary","");
+    ok.onclick = function(){ S.st[S.perdant].fait++; S.tot[S.perdant].fait++; mancheSuivante(); };
+    a.appendChild(ok); try{ok.focus({preventScroll:true})}catch(e){}
+  }
+}
+function choisir(c){
+  if(S.ecran!=="gage") return;
+  if(c==="fais" && !S.fait){ S.fait = true; boutonsGage(); diffuser(); }
+  else if(c==="bois" && !S.fait){
+    S.st[S.perdant].bois++; S.tot[S.perdant].bois++; majHud();
+    var a = $("gActions"); a.innerHTML = ""; var p = document.createElement("p"); p.className="verre"; p.textContent="+1 verre"; a.appendChild(p);
+    S.fait = "bu"; diffuser();
+    plus_tard(mancheSuivante, 1500);
+  } else if(c==="fait" && S.fait===true){
+    S.st[S.perdant].fait++; S.tot[S.perdant].fait++; mancheSuivante();
+  }
+}
+function mancheSuivante(){
+  S.jeu = null; S.perdant = null; S.fait = false;
+  if(S.manche >= nbManches()){ finPartie(); return; }
+  S.manche++; roulette();
+}
+
+/* Fin de partie */
+function finPartie(){
+  montrer("fin");
+  var derniere = S.partie >= SEQUENCE.length-1;
+  $("finTitre").textContent = "Fin de la partie "+(S.partie+1)+" · "+SEQUENCE[S.partie].nom;
+  var pb = S.st.b.perdu, pv = S.st.v.perdu;
+  $("finPerdant").textContent = pb===pv ? "Égalité parfaite" : S.noms[pb>pv?"b":"v"]+" a perdu la partie";
+  $("fnB").textContent = S.noms.b; $("fnV").textContent = S.noms.v;
+  var corps = $("finCorps"); corps.innerHTML = "";
+  [["Manches perdues","perdu"],["Gages faits","fait"],["Verres bus","bois"]].forEach(function(r){
+    var tr = document.createElement("tr"), th = document.createElement("th"); th.textContent = r[0]; tr.appendChild(th);
+    ["b","v"].forEach(function(s){ var td=document.createElement("td"); td.className="c"+s; td.textContent=S.st[s][r[1]]; tr.appendChild(td); });
+    corps.appendChild(tr);
+  });
+  $("btnSuite").textContent = derniere ? "Nouvelle séquence" : "Partie suivante · "+SEQUENCE[S.partie+1].nom;
+  $("btnSuite").onclick = function(){
+    if(derniere){ S.partie = 0; S.tot = {b:stats0(),v:stats0()}; } else S.partie++;
+    lancerIntro();
+  };
+}
+$("btnMenu").onclick = function(){ montrer("modes"); };
+
+/* ---------- Clavier / télécommande / clic sur la TV ---------- */
+var TOUCHES_COURSE = {q:"bg", a:"bg", d:"bd", arrowleft:"vg", arrowright:"vd"};
+function majDirClavier(){ DIRK.b = (touches.bd?1:0)-(touches.bg?1:0); DIRK.v = (touches.vd?1:0)-(touches.vg?1:0); }
+document.addEventListener("keyup", function(e){ var t = TOUCHES_COURSE[String(e.key).toLowerCase()]; if(t){ touches[t] = false; majDirClavier(); } });
+window.addEventListener("blur", function(){ touches = {}; majDirClavier(); });
+document.addEventListener("keydown", function(e){
+  if(estManette) return;
+  var enJeu = S.ecran==="reflexe" || S.ecran==="carte" || S.ecran==="chrono";
+  var k = e.key;
+  if((k==="Escape"||k==="Backspace"||k==="GoBack"||k==="BrowserBack") && S.ecran!=="accueil" && document.activeElement.tagName!=="INPUT" && document.activeElement.tagName!=="TEXTAREA"){ e.preventDefault(); $("btnQuitter").click(); return; }
+  if(S.ecran==="course"){ var t = TOUCHES_COURSE[String(k).toLowerCase()]; if(t){ e.preventDefault(); touches[t] = true; majDirClavier(); } return; }
+  if(enJeu){
+    if(e.repeat) return;
+    if(k==="ArrowLeft"||k==="q"||k==="Q"||k==="a"||k==="A"){ e.preventDefault(); appui("b"); }
+    else if(k==="ArrowRight"||k==="p"||k==="P"||k==="l"||k==="L"){ e.preventDefault(); appui("v"); }
+    return;
+  }
+  if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].indexOf(k)>=0){
+    var tag = document.activeElement && document.activeElement.tagName;
+    if(tag==="TEXTAREA" || (tag==="INPUT" && (k==="ArrowLeft"||k==="ArrowRight"))) return;
+    var els = Array.prototype.slice.call($(S.ecran).querySelectorAll("input,button:not([disabled])"));
+    if(!els.length) return;
+    e.preventDefault();
+    var i = els.indexOf(document.activeElement);
+    i = (k==="ArrowLeft"||k==="ArrowUp") ? (i<=0?els.length-1:i-1) : (i+1)%els.length;
+    els[i].focus();
+  }
+});
+["reflexe","carte","chrono"].forEach(function(id){
+  $(id).addEventListener("pointerdown", function(e){ appui(e.clientX < window.innerWidth/2 ? "b" : "v"); });
+});
+
+/* ---------- Liaison téléphone ↔ télé ---------- */
+var room = null;
+function etat(){
+  var u = null, U = S.jeu;
+  if(S.ecran==="uno" && U && U.id==="uno"){
+    var m = U.revele ? U.mains[U.tour] : null;
+    u = {tour:U.tour, phase:U.phase, revele:U.revele, att:U.attenteCouleur, aPioche:U.aPioche,
+         main:m, jouables: m ? m.map(uJouable) : null, nb:{b:U.mains.b.length, v:U.mains.v.length}, msg:U.msg};
+  }
+  return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u};
+}
+function diffuser(){
+  if(room && !estManette){ room.emit("etat", etat()).catch(function(){}); }
+}
+function cliquerPrincipal(){
+  var b = $(S.ecran).querySelector("[data-primary]:not([disabled])");
+  if(b) b.click();
+}
+function majEtatManette(){
+  if(estManette || !room) { if(!estManette) $("etatManette").textContent = "Pas de manette ici : joue au clavier (← / →) ou à la souris"; return; }
+  var n = room.peers().filter(function(p){return p.presence && p.presence.role==="manette"}).length;
+  $("etatManette").innerHTML = "";
+  var t = document.createTextNode("Manette : "); var b = document.createElement("b");
+  b.textContent = n ? "connectée" : "en attente (ouvre ce lien sur ton téléphone)";
+  $("etatManette").appendChild(t); $("etatManette").appendChild(b);
+}
+
+function brancherTV(){
+  room.presence({role:"tv"}).catch(function(){});
+  room.on("tap", function(m){ if(m.data) appui(m.data.side); });
+  room.on("choix", function(m){ if(m.data) choisir(m.data.c); });
+  room.on("uno", function(m){ if(m.data && S.ecran==="uno") unoAction(m.data); });
+  room.on("quitter", function(){ if(S.ecran!=="accueil") quitter(); });
+  room.on("ok", function(){ if(["accueil","joueurs","modes","intro","fin"].indexOf(S.ecran)>=0) cliquerPrincipal(); });
+  room.on("nom", function(m){
+    if(!m.data) return;
+    if(typeof m.data.b==="string") $("nomB").value = m.data.b.slice(0,16);
+    if(typeof m.data.v==="string") $("nomV").value = m.data.v.slice(0,16);
+    majNoms();
+    if(S.ecran==="accueil") montrer("joueurs");
+  });
+  room.onPeers(function(c){ majEtatManette(); lireDirManette(c.peers); if((c.joined.length || c.left.length) && S.ecran==="uno") rendreUno(); if(c.joined.length) diffuser(); });
+  setInterval(diffuser, 4000);
+  majEtatManette();
+}
+
+/* ---------- Vue manette ---------- */
+var M = {ecran:null};
+var MV = ["m-attente","m-noms","m-pads","m-course","m-uno","m-gage","m-ok"];
+function rendreUnoManette(u, noms){
+  mMontrer("m-uno");
+  var box = $("mUnoCorps"); box.innerHTML = "";
+  $("mUnoInfo").className = "eyebrow c"+u.tour;
+  $("mUnoInfo").textContent = u.phase!=="jeu" ? "Partie terminée" : u.att ? noms[u.tour]+" choisit une couleur" : "Au tour de "+noms[u.tour];
+  if(u.phase!=="jeu"){ box.appendChild(el("p","sub",u.msg||"")); return; }
+  if(u.att){
+    var g = el("div","m-uno-choix");
+    UC.forEach(function(c){ var b = el("button","m-gros k-"+c, NOM_COUL[c]); b.onclick = function(){ envoyer("uno",{a:"couleur", c:c}); }; g.appendChild(b); });
+    box.appendChild(g); return;
+  }
+  if(!u.revele){
+    box.appendChild(el("p","sub","Passe le téléphone à "+noms[u.tour]+", puis appuie pour voir tes cartes."));
+    var v = el("button","plein m-gros","Je suis "+noms[u.tour]+" · voir mes cartes");
+    v.onclick = function(){ envoyer("uno",{a:"voir"}); }; box.appendChild(v); return;
+  }
+  if(u.msg) box.appendChild(el("p","sub",u.msg));
+  var main = el("div","m-main");
+  (u.main||[]).forEach(function(k,i){ var b = carteEl(k,"",true); b.disabled = !(u.jouables && u.jouables[i]); b.onclick = function(){ envoyer("uno",{a:"jouer", i:i}); }; main.appendChild(b); });
+  box.appendChild(main);
+  var act = el("button","m-gros", u.aPioche ? "Passer" : "Piocher");
+  act.onclick = function(){ envoyer("uno",{a: u.aPioche ? "passer" : "piocher"}); };
+  box.appendChild(act);
+}
+function lireDirManette(peers){
+  var d = {b:0,v:0};
+  peers.forEach(function(p){ var pr = p.presence; if(pr && pr.role==="manette" && pr.dir){ d.b += +pr.dir.b||0; d.v += +pr.dir.v||0; } });
+  DIRM.b = Math.max(-1, Math.min(1, d.b)); DIRM.v = Math.max(-1, Math.min(1, d.v));
+}
+/* Manette course : l'état des boutons tenus part en continu dans la présence */
+var tenu = {b:{}, v:{}};
+function envoyerDir(){
+  if(!room) return;
+  var dir = {b:(tenu.b["1"]?1:0)-(tenu.b["-1"]?1:0), v:(tenu.v["1"]?1:0)-(tenu.v["-1"]?1:0)};
+  room.presence({dir:dir}).catch(function(){});
+}
+Array.prototype.forEach.call(document.querySelectorAll(".pad4"), function(p){
+  var s = p.getAttribute("data-side"), d = p.getAttribute("data-d");
+  p.addEventListener("pointerdown", function(e){ e.preventDefault(); tenu[s][d] = true; p.classList.add("appui"); envoyerDir(); if(navigator.vibrate) try{navigator.vibrate(15)}catch(x){} });
+  ["pointerup","pointercancel","pointerleave"].forEach(function(ev){
+    p.addEventListener(ev, function(){ if(tenu[s][d]){ tenu[s][d] = false; p.classList.remove("appui"); envoyerDir(); } });
+  });
+});
+function mMontrer(id){ MV.forEach(function(v){$(v).hidden = v!==id}); }
+function envoyer(topic,data){ if(room) room.emit(topic,data).catch(function(){}); if(navigator.vibrate) try{navigator.vibrate(25)}catch(e){} }
+
+function rendreManette(e){
+  var noms = e.noms||{b:"",v:""};
+  $("mPadB").textContent = noms.b || "Bleu"; $("mPadV").textContent = noms.v || "Violet";
+  neon(e.ecran==="gage" ? e.perdant : null);
+  $("mCrB").textContent = noms.b || "Bleu"; $("mCrV").textContent = noms.v || "Violet";
+  if(e.ecran!=="course" && M.ecran==="course"){ tenu = {b:{}, v:{}}; envoyerDir(); }
+  if(e.ecran==="course"){
+    mMontrer("m-course");
+  } else if(e.ecran==="uno" && e.uno){
+    rendreUnoManette(e.uno, noms);
+  } else if(e.ecran==="joueurs"){
+    if(M.ecran!=="joueurs"){ $("mNomB").value = noms.b||""; $("mNomV").value = noms.v||""; }
+    mMontrer("m-noms");
+  } else if(e.ecran==="reflexe" || e.ecran==="carte" || e.ecran==="chrono"){
+    mMontrer("m-pads");
+  } else if(e.ecran==="gage" && (e.perdant==="b"||e.perdant==="v")){
+    mMontrer("m-gage");
+    $("mGageQui").textContent = "Gage pour "+(noms[e.perdant]||"");
+    var box = $("mGageBtns"); box.className = "m-gage "+e.perdant;
+    var cle = e.perdant+"|"+e.fait+"|"+e.manche;
+    if(box.getAttribute("data-k")!==cle){
+      box.setAttribute("data-k",cle); box.innerHTML = "";
+      if(e.fait===false){
+        var f=document.createElement("button"); f.className="plein m-gros"; f.textContent="Je le fais"; f.onclick=function(){envoyer("choix",{c:"fais"})};
+        var b=document.createElement("button"); b.className="m-gros"; b.textContent="Je bois"; b.onclick=function(){envoyer("choix",{c:"bois"})};
+        box.appendChild(f); box.appendChild(b);
+      } else if(e.fait===true){
+        var ok=document.createElement("button"); ok.className="plein m-gros"; ok.textContent="C'est fait"; ok.onclick=function(){envoyer("choix",{c:"fait"})};
+        box.appendChild(ok);
+      } else {
+        var p=document.createElement("p"); p.className="verre"; p.textContent="+1 verre"; box.appendChild(p);
+      }
+    }
+  } else if(e.ecran==="roulette" || e.ecran==="resultat" || e.ecran==="banque"){
+    mMontrer("m-ok"); $("mOkTitre").textContent = e.ecran==="roulette" ? "Tirage du mini-jeu…" : e.ecran==="banque" ? "Banque à gages ouverte sur la télé" : "Résultat à l'écran";
+    $("mOk").hidden = true;
+  } else {
+    mMontrer("m-ok"); $("mOk").hidden = false;
+    var titres = {accueil:"Accueil", modes:"Choix du mode", intro:"Nouvelle partie", fin:"Fin de partie"};
+    $("mOkTitre").textContent = titres[e.ecran] || "";
+    $("mOk").textContent = e.ecran==="accueil" ? "Jouer" : e.ecran==="modes" ? "Mode classique" : e.ecran==="intro" ? "Lancer la partie" : "Continuer";
+  }
+  $("mQuitter").hidden = e.ecran==="accueil";
+  M.ecran = e.ecran;
+}
+function brancherManette(){
+  room.presence({role:"manette"}).catch(function(){});
+  $("mAttTitre").textContent = "Connexion à la télé…";
+  $("mAttSub").textContent = "Garde le jeu ouvert sur la télé.";
+  room.on("etat", function(m){ if(m.data && !m.sameTab) rendreManette(m.data); });
+}
+Array.prototype.forEach.call(document.querySelectorAll(".pad"), function(p){
+  p.addEventListener("pointerdown", function(e){
+    e.preventDefault(); var s = p.getAttribute("data-side");
+    p.classList.add("appui"); setTimeout(function(){p.classList.remove("appui")},120);
+    envoyer("tap",{side:s});
+  });
+});
+$("mValiderNoms").onclick = function(){ envoyer("nom",{b:$("mNomB").value.trim(), v:$("mNomV").value.trim()}); };
+$("mOk").onclick = function(){ envoyer("ok",{}); };
+var mqT=null;
+$("mQuitter").addEventListener("pointerdown", function(e){ e.stopPropagation(); });
+$("mQuitter").onclick = function(){
+  var b=$("mQuitter");
+  if(b.classList.contains("confirme")){ clearTimeout(mqT); b.classList.remove("confirme"); b.textContent="Arrêter le jeu"; envoyer("quitter",{}); return; }
+  b.classList.add("confirme"); b.textContent="Appuie encore pour quitter";
+  mqT=setTimeout(function(){ b.classList.remove("confirme"); b.textContent="Arrêter le jeu"; },3000);
+};
+$("btnRetourTV").onclick = function(){ location.href = location.pathname; };
+
+/* ---------- Démarrage ---------- */
+if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
+else { montrer("accueil"); }
+
+/* ---------- Liaison télé ↔ téléphone (PeerJS, connexion directe, sans compte) ---------- */
+function Salon(){
+  var conns = [], handlers = {}, peersFns = [], moi = {};
+  function envoyerA(c, t, d){ if(c.open){ try{ c.send(JSON.stringify({t:t, d:d})); }catch(e){} } }
+  function notifier(j, l){ var ps = api.peers(); peersFns.forEach(function(fn){ try{ fn({peers:ps, joined:j, left:l, updated:[]}); }catch(e){} }); }
+  var api = {
+    emit: function(t, d){ conns.forEach(function(c){ envoyerA(c, t, d); }); return Promise.resolve(); },
+    on: function(t, fn){ (handlers[t] = handlers[t] || []).push(fn); return function(){}; },
+    presence: function(p){
+      for(var k in p){ if(p[k]===null) delete moi[k]; else moi[k] = p[k]; }
+      conns.forEach(function(c){ envoyerA(c, "__presence", moi); });
+      return Promise.resolve();
+    },
+    peers: function(){ return conns.filter(function(c){ return c.open; }).map(function(c){ return {presence:c._presence || {}}; }); },
+    onPeers: function(fn){ peersFns.push(fn); return function(){}; },
+    onClose: null,
+    ajouter: function(c){
+      c.on("open", function(){ if(conns.indexOf(c)<0) conns.push(c); envoyerA(c, "__presence", moi); notifier([c], []); });
+      c.on("data", function(raw){
+        var m; try{ m = typeof raw==="string" ? JSON.parse(raw) : raw; }catch(e){ return; }
+        if(!m || typeof m.t!=="string") return;
+        if(m.t==="__presence"){ c._presence = (m.d && typeof m.d==="object") ? m.d : {}; notifier([], []); return; }
+        (handlers[m.t] || []).forEach(function(fn){ try{ fn({topic:m.t, data:m.d, sameTab:false}); }catch(e){} });
+      });
+      c.on("close", function(){ var i = conns.indexOf(c); if(i>=0){ conns.splice(i,1); notifier([], [c]); } if(api.onClose) api.onClose(); });
+      c.on("error", function(){});
+    }
+  };
+  return api;
+}
+function idAleatoire(){ return "jdn-"+Math.random().toString(36).slice(2,12); }
+function afficherQR(id){
+  var url = location.origin + location.pathname + "#manette=" + id;
+  var box = $("qr"); box.innerHTML = "";
+  if(window.QRCode){ try{ new QRCode(box, {text:url, width:220, height:220, colorDark:"#000000", colorLight:"#ffffff", correctLevel:QRCode.CorrectLevel.M}); }catch(e){} }
+  box.title = url;
+}
+function demarrerTV(){
+  if(!window.Peer){ $("qr").hidden = true; $("etatManette").textContent = "Manette indisponible : vérifie la connexion internet de la télé."; return; }
+  var id = null; try{ id = localStorage.getItem("jdn-tv-id"); }catch(e){}
+  if(!id){ id = idAleatoire(); try{ localStorage.setItem("jdn-tv-id", id); }catch(e){} }
+  room = Salon(); brancherTV();
+  var essais = 0;
+  (function ouvrir(){
+    var peer = new Peer(id);
+    peer.on("open", function(){ afficherQR(id); majEtatManette(); });
+    peer.on("connection", function(c){ room.ajouter(c); });
+    peer.on("disconnected", function(){ try{ peer.reconnect(); }catch(e){} });
+    peer.on("error", function(err){
+      if(err && err.type==="unavailable-id"){
+        try{ peer.destroy(); }catch(e){}
+        if(++essais > 6){ id = idAleatoire(); try{ localStorage.setItem("jdn-tv-id", id); }catch(e){} essais = 0; }
+        setTimeout(ouvrir, 3000);
+      }
+    });
+  })();
+}
+function demarrerManette(){
+  var tvId = decodeURIComponent((location.hash.split("=")[1] || "")).replace(/[^a-z0-9-]/gi, "");
+  if(!tvId || !window.Peer){
+    $("mAttTitre").textContent = "Scanne le QR code";
+    $("mAttSub").textContent = "Ouvre le jeu sur la télé et scanne le code affiché sur l'écran d'accueil.";
+    return;
+  }
+  room = Salon(); brancherManette();
+  var peer = new Peer(), attente = null;
+  function connecter(){
+    clearTimeout(attente);
+    if(peer.disconnected){ try{ peer.reconnect(); }catch(e){} }
+    room.ajouter(peer.connect(tvId, {reliable:true}));
+  }
+  function plusTard(){ clearTimeout(attente); attente = setTimeout(connecter, 3000); }
+  room.onClose = function(){
+    mMontrer("m-attente"); M.ecran = null;
+    $("mAttTitre").textContent = "Connexion perdue";
+    $("mAttSub").textContent = "Reconnexion à la télé…";
+    plusTard();
+  };
+  room.onPeers(function(c){ if(c.joined.length){ $("mAttTitre").textContent = "Manette connectée"; $("mAttSub").textContent = "Regarde la télé."; } });
+  peer.on("open", connecter);
+  peer.on("error", function(err){
+    if(err && (err.type==="peer-unavailable" || err.type==="network" || err.type==="disconnected")){
+      $("mAttTitre").textContent = "Télé introuvable";
+      $("mAttSub").textContent = "Vérifie que le jeu est ouvert sur la télé. Nouvel essai dans 3 secondes…";
+      plusTard();
+    }
+  });
+  document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible" && !room.peers().length) connecter(); });
+}
+
+/* ---------- Banque à gages : Firebase, rangée sous une clé secrète ---------- */
+function demarrerBanque(){
+  var cfg = window.FIREBASE_CONFIG;
+  if(!window.firebase || !cfg || !cfg.apiKey || /REMPLACE/.test(cfg.apiKey)){ banqueEtat = "config"; rendreBanque(); return; }
+  try{ firebase.initializeApp(cfg); db = firebase.firestore(); }
+  catch(e){ banqueEtat = "config"; rendreBanque(); return; }
+  try{ CLE = localStorage.getItem("jdn-cle"); }catch(e){}
+  if(CLE && CLE.length===64){ banqueEtat = "chargement"; brancherDb(); }
+  else { CLE = null; banqueEtat = "cle"; rendreBanque(); }
+}
+function definirCle(){
+  var txt = $("bqCleTxt").value.trim();
+  if(txt.length < 8){ $("bqCleErr").textContent = "Il faut au moins 8 caractères."; return; }
+  if(!window.crypto || !crypto.subtle || !window.TextEncoder){ $("bqCleErr").textContent = "Ce navigateur ne peut pas relier la banque."; return; }
+  crypto.subtle.digest("SHA-256", new TextEncoder().encode("jeu-de-noel:"+txt.toLowerCase())).then(function(buf){
+    CLE = Array.prototype.map.call(new Uint8Array(buf), function(b){ return ("0"+b.toString(16)).slice(-2); }).join("");
+    try{ localStorage.setItem("jdn-cle", CLE); }catch(e){}
+    $("bqCleTxt").value = ""; $("bqCleErr").textContent = "";
+    BANQUE = []; banqueEtat = "chargement"; rendreBanque(); brancherDb();
+  });
+}
+$("bqCleOk").onclick = definirCle;
+$("bqChangerCle").onclick = function(){ if(!db) return; if(unsubBanque){ unsubBanque(); unsubBanque = null; } CLE = null; BANQUE = []; banqueEtat = "cle"; rendreBanque(); try{ $("bqCleTxt").focus(); }catch(e){} };
+$("bqCleTxt").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); definirCle(); } });
+
+if(estManette) demarrerManette();
+else { demarrerTV(); demarrerBanque(); }
+
+
+/* Garder l'écran allumé pendant la soirée */
+function veille(){ try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").catch(function(){}); }catch(e){} }
+document.addEventListener("click", veille, {once:true});
+document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible") veille(); });
+})();
+</script>
+</body>
+</html>
