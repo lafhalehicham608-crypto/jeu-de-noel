@@ -451,10 +451,10 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
   </section>
 </div>
 
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="config.js"></script>
 <script>
 (function(){
@@ -1515,102 +1515,101 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-/* ---------- Liaison télé ↔ téléphone (PeerJS, connexion directe, sans compte) ---------- */
-function Salon(){
-  var conns = [], handlers = {}, peersFns = [], moi = {};
-  function envoyerA(c, t, d){ if(c.open){ try{ c.send(JSON.stringify({t:t, d:d})); }catch(e){} } }
+/* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
+   La télé et la manette partagent un « salon » salles/<id> :
+   - etat        : l'état du jeu publié par la télé
+   - vers_tv     : actions envoyées par la manette (supprimées une fois lues)
+   - presence/tv, presence/tel : qui est connecté (effacé automatiquement à la déconnexion) */
+function nettoyer(v){ try{ return JSON.parse(JSON.stringify(v===undefined ? null : v)); }catch(e){ return null; } }
+function SalonRT(id, role){
+  var base = firebase.database().ref("salles/"+id);
+  var autreRole = role==="tv" ? "tel" : "tv";
+  var handlers = {}, peersFns = [], moi = {en_ligne:true}, presAutre = null;
+  function declencher(t, d){ (handlers[t] || []).forEach(function(fn){ try{ fn({topic:t, data:d, sameTab:false}); }catch(e){} }); }
   function notifier(j, l){ var ps = api.peers(); peersFns.forEach(function(fn){ try{ fn({peers:ps, joined:j, left:l, updated:[]}); }catch(e){} }); }
   var api = {
-    emit: function(t, d){ conns.forEach(function(c){ envoyerA(c, t, d); }); return Promise.resolve(); },
+    emit: function(t, d){
+      if(role==="tv" && t==="etat") base.child("etat").set({d:nettoyer(d), ts:Date.now()}).catch(function(){});
+      else if(role==="tel") base.child("vers_tv").push({t:t, d:nettoyer(d)}).catch(function(){});
+      return Promise.resolve();
+    },
     on: function(t, fn){ (handlers[t] = handlers[t] || []).push(fn); return function(){}; },
     presence: function(p){
       for(var k in p){ if(p[k]===null) delete moi[k]; else moi[k] = p[k]; }
-      conns.forEach(function(c){ envoyerA(c, "__presence", moi); });
+      base.child("presence/"+role).set(nettoyer(moi)).catch(function(){});
       return Promise.resolve();
     },
-    peers: function(){ return conns.filter(function(c){ return c.open; }).map(function(c){ return {presence:c._presence || {}}; }); },
+    peers: function(){ return presAutre ? [{presence:presAutre}] : []; },
     onPeers: function(fn){ peersFns.push(fn); return function(){}; },
-    onClose: null,
-    ajouter: function(c){
-      c.on("open", function(){ if(conns.indexOf(c)<0) conns.push(c); envoyerA(c, "__presence", moi); notifier([c], []); });
-      c.on("data", function(raw){
-        var m; try{ m = typeof raw==="string" ? JSON.parse(raw) : raw; }catch(e){ return; }
-        if(!m || typeof m.t!=="string") return;
-        if(m.t==="__presence"){ c._presence = (m.d && typeof m.d==="object") ? m.d : {}; notifier([], []); return; }
-        (handlers[m.t] || []).forEach(function(fn){ try{ fn({topic:m.t, data:m.d, sameTab:false}); }catch(e){} });
-      });
-      c.on("close", function(){ var i = conns.indexOf(c); if(i>=0){ conns.splice(i,1); notifier([], [c]); } if(api.onClose) api.onClose(); });
-      c.on("error", function(){});
-    }
+    onClose: null, onOpen: null
   };
+  var maPresence = base.child("presence/"+role);
+  firebase.database().ref(".info/connected").on("value", function(s){
+    if(s.val()===true){ maPresence.onDisconnect().remove(); maPresence.set(nettoyer(moi)).catch(function(){}); }
+  });
+  base.child("presence/"+autreRole).on("value", function(s){
+    var avant = !!presAutre, v = s.val();
+    presAutre = (v && typeof v==="object") ? v : null;
+    if(!avant && presAutre){ notifier([1], []); if(api.onOpen) api.onOpen(); }
+    else if(avant && !presAutre){ notifier([], [1]); if(api.onClose) api.onClose(); }
+    else notifier([], []);
+  });
+  if(role==="tv"){
+    var inbox = base.child("vers_tv");
+    inbox.remove().catch(function(){});
+    inbox.on("child_added", function(s){
+      var m = s.val(); s.ref.remove().catch(function(){});
+      if(m && typeof m.t==="string") declencher(m.t, m.d);
+    });
+  } else {
+    base.child("etat").on("value", function(s){ var v = s.val(); if(v && v.d && presAutre) declencher("etat", v.d); });
+  }
   return api;
 }
-function idAleatoire(){ return "jdn-"+Math.random().toString(36).slice(2,12); }
+function idAleatoire(){ return "jdn"+Math.random().toString(36).slice(2,12)+Math.random().toString(36).slice(2,8); }
 function afficherQR(id){
   var url = location.origin + location.pathname + "#manette=" + id;
   var box = $("qr"); box.innerHTML = "";
   if(window.QRCode){ try{ new QRCode(box, {text:url, width:220, height:220, colorDark:"#000000", colorLight:"#ffffff", correctLevel:QRCode.CorrectLevel.M}); }catch(e){} }
   box.title = url;
 }
+function firebaseOK(){
+  var cfg = window.FIREBASE_CONFIG;
+  if(!window.firebase || !cfg || !cfg.apiKey || /REMPLACE/.test(cfg.apiKey)) return false;
+  try{ if(!firebase.apps.length) firebase.initializeApp(cfg); return true; }catch(e){ return false; }
+}
 function demarrerTV(){
-  if(!window.Peer){ $("qr").hidden = true; $("etatManette").textContent = "Manette indisponible : vérifie la connexion internet de la télé."; return; }
-  var id = null; try{ id = localStorage.getItem("jdn-tv-id"); }catch(e){}
-  if(!id){ id = idAleatoire(); try{ localStorage.setItem("jdn-tv-id", id); }catch(e){} }
-  room = Salon(); brancherTV();
-  var essais = 0;
-  (function ouvrir(){
-    var peer = new Peer(id);
-    peer.on("open", function(){ afficherQR(id); majEtatManette(); });
-    peer.on("connection", function(c){ room.ajouter(c); });
-    peer.on("disconnected", function(){ try{ peer.reconnect(); }catch(e){} });
-    peer.on("error", function(err){
-      if(err && err.type==="unavailable-id"){
-        try{ peer.destroy(); }catch(e){}
-        if(++essais > 6){ id = idAleatoire(); try{ localStorage.setItem("jdn-tv-id", id); }catch(e){} essais = 0; }
-        setTimeout(ouvrir, 3000);
-      }
-    });
-  })();
+  if(!firebaseOK() || !firebase.database){ $("qr").hidden = true; $("etatManette").textContent = "Manette indisponible : vérifie la connexion internet de la télé."; return; }
+  var id = null; try{ id = localStorage.getItem("jdn-salle"); }catch(e){}
+  if(!id || !/^jdn[a-z0-9]{10,}$/.test(id)){ id = idAleatoire(); try{ localStorage.setItem("jdn-salle", id); }catch(e){} }
+  room = SalonRT(id, "tv");
+  brancherTV();
+  room.presence({role:"tv"});
+  afficherQR(id);
+  majEtatManette();
 }
 function demarrerManette(){
-  var tvId = decodeURIComponent((location.hash.split("=")[1] || "")).replace(/[^a-z0-9-]/gi, "");
-  if(!tvId || !window.Peer){
+  var id = decodeURIComponent((location.hash.split("=")[1] || "")).replace(/[^a-z0-9]/gi, "");
+  if(!id || id.length < 12 || !firebaseOK() || !firebase.database){
     $("mAttTitre").textContent = "Scanne le QR code";
     $("mAttSub").textContent = "Ouvre le jeu sur la télé et scanne le code affiché sur l'écran d'accueil.";
     return;
   }
-  room = Salon(); brancherManette();
-  var peer = new Peer(), attente = null;
-  function connecter(){
-    clearTimeout(attente);
-    if(peer.disconnected){ try{ peer.reconnect(); }catch(e){} }
-    room.ajouter(peer.connect(tvId, {reliable:true}));
-  }
-  function plusTard(){ clearTimeout(attente); attente = setTimeout(connecter, 3000); }
-  room.onClose = function(){
-    mMontrer("m-attente"); M.ecran = null;
-    $("mAttTitre").textContent = "Connexion perdue";
-    $("mAttSub").textContent = "Reconnexion à la télé…";
-    plusTard();
-  };
-  room.onPeers(function(c){ if(c.joined.length){ $("mAttTitre").textContent = "Manette connectée"; $("mAttSub").textContent = "Regarde la télé."; } });
-  peer.on("open", connecter);
-  peer.on("error", function(err){
-    if(err && (err.type==="peer-unavailable" || err.type==="network" || err.type==="disconnected")){
-      $("mAttTitre").textContent = "Télé introuvable";
-      $("mAttSub").textContent = "Vérifie que le jeu est ouvert sur la télé. Nouvel essai dans 3 secondes…";
-      plusTard();
-    }
-  });
-  document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible" && !room.peers().length) connecter(); });
+  room = SalonRT(id, "tel");
+  brancherManette();
+  $("mAttTitre").textContent = "Recherche de la télé…";
+  $("mAttSub").textContent = "Garde le jeu ouvert sur la télé.";
+  var t = setTimeout(function(){
+    if(!room.peers().length){ $("mAttTitre").textContent = "Télé introuvable"; $("mAttSub").textContent = "Vérifie que le jeu est ouvert sur la télé, puis scanne à nouveau son QR code."; }
+  }, 6000);
+  room.onOpen = function(){ clearTimeout(t); $("mAttTitre").textContent = "Manette connectée"; $("mAttSub").textContent = "Regarde la télé."; };
+  room.onClose = function(){ mMontrer("m-attente"); M.ecran = null; $("mAttTitre").textContent = "Télé déconnectée"; $("mAttSub").textContent = "La manette se reconnectera dès que le jeu sera rouvert sur la télé."; };
 }
 
-/* ---------- Banque à gages : Firebase, rangée sous une clé secrète ---------- */
+/* ---------- Banque à gages : Firestore, rangée sous une clé secrète ---------- */
 function demarrerBanque(){
-  var cfg = window.FIREBASE_CONFIG;
-  if(!window.firebase || !cfg || !cfg.apiKey || /REMPLACE/.test(cfg.apiKey)){ banqueEtat = "config"; rendreBanque(); return; }
-  try{ firebase.initializeApp(cfg); db = firebase.firestore(); }
-  catch(e){ banqueEtat = "config"; rendreBanque(); return; }
+  if(!firebaseOK()){ banqueEtat = "config"; rendreBanque(); return; }
+  try{ db = firebase.firestore(); }catch(e){ banqueEtat = "config"; rendreBanque(); return; }
   try{ CLE = localStorage.getItem("jdn-cle"); }catch(e){}
   if(CLE && CLE.length===64){ banqueEtat = "chargement"; brancherDb(); }
   else { CLE = null; banqueEtat = "cle"; rendreBanque(); }

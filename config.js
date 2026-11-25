@@ -7,5 +7,6 @@ window.FIREBASE_CONFIG = {
   projectId: "noel-game",
   storageBucket: "noel-game.firebasestorage.app",
   messagingSenderId: "496023214317",
-  appId: "1:496023214317:web:d963dc0d5d460ddd5514e4"
+  appId: "1:496023214317:web:d963dc0d5d460ddd5514e4",
+  databaseURL: "https://noel-game-default-rtdb.europe-west1.firebasedatabase.app"
 };
