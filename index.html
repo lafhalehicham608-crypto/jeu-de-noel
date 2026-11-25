@@ -364,6 +364,20 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 .mini.danger{border-color:var(--danger);color:var(--danger)}
 .mini.ok{border-color:var(--fg);color:var(--fg)}
 #gNote{font-size:clamp(12px,1.1vw,16px)}
+/* Gages à minuteur */
+.g-duree{color:var(--fg);font-weight:800;padding:0 .15em;border-bottom:3px solid currentColor;text-shadow:0 0 18px rgba(255,255,255,.35)}
+#gage.b .g-duree{color:var(--bleu)} #gage.v .g-duree{color:var(--violet)}
+.g-chrono{font-size:clamp(48px,9vw,150px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;min-height:1em}
+.g-chrono.tirage{opacity:.6}
+.g-chrono.pause{opacity:.45}
+.g-chrono.stop{color:#ff5a6e;text-shadow:0 0 30px #ff5a6e;animation:gClignote .5s steps(1) infinite}
+@keyframes gClignote{50%{opacity:.15}}
+.m-chrono{font-size:64px;font-weight:800;font-variant-numeric:tabular-nums;text-align:center}
+.m-chrono.stop{color:#ff5a6e;animation:gClignote .5s steps(1) infinite;font-size:44px}
+.bq-duree{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bq-duree select{font:600 15px var(--text);color:var(--fg);background:var(--bg2);border:2px solid var(--line);border-radius:10px;padding:.4em .6em}
+.bq-astuce{font-size:13px;color:var(--mute);margin:0}
+.bq-chrono{display:inline-block;margin-left:.5em;font-size:.8em;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:.05em .6em;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -516,6 +530,8 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
   <section class="screen" id="gage" hidden>
     <p class="qui" id="gQui"></p>
     <p class="texte" id="gTexte"></p>
+    <p class="sub" id="gDuree"></p>
+    <p class="g-chrono" id="gChrono"></p>
     <p class="sub" id="gNote"></p>
     <div class="actions" id="gActions"></div>
   </section>
@@ -550,6 +566,8 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
       </div>
       <div class="ajout">
         <textarea id="bqTexte" rows="3" maxlength="6000" placeholder="Écris un gage. Pour en ajouter plusieurs d'un coup, mets-en un par ligne."></textarea>
+        <div class="bq-duree"><span class="sub">Minuteur (facultatif) : entre</span><select id="bqDmin" aria-label="Durée minimale"></select><span class="sub">et</span><select id="bqDmax" aria-label="Durée maximale"></select></div>
+        <p class="bq-astuce">Avec un minuteur, écris X dans le gage à l'endroit du temps, par exemple « Masse-moi pendant X ».</p>
         <div class="row"><button class="plein" id="bqAjouter" data-primary>Ajouter</button><span class="sub" id="bqMsg"></span></div>
       </div>
       <ul id="bqListe"></ul>
@@ -628,7 +646,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=17"></script>
+<script src="config.js?v=18"></script>
 <script>
 (function(){
 "use strict";
@@ -700,7 +718,7 @@ function tirerGage(){
   }
   if(dispo.length){
     var g = dispo[rnd(dispo.length)]; utilises[g.id] = 1;
-    return {niveau:g.niveau, texte:g.texte};
+    return {niveau:g.niveau, texte:g.texte, dmin:g.dmin, dmax:g.dmax};
   }
   var n = niv[rnd(niv.length)];
   if(!paquets[n] || !paquets[n].length) paquets[n] = melange(GAGES[n]);
@@ -718,7 +736,7 @@ function brancherDb(){
   if(unsubBanque) unsubBanque();
   unsubBanque = gagesCol().onSnapshot(function(snap){
     clearTimeout(t); banqueEtat = "ok";
-    BANQUE = snap.docs.map(function(d){ var x = d.data()||{}; return {id:d.id, texte:String(x.texte||""), pour:x.pour, niveau:x.niveau, cree:+x.cree||0}; })
+    BANQUE = snap.docs.map(function(d){ var x = d.data()||{}; return {id:d.id, texte:String(x.texte||""), pour:x.pour, niveau:x.niveau, cree:+x.cree||0, dmin:+x.dmin||0, dmax:+x.dmax||0}; })
       .filter(function(g){ return g.texte && (g.pour==="lui"||g.pour==="elle") && NOM_NIV[g.niveau]; });
     rendreBanque();
   }, function(){ clearTimeout(t); banqueEtat = "erreur"; rendreBanque(); });
@@ -810,25 +828,32 @@ function rendreBanque(){
   else if(banqueEtat==="erreur") vide = "Impossible de lire la banque. Recharge la page.";
   $("bqVide").textContent = vide;
 }
-var ouverts = {}, dernierFiltre = null;
+var ouverts = {}, dernierFiltre = null, editDmin = 0, editDmax = 0;
 /* Codes de la banque : chacun ne voit que les gages dont il a le code */
 var CODES = {lui:"0000", elle:"0000"}, deverrouille = {lui:false, elle:false}, codeSaisi = {}, codeErreur = {};
 function ligneGage(g){
     var li = el("li"), acts = el("div","acts");
     if(editId===g.id){
       var ta = el("textarea"); ta.rows = 2; ta.value = editTexte; ta.oninput = function(){ editTexte = ta.value; };
+      var ed = el("div","bq-duree"), sMin = el("select"), sMax = el("select");
+      remplirSelectDuree(sMin, editDmin); remplirSelectDuree(sMax, editDmax);
+      sMin.onchange = function(){ editDmin = +sMin.value||0; }; sMax.onchange = function(){ editDmax = +sMax.value||0; };
+      ed.appendChild(el("span","sub","Minuteur : entre")); ed.appendChild(sMin); ed.appendChild(el("span","sub","et")); ed.appendChild(sMax);
       var sv = el("button","mini ok","Enregistrer"), an = el("button","mini","Annuler");
       sv.onclick = function(){
         var t = editTexte.trim().slice(0,300); if(!t) return;
-        gagesCol().doc(g.id).update({texte:t}).catch(function(){ $("bqMsg").textContent = "La modification n'a pas été enregistrée, réessaie."; });
+        var d = lireDurees(sMin, sMax);
+        gagesCol().doc(g.id).update({texte:t, dmin:d.dmin||null, dmax:d.dmax||null}).catch(function(){ $("bqMsg").textContent = "La modification n'a pas été enregistrée, réessaie."; });
         editId = null; rendreBanque();
       };
       an.onclick = function(){ editId = null; rendreBanque(); };
-      li.appendChild(ta); acts.appendChild(sv); acts.appendChild(an);
+      li.appendChild(ta); li.appendChild(ed); acts.appendChild(sv); acts.appendChild(an);
     } else {
-      li.appendChild(el("p",null,g.texte));
+      var pt = el("p",null,g.texte);
+      if(g.dmin) pt.appendChild(el("span","bq-chrono","⏱ "+(g.dmin===g.dmax ? fmtDuree(g.dmin) : fmtDuree(g.dmin)+" – "+fmtDuree(g.dmax))));
+      li.appendChild(pt);
       var md = el("button","mini","Modifier");
-      md.onclick = function(){ editId = g.id; editTexte = g.texte; rendreBanque(); };
+      md.onclick = function(){ editId = g.id; editTexte = g.texte; editDmin = g.dmin||0; editDmax = g.dmax||0; rendreBanque(); };
       var sp = el("button","mini danger", supId===g.id ? "Confirmer" : "Supprimer");
       sp.onclick = function(){
         if(supId===g.id){ supId = null; gagesCol().doc(g.id).delete().catch(function(){ $("bqMsg").textContent = "La suppression a échoué, réessaie."; }); return; }
@@ -839,17 +864,40 @@ function ligneGage(g){
     li.appendChild(acts);
     return li;
 }
+/* Durées proposées pour les gages à minuteur (en secondes) */
+var DUREES = [15,30,45,60,75,90,105,120,150,180,210,240,300,360,420,480,600,720,900,1200,1800];
+function fmtDuree(sec){
+  sec = Math.round(sec); var m = Math.floor(sec/60), r = sec%60;
+  if(!m) return r+" s";
+  return m+" min"+(r ? " "+(r<10?"0":"")+r : "");
+}
+function remplirSelectDuree(sel, val){
+  sel.innerHTML = "";
+  var o = document.createElement("option"); o.value = "0"; o.textContent = "—"; sel.appendChild(o);
+  DUREES.forEach(function(d){ var op = document.createElement("option"); op.value = String(d); op.textContent = fmtDuree(d); sel.appendChild(op); });
+  sel.value = String(val||0);
+}
+function lireDurees(selMin, selMax){
+  var a = +selMin.value||0, b = +selMax.value||0;
+  if(!a && !b) return {dmin:0, dmax:0};
+  if(!a) a = b; if(!b) b = a;
+  return {dmin:Math.min(a,b), dmax:Math.max(a,b)};
+}
+remplirSelectDuree($("bqDmin"), 0); remplirSelectDuree($("bqDmax"), 0);
 function ajouterGages(){
   if(!db) return;
   var lignes = $("bqTexte").value.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
   if(!lignes.length){ $("bqMsg").textContent = "Écris d'abord un gage."; return; }
   var base = Date.now();
   Promise.all(lignes.map(function(l,i){
-    return gagesCol().add({texte:l.slice(0,300), pour:F.pour, niveau:F.niveau, cree:base+i});
+    var d = lireDurees($("bqDmin"), $("bqDmax")), doc = {texte:l.slice(0,300), pour:F.pour, niveau:F.niveau, cree:base+i};
+    if(d.dmin){ doc.dmin = d.dmin; doc.dmax = d.dmax; }
+    return gagesCol().add(doc);
   })).then(function(){
     $("bqMsg").textContent = lignes.length===1 ? "Gage ajouté." : lignes.length+" gages ajoutés.";
   }).catch(function(){ $("bqMsg").textContent = "Certains gages n'ont pas été enregistrés, vérifie la liste."; });
   $("bqTexte").value = "";
+  remplirSelectDuree($("bqDmin"), 0); remplirSelectDuree($("bqDmax"), 0);
 }
 function ouvrirBanque(){ deverrouille = {lui:false, elle:false}; codeSaisi = {}; codeErreur = {}; editId = null; montrer("banque"); $("bqMsg").textContent = ""; rendreBanque(); try{ $("bqTexte").focus({preventScroll:true}); }catch(e){} }
 $("bqRetour").onclick = function(){ editId = null; deverrouille = {lui:false, elle:false}; montrer(S.noms.b && S.noms.v ? "modes" : "accueil"); };
@@ -1789,16 +1837,86 @@ function finManche(perdant, detail){
 }
 function afficherGage(){
   var g = tirerGage(); S.fait = false;
+  S.gtexte = g.texte;
+  S.gt = (g.dmin && g.dmax) ? {dmin:g.dmin, dmax:g.dmax, duree:0, tirage:false, fin:0, reste:0, pause:false, fini:false} : null;
   montrer("gage");
   $("gage").className = "screen "+S.perdant;
   $("gQui").textContent = S.noms[S.perdant];
-  $("gTexte").textContent = g.texte;
+  $("gChrono").textContent = ""; $("gChrono").className = "g-chrono";
+  afficherTexteGage();
   $("gNote").textContent = g.exemple ? "Gage d'exemple : la banque n'a pas encore de gage "+NOM_NIV[g.niveau]+" pour "+(S.perdant==="b"?"lui":"elle")+"." : "";
   neon(S.perdant);
   boutonsGage();
 }
+/* Texte du gage : X est remplacé par la fourchette, puis par la durée tirée */
+function afficherTexteGage(){
+  var gt = S.gt, zone = $("gTexte"), morceaux = String(S.gtexte||"").split(/\bX\b/);
+  var val = gt ? (gt.duree ? fmtDuree(gt.duree) : fmtDuree(gt.dmin)+" à "+fmtDuree(gt.dmax)) : "X";
+  zone.textContent = "";
+  morceaux.forEach(function(m, i){
+    zone.appendChild(document.createTextNode(m));
+    if(i<morceaux.length-1) zone.appendChild(el("span", gt ? "g-duree" : null, val));
+  });
+  $("gDuree").textContent = (gt && morceaux.length===1) ? (gt.duree ? "Pendant "+fmtDuree(gt.duree) : "Durée : entre "+fmtDuree(gt.dmin)+" et "+fmtDuree(gt.dmax)) : "";
+}
+function tirerDuree(){
+  var gt = S.gt; if(S.ecran!=="gage" || !gt || gt.duree || gt.tirage || S.fait) return;
+  gt.tirage = true;
+  var lo = Math.ceil(gt.dmin/15)*15, hi = Math.floor(gt.dmax/15)*15; if(hi<lo) hi = lo;
+  var choix = []; for(var v=lo; v<=hi; v+=15) choix.push(v);
+  var final = choix[rnd(choix.length)], etapes = 16, k = 0, delai = 55;
+  var c = $("gChrono"); c.className = "g-chrono tirage";
+  $("gActions").innerHTML = "";
+  diffuser();
+  (function etape(){
+    if(k<etapes){ c.textContent = fmtDuree(choix[rnd(choix.length)]); bip(1500, 0.03, 0.04); k++; delai *= 1.14; plus_tard(etape, delai); return; }
+    gt.duree = final; gt.tirage = false;
+    c.textContent = fmtDuree(final); c.className = "g-chrono";
+    bip(880, 0.12, 0.07); plus_tard(function(){ bip(1320, 0.2, 0.07); }, 120);
+    afficherTexteGage(); boutonsGage(); diffuser();
+  })();
+}
+function fmtChrono(ms){ var s = Math.max(0, Math.ceil(ms/1000)), m = Math.floor(s/60), r = s%60; return m+":"+(r<10?"0":"")+r; }
+function resteMinuteur(gt){ return gt.pause ? gt.reste : Math.max(0, gt.fin - Date.now()); }
+function demarrerMinuteur(){
+  var gt = S.gt; gt.fin = Date.now() + gt.duree*1000; gt.pause = false; gt.fini = false;
+  var g0 = gen;
+  (function tick(){
+    if(g0!==gen || S.gt!==gt || gt.fini) return;
+    var r = resteMinuteur(gt);
+    if(r<=0){ finMinuteur(); return; }
+    var c = $("gChrono"); c.textContent = fmtChrono(r); c.className = "g-chrono" + (gt.pause ? " pause" : "");
+    setTimeout(tick, 200);
+  })();
+}
+function basculerPause(){
+  var gt = S.gt; if(S.ecran!=="gage" || !gt || S.fait!==true || gt.fini) return;
+  if(gt.pause){ gt.fin = Date.now() + gt.reste; gt.pause = false; }
+  else { gt.reste = Math.max(0, gt.fin - Date.now()); gt.pause = true; }
+  boutonsGage(); diffuser();
+}
+function finMinuteur(){
+  var gt = S.gt; gt.fini = true;
+  var c = $("gChrono"); c.textContent = "ARRÊTEZ !"; c.className = "g-chrono stop";
+  var n = 0; (function sonne(){ if(n>=10) return; bip(n%2 ? 1175 : 880, 0.2, 0.09); n++; plus_tard(sonne, 260); })();
+  boutonsGage(); diffuser();
+}
 function boutonsGage(){
   var a = $("gActions"); a.innerHTML = "";
+  var gt = S.gt;
+  if(!S.fait && gt && !gt.duree){
+    if(gt.tirage) return;
+    var td = document.createElement("button"); td.className = "plein"; td.textContent = "Tirer la durée"; td.setAttribute("data-primary",""); td.onclick = function(){ choisir("duree"); };
+    a.appendChild(td); try{ td.focus({preventScroll:true}); }catch(e){}
+    return;
+  }
+  if(S.fait===true && gt){
+    var bt = document.createElement("button"); bt.className = "plein"; bt.setAttribute("data-primary","");
+    if(gt.fini){ bt.textContent = "Manche suivante"; bt.onclick = function(){ choisir("fait"); }; }
+    else { bt.textContent = gt.pause ? "Reprendre" : "Pause"; bt.onclick = function(){ choisir("pause"); }; }
+    a.appendChild(bt); try{ bt.focus({preventScroll:true}); }catch(e){}
+    return;
+  }
   if(!S.fait){
     var f = document.createElement("button"); f.className="plein"; f.textContent="Je le fais"; f.setAttribute("data-primary",""); f.onclick=function(){choisir("fais")};
     var b = document.createElement("button"); b.textContent="Je bois"; b.onclick=function(){choisir("bois")};
@@ -1811,18 +1929,26 @@ function boutonsGage(){
 }
 function choisir(c){
   if(S.ecran!=="gage") return;
-  if(c==="fais" && !S.fait){ S.fait = true; boutonsGage(); diffuser(); }
+  if(c==="duree"){ tirerDuree(); return; }
+  if(c==="pause"){ basculerPause(); return; }
+  if(c==="fais" && !S.fait){
+    if(S.gt && !S.gt.duree) return;
+    S.fait = true;
+    if(S.gt){ $("gChrono").className = "g-chrono"; demarrerMinuteur(); bip(1320, 0.15, 0.07); }
+    boutonsGage(); diffuser();
+  }
   else if(c==="bois" && !S.fait){
+    if(S.gt && !S.gt.duree) return;
     S.st[S.perdant].bois++; S.tot[S.perdant].bois++; verreSoiree(S.perdant); majHud();
     var a = $("gActions"); a.innerHTML = ""; a.appendChild(verreBu(S.perdant));
     S.fait = "bu"; diffuser();
     plus_tard(mancheSuivante, 1500);
-  } else if(c==="fait" && S.fait===true){
+  } else if(c==="fait" && S.fait===true && (!S.gt || S.gt.fini)){
     S.st[S.perdant].fait++; S.tot[S.perdant].fait++; mancheSuivante();
   }
 }
 function mancheSuivante(){
-  S.jeu = null; S.perdant = null; S.fait = false;
+  S.jeu = null; S.perdant = null; S.fait = false; S.gt = null;
   if(S.manche >= nbManches()){ finPartie(); return; }
   S.manche++; roulette();
 }
@@ -1915,7 +2041,9 @@ function etat(){
   if(S.ecran==="quiz" && U && U.id==="quiz" && U.q){
     qz = {n:U.n, texte:U.q.texte, opts:U.q.opts, phase:U.phase, rep:U.rep, bonne: U.phase==="revele" ? U.q.bonne : null, score:U.score, msg:U.msg||""};
   }
-  return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz};
+  var gt = null;
+  if(S.ecran==="gage" && S.gt){ var G = S.gt; gt = {dmin:G.dmin, dmax:G.dmax, duree:G.duree, tirage:G.tirage, pause:G.pause, fini:G.fini, reste: S.fait===true ? resteMinuteur(G) : 0}; }
+  return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, gt:gt};
 }
 function diffuser(){
   if(room && !estManette){ room.emit("etat", etat()).catch(function(){}); }
@@ -2070,12 +2198,27 @@ function rendreManette(e){
     mMontrer("m-gage");
     $("mGageQui").textContent = "Gage pour "+(noms[e.perdant]||"");
     var box = $("mGageBtns"); box.className = "m-gage "+e.perdant;
-    var cle = e.perdant+"|"+e.fait+"|"+e.manche;
+    var gt = e.gt;
+    if(gt && e.fait===true && !gt.fini){ mChrono.fin = Date.now() + (gt.reste||0); mChrono.pause = !!gt.pause; mChrono.reste = gt.reste||0; }
+    var cle = e.perdant+"|"+e.fait+"|"+e.manche+"|"+(gt ? [gt.duree, gt.tirage, gt.pause, gt.fini].join(",") : "");
     if(box.getAttribute("data-k")!==cle){
       box.setAttribute("data-k",cle); box.innerHTML = "";
-      if(e.perdant!==COTE){
+      if(gt && e.fait===true){
+        var mc = el("p","m-chrono" + (gt.fini ? " stop" : "")); mc.id = "mChrono"; mc.textContent = gt.fini ? "ARRÊTEZ !" : fmtChrono(gt.reste||0); box.appendChild(mc);
+        if(gt.fini){
+          if(e.perdant===COTE){ var nx = el("button","plein m-gros","Manche suivante"); nx.onclick = function(){ envoyer("choix",{c:"fait",side:COTE}); }; box.appendChild(nx); }
+        } else {
+          var pz = el("button","m-gros", gt.pause ? "Reprendre" : "Pause"); pz.onclick = function(){ envoyer("choix",{c:"pause"}); }; box.appendChild(pz);
+        }
+      } else if(gt && !gt.duree){
+        if(e.perdant===COTE && !gt.tirage){
+          box.appendChild(el("p","sub","Durée : entre "+fmtDuree(gt.dmin)+" et "+fmtDuree(gt.dmax)));
+          var tdb = el("button","plein m-gros","Tirer la durée"); tdb.onclick = function(){ envoyer("choix",{c:"duree",side:COTE}); }; box.appendChild(tdb);
+        } else box.appendChild(el("p","sub", gt.tirage ? "Tirage de la durée…" : (noms[e.perdant]||"L'autre")+" doit tirer la durée."));
+      } else if(e.perdant!==COTE){
         box.appendChild(el("p","sub", (e.fait===false ? "C'est à "+(noms[e.perdant]||"l'autre")+" de choisir : le faire ou boire." : e.fait===true ? (noms[e.perdant]||"L'autre")+" fait son gage. Surveille bien !" : (noms[e.perdant]||"L'autre")+" a bu.")));
       } else if(e.fait===false){
+        if(gt && gt.duree) box.appendChild(el("p","sub","Durée : "+fmtDuree(gt.duree)));
         var f=document.createElement("button"); f.className="plein m-gros"; f.textContent="Je le fais"; f.onclick=function(){envoyer("choix",{c:"fais",side:COTE})};
         var b=document.createElement("button"); b.className="m-gros"; b.textContent="Je bois"; b.onclick=function(){envoyer("choix",{c:"bois",side:COTE})};
         box.appendChild(f); box.appendChild(b);
@@ -2115,6 +2258,12 @@ Array.prototype.forEach.call(document.querySelectorAll(".pad:not(.pad4)"), funct
 $("mValiderNoms").onclick = function(){ var d = {}; d[COTE] = $(COTE==="b"?"mNomB":"mNomV").value.trim(); envoyer("nom", d); };
 $("mOk").onclick = function(){ envoyer("ok",{}); };
 var mqT=null, mpT=null;
+/* Minuteur affiché sur le téléphone, recalé à chaque état reçu de la télé */
+var mChrono = {fin:0, pause:false, reste:0};
+setInterval(function(){
+  var c = document.getElementById("mChrono"); if(!c || c.classList.contains("stop")) return;
+  c.textContent = fmtChrono(mChrono.pause ? mChrono.reste : mChrono.fin - Date.now());
+}, 250);
 $("mPasser").addEventListener("pointerdown", function(e){ e.stopPropagation(); });
 $("mPasser").onclick = function(){
   var b = $("mPasser");
@@ -2135,7 +2284,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "17";
+var VERSION_SITE = "18";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
