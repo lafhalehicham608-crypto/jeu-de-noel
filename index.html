@@ -145,6 +145,36 @@ button.petit{font-size:clamp(13px,1.3vw,18px);padding:.55em 1.3em;border-color:v
 #gage.b button{border-color:var(--bleu)} #gage.v button{border-color:var(--violet)}
 #gage.b button.plein{background:var(--bleu);color:var(--bg)} #gage.v button.plein{background:var(--violet);color:var(--bg)}
 .verre{font-size:clamp(22px,3vw,44px);font-weight:800}
+/* Verres dessinés : petit verre à shot, liquide à la couleur du joueur */
+.verre-ic{display:inline-block;width:clamp(14px,1.35vw,22px);line-height:0;flex:none}
+.verre-ic svg{width:100%;height:auto;overflow:visible;display:block;filter:drop-shadow(0 0 3px currentColor) drop-shadow(0 0 7px color-mix(in srgb,currentColor 50%,transparent))}
+.verre-ic .contour{fill:rgba(255,255,255,.06);stroke:#fff;stroke-width:1.4;stroke-linejoin:round}
+.verre-ic .liquide{fill:currentColor}
+.verre-ic .surface{fill:color-mix(in srgb,currentColor 60%,#fff)}
+.verre-ic .fond{fill:rgba(255,255,255,.4)}
+.verre-ic .reflet{stroke:rgba(255,255,255,.6);stroke-width:1.1;stroke-linecap:round}
+.verre-ic.vide{opacity:.3}
+.verre-ic.vide .liquide,.verre-ic.vide .surface{display:none}
+.verre-ic.vide svg{filter:none}
+.verre-ic.nouveau{animation:verreTombe .75s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes verreTombe{0%{transform:translateY(-140%) rotate(-30deg);opacity:0}60%{opacity:1}100%{transform:none;opacity:1}}
+#hudD{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.hud-verres{display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 12px;border-radius:999px;
+  border:1px solid color-mix(in srgb,currentColor 45%,transparent);background:color-mix(in srgb,currentColor 9%,var(--bg));
+  box-shadow:0 0 14px color-mix(in srgb,currentColor 25%,transparent)}
+.hud-nom{font-weight:600}
+.hud-icones{display:inline-flex;gap:4px;align-items:flex-end}
+.hud-compte{font-weight:800;font-size:1.15em;font-variant-numeric:tabular-nums;color:var(--fg)}
+.hud-plus{font-weight:800;font-size:.9em;align-self:center}
+.verre-bu{display:flex;flex-direction:column;align-items:center;gap:6px}
+.verre-bu .verre-ic{width:clamp(64px,7vw,120px)}
+.verre-bu .verre-ic .liquide,.verre-bu .verre-ic .surface{transform-box:fill-box;transform-origin:50% 100%;animation:verreRemplit 1.2s cubic-bezier(.3,.7,.3,1) .15s both}
+.verre-bu .verre-ic .surface{animation-name:verreSurface}
+@keyframes verreRemplit{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes verreSurface{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.verre-bu .verre{color:currentColor;text-shadow:0 0 18px currentColor}
+.fin-verres{display:inline-flex;flex-wrap:wrap;gap:3px;justify-content:center;align-items:flex-end;max-width:11em;vertical-align:middle}
+.fin-verres .verre-ic{width:clamp(12px,1.1vw,18px)}
 
 /* Fin de partie */
 table{border-collapse:collapse;font-size:clamp(14px,1.8vw,26px);font-variant-numeric:tabular-nums}
@@ -466,7 +496,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=9"></script>
+<script src="config.js?v=10"></script>
 <script>
 (function(){
 "use strict";
@@ -708,13 +738,39 @@ function majHud(){
   g.children[1].textContent = S.manche+"/"+nbManches();
   $("hudG").appendChild(g);
   $("hudD").textContent = "";
-  ["b","v"].forEach(function(s,i){
-    var sp = document.createElement("span");
-    sp.className = "c"+s;
-    sp.textContent = (S.noms[s]||"?")+" · "+S.st[s].bois+" verre"+(S.st[s].bois>1?"s":"");
-    if(i) $("hudD").appendChild(document.createTextNode("   "));
-    $("hudD").appendChild(sp);
+  ["b","v"].forEach(function(s){
+    var n = S.st[s].bois, prec = hudPrec[s] || 0;
+    var g = el("span","hud-verres c"+s);
+    g.title = n+" verre"+(n>1?"s":"")+" bu"+(n>1?"s":"")+" pour "+(S.noms[s]||"?");
+    g.appendChild(el("span","hud-nom", S.noms[s]||"?"));
+    var box = el("span","hud-icones"), max = 8, visibles = Math.min(n, max);
+    if(!n) box.appendChild(verreSVG(false));
+    for(var i=0;i<visibles;i++){ var v = verreSVG(true); if(n>prec && i>=visibles-(n-prec)) v.classList.add("nouveau"); box.appendChild(v); }
+    if(n>max) box.appendChild(el("span","hud-plus","+"+(n-max)));
+    g.appendChild(box);
+    g.appendChild(el("span","hud-compte", String(n)));
+    $("hudD").appendChild(g);
+    hudPrec[s] = n;
   });
+}
+var hudPrec = {b:0, v:0};
+/* Un petit verre à shot dessiné ; plein = rempli à la couleur du joueur (currentColor) */
+function verreSVG(plein){
+  var w = document.createElement("span");
+  w.className = "verre-ic" + (plein ? "" : " vide");
+  w.innerHTML = '<svg viewBox="0 0 24 32" aria-hidden="true">'
+    + '<polygon class="liquide" points="4.25,11 19.75,11 18.62,26 5.38,26"/>'
+    + '<ellipse class="surface" cx="12" cy="11" rx="7.75" ry="1.3"/>'
+    + '<polygon class="fond" points="5.38,26 18.62,26 18.45,29.4 5.55,29.4"/>'
+    + '<path class="contour" d="M3 2H21L18.5 29.2Q18.3 30.6 16.8 30.6H7.2Q5.7 30.6 5.5 29.2Z"/>'
+    + '<line class="reflet" x1="6.2" y1="5" x2="7.5" y2="23"/></svg>';
+  return w;
+}
+function verreBu(cote){
+  var d = el("div","verre-bu c"+cote);
+  d.appendChild(verreSVG(true));
+  d.appendChild(el("p","verre","+1 verre"));
+  return d;
 }
 
 /* Arrêter le jeu : 1er appui demande confirmation, 2e appui ramène à l'accueil */
@@ -1291,7 +1347,7 @@ function choisir(c){
   if(c==="fais" && !S.fait){ S.fait = true; boutonsGage(); diffuser(); }
   else if(c==="bois" && !S.fait){
     S.st[S.perdant].bois++; S.tot[S.perdant].bois++; majHud();
-    var a = $("gActions"); a.innerHTML = ""; var p = document.createElement("p"); p.className="verre"; p.textContent="+1 verre"; a.appendChild(p);
+    var a = $("gActions"); a.innerHTML = ""; a.appendChild(verreBu(S.perdant));
     S.fait = "bu"; diffuser();
     plus_tard(mancheSuivante, 1500);
   } else if(c==="fait" && S.fait===true){
@@ -1315,7 +1371,16 @@ function finPartie(){
   var corps = $("finCorps"); corps.innerHTML = "";
   [["Manches perdues","perdu"],["Gages faits","fait"],["Verres bus","bois"]].forEach(function(r){
     var tr = document.createElement("tr"), th = document.createElement("th"); th.textContent = r[0]; tr.appendChild(th);
-    ["b","v"].forEach(function(s){ var td=document.createElement("td"); td.className="c"+s; td.textContent=S.st[s][r[1]]; tr.appendChild(td); });
+    ["b","v"].forEach(function(s){
+      var td=document.createElement("td"); td.className="c"+s;
+      if(r[1]==="bois"){
+        var n = S.st[s].bois, box = el("span","fin-verres");
+        if(!n) box.appendChild(verreSVG(false));
+        for(var i=0;i<Math.min(n,20);i++) box.appendChild(verreSVG(true));
+        td.appendChild(box); td.appendChild(document.createTextNode(" "+n));
+      } else td.textContent=S.st[s][r[1]];
+      tr.appendChild(td);
+    });
     corps.appendChild(tr);
   });
   $("btnSuite").textContent = derniere ? "Nouvelle séquence" : "Partie suivante · "+SEQUENCE[S.partie+1].nom;
@@ -1490,7 +1555,7 @@ function rendreManette(e){
         var ok=document.createElement("button"); ok.className="plein m-gros"; ok.textContent="C'est fait"; ok.onclick=function(){envoyer("choix",{c:"fait",side:COTE})};
         box.appendChild(ok);
       } else {
-        var p=document.createElement("p"); p.className="verre"; p.textContent="+1 verre"; box.appendChild(p);
+        box.appendChild(verreBu(e.perdant));
       }
     }
   } else if(e.ecran==="roulette" || e.ecran==="resultat" || e.ecran==="banque"){
@@ -1534,7 +1599,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "9";
+var VERSION_SITE = "10";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
