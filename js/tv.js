@@ -6,7 +6,8 @@ function montrer(id){
   gen++;
   S.ecran = id;
   ECRANS.forEach(function(e){$(e).hidden = e!==id});
-  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","traque","libre","resultat","gage"].indexOf(id)<0;
+  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","traque","libre","resultat","gage","modes","labo","fin"].indexOf(id)<0;
+  if($("hud").hidden && !$("verresPanneau").hidden) fermerVerres();
   if(id!=="gage") neon(null);
   $("btnQuitter").hidden = id==="accueil" || id==="banque" || id==="persos";
   $("btnPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","traque"].indexOf(id)<0; $("btnPasser").classList.remove("confirme"); $("btnPasser").textContent = "Passer ce jeu";
@@ -28,11 +29,12 @@ function majHud(){
   g.children[0].textContent = (S.partie+1)+" "+SEQUENCE[S.partie].nom;
   g.children[1].textContent = S.manche+"/"+nbManches();
   $("hudG").appendChild(g);
+  $("hudG").hidden = ["modes","labo","fin"].indexOf(S.ecran)>=0;
   $("hudD").textContent = "";
   ["b","v"].forEach(function(s){
     var n = SOIREE[s], prec = hudPrec[s] || 0;
-    var g = el("span","hud-verres c"+s);
-    g.title = n+" verre"+(n>1?"s":"")+" ce soir pour "+(S.noms[s]||"?");
+    var g = el("button","hud-verres c"+s);
+    g.title = n+" verre"+(n>1?"s":"")+" ce soir pour "+(S.noms[s]||"?")+" · toucher pour modifier"; g.onclick = ouvrirVerres;
     if(AVATARS && AVATARS["t"+s]){ var ha = el("span","hud-ava"), hi = document.createElement("img"); hi.src = AVATARS["t"+s]; hi.alt = ""; ha.appendChild(hi); g.appendChild(ha); }
     g.appendChild(el("span","hud-nom", S.noms[s]||"?"));
     var box = el("span","hud-icones"), max = 8, visibles = Math.min(n, max);
@@ -73,9 +75,49 @@ var SOIREE = (function(){
   try{ var x = JSON.parse(localStorage.getItem("jdn-soiree") || "null"); if(x && Date.now()-x.maj < 12*3600*1000) return {b:x.b|0, v:x.v|0}; }catch(e){}
   return {b:0, v:0};
 })();
-function verreSoiree(cote){
-  SOIREE[cote]++;
-  try{ localStorage.setItem("jdn-soiree", JSON.stringify({b:SOIREE.b, v:SOIREE.v, maj:Date.now()})); }catch(e){}
+function sauverSoiree(){ try{ localStorage.setItem("jdn-soiree", JSON.stringify({b:SOIREE.b, v:SOIREE.v, maj:Date.now()})); }catch(e){} }
+function verreSoiree(cote){ SOIREE[cote]++; sauverSoiree(); }
+/* Panneau des verres : ajouter, enlever, remettre à zéro (clic sur le compteur en haut à droite) */
+var vpResetT = null;
+function ouvrirVerres(){ $("verresPanneau").hidden = false; rendreVerres(); try{ $("vpFermer").focus({preventScroll:true}); }catch(e){} }
+function fermerVerres(){ $("verresPanneau").hidden = true; annulerResetVerres(); }
+function changerVerres(s, d){
+  SOIREE[s] = Math.max(0, (SOIREE[s]|0) + d); sauverSoiree();
+  if(d>0) bip(880, 0.08, 0.05); else bip(440, 0.08, 0.05);
+  majHud(); rendreVerres(); diffuser();
+}
+function annulerResetVerres(){ clearTimeout(vpResetT); var b = $("vpReset"); b.classList.remove("confirme"); b.textContent = "Remettre à zéro"; }
+$("vpReset").onclick = function(){
+  var b = $("vpReset");
+  if(!b.classList.contains("confirme")){ b.classList.add("confirme"); b.textContent = "Appuie encore : tout à zéro"; vpResetT = setTimeout(annulerResetVerres, 3000); return; }
+  annulerResetVerres(); SOIREE.b = 0; SOIREE.v = 0; hudPrec = {b:0, v:0}; sauverSoiree(); majHud(); rendreVerres(); diffuser();
+};
+$("vpFermer").onclick = fermerVerres;
+$("verresPanneau").onclick = function(e){ if(e.target===this) fermerVerres(); };
+window.addEventListener("keydown", function(e){
+  if($("verresPanneau").hidden) return;
+  if(e.key==="Escape" || e.key==="Backspace" || e.key==="GoBack" || e.key==="BrowserBack"){ e.preventDefault(); e.stopImmediatePropagation(); fermerVerres(); return; }
+  /* Flèches : se déplacer entre les boutons du panneau, sans toucher au jeu derrière */
+  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.key)>=0){
+    e.preventDefault(); e.stopImmediatePropagation();
+    var bs = Array.prototype.slice.call($("verresPanneau").querySelectorAll("button")), i = bs.indexOf(document.activeElement);
+    var n = (e.key==="ArrowDown"||e.key==="ArrowRight") ? i+1 : i-1; n = (n+bs.length)%bs.length;
+    try{ bs[n].focus({preventScroll:true}); }catch(er){}
+    return;
+  }
+  e.stopImmediatePropagation();
+}, true);
+function rendreVerres(){
+  var box = $("vpLignes"); box.innerHTML = "";
+  ["b","v"].forEach(function(s){
+    var l = el("div","vp-ligne c"+s);
+    l.appendChild(el("span","vp-nom", S.noms[s] || (s==="b" ? "Lui" : "Elle")));
+    var moins = el("button","vp-pm","−"); moins.setAttribute("aria-label","Enlever un verre"); moins.disabled = !SOIREE[s]; moins.onclick = function(){ changerVerres(s, -1); };
+    var plus = el("button","vp-pm","+"); plus.setAttribute("aria-label","Ajouter un verre"); plus.onclick = function(){ changerVerres(s, 1); };
+    var n = el("span","vp-n"); n.appendChild(verreSVG(SOIREE[s]>0)); n.appendChild(el("span","vp-compte", String(SOIREE[s])));
+    l.appendChild(moins); l.appendChild(n); l.appendChild(plus);
+    box.appendChild(l);
+  });
 }
 /* Un petit verre à shot dessiné ; plein = rempli à la couleur du joueur (currentColor) */
 function verreSVG(plein){

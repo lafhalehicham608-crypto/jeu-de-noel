@@ -569,3 +569,22 @@ button.lb-tuile.or .lb-nom{color:#f2c86b}
 .lb-info{font-size:clamp(11px,.95vw,14px);font-weight:300;color:var(--mute);letter-spacing:0}
 .lb-msg{color:var(--n-medium);font-size:clamp(13px,1.2vw,18px)}
 #btnLaboRetour{margin-top:8px;font-size:clamp(14px,1.4vw,20px)}
+
+/* Verres : compteur cliquable et panneau de réglage */
+button.hud-verres{font:inherit;letter-spacing:normal;padding:6px 14px 6px 12px;cursor:pointer}
+button.hud-verres:hover,button.hud-verres:focus-visible{transform:scale(1.04);box-shadow:0 0 0 2px currentColor,0 0 18px color-mix(in srgb,currentColor 40%,transparent)}
+#hud{pointer-events:none} #hudD{pointer-events:auto}
+#verresPanneau{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(3,3,10,.72);backdrop-filter:blur(6px);
+  padding:max(24px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.vp-boite{display:flex;flex-direction:column;align-items:center;gap:clamp(14px,2.4vh,24px);width:min(560px,100%);padding:clamp(20px,3vw,36px);border-radius:24px;border:1px solid var(--line);background:var(--bg2);box-shadow:0 24px 60px rgba(0,0,0,.6)}
+#vpLignes{display:flex;flex-direction:column;gap:12px;width:100%}
+.vp-ligne{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;gap:clamp(10px,1.6vw,18px);padding:10px 14px;border-radius:16px;
+  border:1px solid color-mix(in srgb,currentColor 40%,transparent);background:color-mix(in srgb,currentColor 8%,var(--bg))}
+.vp-nom{font-weight:700;font-size:clamp(16px,1.8vw,24px);text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button.vp-pm{width:clamp(44px,4.4vw,60px);height:clamp(44px,4.4vw,60px);padding:0;border-radius:50%;border-color:currentColor;color:currentColor;font-size:clamp(22px,2.4vw,32px);font-weight:700;line-height:1}
+.vp-n{display:inline-flex;align-items:center;gap:8px;min-width:4.2ch;justify-content:center}
+.vp-n .verre-ic{width:clamp(18px,1.8vw,26px)}
+.vp-compte{font-weight:800;font-size:clamp(22px,2.6vw,36px);color:var(--fg);font-variant-numeric:tabular-nums}
+.vp-bas{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+#vpReset.confirme{border-color:var(--danger);color:var(--danger)}
+#hudD{margin-left:auto}
