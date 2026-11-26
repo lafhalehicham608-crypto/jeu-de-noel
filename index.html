@@ -253,20 +253,21 @@ thead td{font-weight:600}
 /* Duel de mages */
 #mages{padding:0}
 #cvMages{width:100%;height:100%;display:block}
-#m-mages{position:fixed;inset:0;box-sizing:border-box;width:100%;grid-template-columns:minmax(0,1fr);display:grid;grid-template-rows:auto 1fr auto;gap:10px;padding:max(52px,env(safe-area-inset-top,0px)) 12px max(12px,env(safe-area-inset-bottom,0px))}
+#m-mages{position:fixed;inset:0;box-sizing:border-box;width:100%;grid-template-columns:minmax(0,1fr);display:grid;grid-template-rows:auto 1fr 1.15fr 1fr;gap:10px;padding:max(52px,env(safe-area-inset-top,0px)) 12px max(12px,env(safe-area-inset-bottom,0px))}
 .mg-haut{display:flex;flex-direction:column;gap:6px}
+/* Lignes : sauter / parer en haut, gauche / droite au milieu, sort / ultime en bas */
+.mg-ligne{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;min-height:0}
 .mg-info{margin:0;font-weight:700;font-size:15px;text-align:center}
 .mg-barre{height:14px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
 .mg-barre i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#46dc8c,#a6f0c6);transition:width .2s}
 .mg-barre.en{height:8px} .mg-barre.en i{width:0}
-.mg-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr 1fr;gap:10px;min-height:0}
 .mg-btn{border-radius:22px;border:3px solid var(--line);background:rgba(255,255,255,.04);color:var(--fg);font:800 30px var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;touch-action:none;user-select:none;-webkit-user-select:none}
 .mg-btn small{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;opacity:.7}
 .mg-btn.sort{font-size:34px}
 .mg-btn.ulti{font-size:18px}
 .mg-btn.ulti:disabled{opacity:.35}
 .mg-btn.appui{filter:brightness(1.8);transform:scale(.97)}
-.mg-fleches{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;height:24vh}
+.mg-fleches .pad:not([hidden]){display:flex}
 .mg-fleches .pad[hidden]{display:none}
 .mg-fleches .pad{border-radius:22px;touch-action:none}
 .mg-fleches .pad span{font-size:52px}
@@ -827,17 +828,19 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
       <div class="mg-barre"><i id="mMgPv"></i></div>
       <div class="mg-barre en"><i id="mMgEn"></i></div>
     </div>
-    <div class="mg-actions">
+    <div class="mg-ligne">
       <button class="mg-btn" data-a="saut"><small>sauter</small>▲</button>
       <button class="mg-btn" data-a="bouclier"><small>parer</small>🛡</button>
-      <button class="mg-btn sort" id="mMgSort" data-a="sort"><small>Feu</small>SORT</button>
-      <button class="mg-btn ulti" id="mMgUlti" data-a="ulti" disabled>Ultime</button>
     </div>
-    <div class="mg-fleches">
+    <div class="mg-ligne mg-fleches">
       <button class="pad pad4 b" data-side="b" data-d="-1"><span>◀</span></button>
       <button class="pad pad4 b" data-side="b" data-d="1"><span>▶</span></button>
       <button class="pad pad4 v" data-side="v" data-d="-1"><span>◀</span></button>
       <button class="pad pad4 v" data-side="v" data-d="1"><span>▶</span></button>
+    </div>
+    <div class="mg-ligne">
+      <button class="mg-btn sort" id="mMgSort" data-a="sort"><small>Feu</small>SORT</button>
+      <button class="mg-btn ulti" id="mMgUlti" data-a="ulti" disabled>Ultime</button>
     </div>
   </section>
   <section id="m-duel" hidden>
@@ -891,7 +894,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=28"></script>
+<script src="config.js?v=29"></script>
 <script>
 (function(){
 "use strict";
@@ -3642,7 +3645,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "28";
+var VERSION_SITE = "29";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
