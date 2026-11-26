@@ -894,7 +894,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=30"></script>
+<script src="config.js?v=31"></script>
 <script>
 (function(){
 "use strict";
@@ -2168,7 +2168,7 @@ function majMages(dt, now){
   if(J.phase==="pause") physMages(dt*0.25);
 }
 function finRound(g, txt){
-  var J = S.jeu; J.phase = "pause"; J.sorts = []; J.meteores = []; J.eclairs = []; J.msgUlti = null; J.neige = 0;
+  var J = S.jeu; J.phase = "pause"; J.gagnantRound = g; J.sorts = []; J.meteores = []; J.eclairs = []; J.msgUlti = null; J.neige = 0;
   J.msg = txt; J.sous = g ? S.noms[g]+" remporte le round" : "Round à rejouer";
   if(g){ J.wins[g]++; plus_tard(function(){ bip(880,0.15,0.07); plus_tard(function(){ bip(1320,0.3,0.07); },150); }, 300); }
   diffuser();
@@ -2186,8 +2186,8 @@ function actionMage(s, a){
   if(a==="saut"){ if(c.y>=MG.SOL-0.5){ c.vy = -MG.SAUT*(c.eff.ralenti>0 ? 0.8 : 1); bip(500, 0.05, 0.03); } }
   else if(a==="sort"){
     if(c.cd>0 || c.bouclier>0) return;
-    c.cd = E.cd*(c.eff.ralenti>0 ? 1.4 : 1); c.anim = 0.25;
-    J.sorts.push({s:s, el:c.el, x:c.x+c.face*46, y:c.y-72, vx:c.face*E.vit, vie:2.2, r:E.rayon, t:0});
+    c.cd = E.cd*(c.eff.ralenti>0 ? 1.4 : 1); c.anim = E.skin ? 0.32 : 0.25;
+    J.sorts.push({s:s, el:c.el, x:c.x+c.face*(E.skin ? 80 : 46), y:c.y-(E.skin ? 130 : 72), vx:c.face*E.vit, vie:2.2, r:E.rayon, t:0});
     bip(c.el==="feu" ? 300 : 1500, 0.06, 0.05);
   }
   else if(a==="bouclier"){ if(c.cdB>0) return; c.bouclier = MG.BOUCLIER; c.cdB = MG.CD_BOUCLIER; bip(700, 0.08, 0.04); diffuser(); }
@@ -2195,6 +2195,7 @@ function actionMage(s, a){
 }
 function lancerUlti(s){
   var J = S.jeu, c = J.m[s], cible = J.m[autre(s)], E = ELEMENTS[c.el];
+  c.ultiT = 1.6;
   texteFlottant(c, E.ultiNom.toUpperCase()+" !", E.col2);
   J.msgUlti = {txt:E.emoji+" "+E.ultiNom, col:E.col, vie:1.6};
   if(E.ulti==="meteores"){
@@ -2213,7 +2214,7 @@ function lancerUlti(s){
 function texteFlottant(c, txt, col){ S.jeu.textes.push({x:c.x, y:c.y-150, txt:txt, col:col, vie:1.2}); }
 function blesser(c, deg, de){
   var J = S.jeu; if(c.pv<=0) return;
-  c.pv = Math.max(0, c.pv - deg); c.touche = 0.25; J.coups[c.s] = (J.coups[c.s]||0)+1;
+  c.pv = Math.max(0, c.pv - deg); c.touche = 0.25; c.hitT = 0.4; J.coups[c.s] = (J.coups[c.s]||0)+1;
   c.en = Math.min(100, c.en + MG.GAIN_EN_SUBI);
   if(de){ var a = J.m[de]; a.en = Math.min(100, a.en + MG.GAIN_EN_COUP); }
   eclats(c.x, c.y-60, ELEMENTS[de ? J.m[de].el : c.el].col, 14, 220);
@@ -2234,6 +2235,7 @@ function physMages(dt){
     var c = J.m[s], o = J.m[autre(s)];
     c.cd = Math.max(0, c.cd-dt); c.cdB = Math.max(0, c.cdB-dt); c.bouclier = Math.max(0, c.bouclier-dt);
     c.touche = Math.max(0, c.touche-dt); c.anim = Math.max(0, c.anim-dt);
+    c.hitT = Math.max(0, (c.hitT||0)-dt); c.ultiT = Math.max(0, (c.ultiT||0)-dt);
     ["ralenti","gele","choc"].forEach(function(k){ c.eff[k] = Math.max(0, (c.eff[k]||0)-dt); });
     if(c.eff.ralenti<=0) c.eff.stacks = 0;
     if(c.eff.brule>0){ c.eff.brule = Math.max(0, c.eff.brule-dt); if(c.pv>0){ c.pv = Math.max(0, c.pv - 2.2*dt); if(Math.random()<dt*14) J.parts.push({x:c.x+(Math.random()-0.5)*40, y:c.y-Math.random()*100, vx:0, vy:-60, vie:0.5, max:0.5, t:4, col:Math.random()<.5 ? "#ff6a2b" : "#ffd166"}); } }
@@ -2264,7 +2266,7 @@ function physMages(dt){
     });
     if(p.mort) return;
     var c = J.m[autre(p.s)];
-    if(c.pv>0 && Math.abs(p.x-c.x)<34+p.r && p.y>c.y-128 && p.y<c.y+4){ toucherMage(c, p); p.mort = true; }
+    if(c.pv>0 && Math.abs(p.x-c.x)<34+p.r && p.y>c.y-145 && p.y<c.y+4){ toucherMage(c, p); p.mort = true; }
   });
   J.sorts = J.sorts.filter(function(p){ return !p.mort; });
   /* Météores */
@@ -2455,11 +2457,45 @@ function dessinerSorciere(ctx, c, now, col){
   }
 }
 
+/* Illustrations de la sorcière de la foudre (fichiers .webp à la racine du site).
+   ax / sol = position des pieds dans l'image ; toutes les poses regardent vers la droite. */
+var SPRITES_SORCIERE = {"repos": {"w": 323, "h": 433, "ax": 207, "sol": 420}, "attaque": {"w": 420, "h": 433, "ax": 202, "sol": 424}, "touchee": {"w": 323, "h": 445, "ax": 160, "sol": 430}, "ultime": {"w": 512, "h": 440, "ax": 269, "sol": 424}, "victoire": {"w": 504, "h": 461, "ax": 286, "sol": 451}};
+(function(){ for(var k in SPRITES_SORCIERE){ var im = new Image(); im.src = "sorciere-"+k+".webp?v="+(typeof VERSION_SITE!=="undefined" ? VERSION_SITE : "1"); SPRITES_SORCIERE[k].img = im; } })();
+function dessinerSorciereSprite(ctx, c, now, col){
+  var J = S.jeu, t = now/1000, pose = "repos";
+  if(J.phase==="pause" && J.gagnantRound===c.s) pose = "victoire";
+  else if((c.ultiT||0)>0) pose = "ultime";
+  else if((c.hitT||0)>0) pose = "touchee";
+  else if(c.anim>0) pose = "attaque";
+  var P = SPRITES_SORCIERE[pose];
+  if(!P || !P.img || !P.img.complete || !P.img.naturalWidth){ P = SPRITES_SORCIERE.repos; if(!P.img.complete || !P.img.naturalWidth) return false; }
+  var sc = 190/400, sol = c.y>=MG.SOL-1;
+  var souffle = pose==="repos" ? Math.sin(t*2.4 + (c.s==="b"?0:1.2))*0.012 : 0;
+  /* ombre + lueur au sol */
+  ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.beginPath(); ctx.ellipse(c.x, c.y+4, 46*(1-(MG.SOL-c.y)/500), 8, 0, 0, Math.PI*2); ctx.fill();
+  var gl = ctx.createRadialGradient(c.x, c.y, 2, c.x, c.y, 70); gl.addColorStop(0,"rgba(159,244,255,.35)"); gl.addColorStop(1,"rgba(159,244,255,0)");
+  ctx.fillStyle = gl; ctx.beginPath(); ctx.ellipse(c.x, c.y, 70, 16, 0, 0, Math.PI*2); ctx.fill();
+  ctx.save();
+  ctx.translate(c.x + (c.touche>0 ? (Math.random()-0.5)*8 : 0), c.y + (sol && pose==="repos" ? Math.sin(t*2.4)*1.2 : 0));
+  ctx.scale(c.face*sc, sc*(1+souffle));
+  if(c.eff.gele>0){ ctx.filter = "saturate(.4) brightness(1.2) hue-rotate(160deg)"; }
+  if(c.hitT>0 && Math.floor(c.hitT*30)%2) ctx.globalAlpha *= 0.75;
+  ctx.drawImage(P.img, -P.ax, -P.sol, P.w, P.h);
+  ctx.filter = "none";
+  ctx.restore();
+  /* petits arcs électriques autour d'elle */
+  if(c.pv>0 && Math.random()<0.4){
+    ctx.strokeStyle = Math.random()<.5 ? "rgba(255,225,77,.85)" : "rgba(190,150,255,.85)"; ctx.lineWidth = 1.4;
+    var ax = c.x+(Math.random()-0.5)*80, ay = c.y-20-Math.random()*170;
+    arcElectrique(ctx, ax, ay, ax+(Math.random()-0.5)*34, ay+(Math.random()-0.5)*34, 7, 4);
+  }
+  return true;
+}
 /* ---------- Dessin ---------- */
 function dessinerMage(ctx, c, now, col){
   if(ELEMENTS[c.el] && ELEMENTS[c.el].skin==="sorciere"){
     if(c.pv<=0) ctx.globalAlpha = 0.35;
-    dessinerSorciere(ctx, c, now, col);
+    if(!dessinerSorciereSprite(ctx, c, now, col)) dessinerSorciere(ctx, c, now, col);
     dessinerEffetsMage(ctx, c); ctx.globalAlpha = 1; return;
   }
   var E = ELEMENTS[c.el], t = now/1000, bob = c.y<MG.SOL-1 ? 0 : Math.sin(t*3 + (c.s==="b"?0:1.5))*3;
@@ -3852,7 +3888,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "30";
+var VERSION_SITE = "31";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
