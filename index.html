@@ -253,15 +253,16 @@ thead td{font-weight:600}
 /* La Traque */
 #traque{padding:0}
 #cvTraque{width:100%;height:100%;display:block}
-#m-traque{position:fixed;inset:0;box-sizing:border-box;display:grid;grid-template-rows:auto 1fr auto;gap:14px;align-items:center;justify-items:center;
+#m-traque{position:fixed;inset:0;box-sizing:border-box;display:grid;grid-template-rows:auto 1fr;gap:14px;align-items:end;justify-items:stretch;
   padding:max(52px,env(safe-area-inset-top,0px)) 14px max(14px,env(safe-area-inset-bottom,0px));transition:background .3s}
 #m-traque.danger{background:radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 40%,rgba(160,0,30,.45))}
-.tq-haut{text-align:center}
+.tq-haut{text-align:center;align-self:start}
 .tq-role{margin:0;font-weight:800;font-size:20px}
-.tq-joy{position:relative;width:min(78vw,52vh);aspect-ratio:1/1;border-radius:50%;border:3px solid var(--line);background:radial-gradient(circle,rgba(255,255,255,.07),rgba(255,255,255,.01) 70%);touch-action:none;display:flex;align-items:center;justify-content:center}
+.tq-bas{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:end;padding-bottom:6px}
+.tq-joy{position:relative;width:100%;max-width:46vh;justify-self:start;aspect-ratio:1/1;border-radius:50%;border:3px solid var(--line);background:radial-gradient(circle,rgba(255,255,255,.07),rgba(255,255,255,.01) 70%);touch-action:none;display:flex;align-items:center;justify-content:center}
 .tq-bouton{width:34%;aspect-ratio:1/1;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.5),rgba(255,255,255,.12));border:2px solid rgba(255,255,255,.6);pointer-events:none;transition:transform .05s}
-.tq-pouvoirs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
-.tq-btn{border-radius:18px;border:3px solid var(--line);background:rgba(255,255,255,.04);color:var(--fg);padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--text);touch-action:none}
+.tq-pouvoirs{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;width:100%}
+.tq-btn{border-radius:18px;border:3px solid var(--line);background:rgba(255,255,255,.04);color:var(--fg);padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--text);touch-action:none;min-height:13vh;justify-content:center}
 .tq-btn .tq-ic{font-size:30px} .tq-btn b{font-size:15px} .tq-btn small{font-size:11px;opacity:.65}
 .tq-btn.unique{border-color:#ff2b3d}
 .tq-btn:disabled{opacity:.3}
@@ -844,8 +845,10 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
   </section>
   <section id="m-traque" hidden>
     <div class="tq-haut"><p class="tq-role" id="mTqRole"></p><p class="mg-info" id="mTqInfo"></p></div>
-    <div class="tq-joy" id="mTqJoy"><div class="tq-bouton" id="mTqBouton"></div></div>
-    <div class="tq-pouvoirs" id="mTqPouvoirs"></div>
+    <div class="tq-bas">
+      <div class="tq-joy" id="mTqJoy"><div class="tq-bouton" id="mTqBouton"></div></div>
+      <div class="tq-pouvoirs" id="mTqPouvoirs"></div>
+    </div>
   </section>
   <section id="m-mages" hidden>
     <div class="mg-haut">
@@ -919,7 +922,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=32"></script>
+<script src="config.js?v=33"></script>
 <script>
 (function(){
 "use strict";
@@ -2725,19 +2728,29 @@ var TQ_POUVOIRS = {
   b:[{id:"ruee", nom:"Ruée", cd:6, icone:"💨"}, {id:"instinct", nom:"Instinct", cd:12, icone:"👁"}, {id:"hurlement", nom:"Hurlement", cd:0, unique:true, icone:"🐺"}],
   v:[{id:"brume", nom:"Brume", cd:10, icone:"🌫"}, {id:"nuee", nom:"Nuée", cd:12, icone:"🦇"}, {id:"charme", nom:"Charme", cd:0, unique:true, icone:"💋"}]
 };
-/* Décor : [type, x, y, w/r, h] — tombes, haies, fontaine, cercueils, colonnes, arbres morts */
-var TQ_DECOR = [
-  ["fontaine",500,300,58],
-  ["haie",180,120,200,26],["haie",620,120,200,26],["haie",180,454,200,26],["haie",620,454,200,26],
-  ["haie",120,230,26,140],["haie",854,230,26,140],
-  ["tombe",330,210,26,34],["tombe",380,210,26,34],["tombe",620,356,26,34],["tombe",670,356,26,34],
-  ["tombe",300,390,26,34],["tombe",700,180,26,34],
-  ["cercueil",420,470,70,28],["cercueil",510,60,70,28],
-  ["colonne",260,300,16],["colonne",740,300,16],["arbre",80,80,22],["arbre",920,520,22],["arbre",920,70,22],["arbre",80,530,22]
+/* Carte : murs (haies, tombes, fontaine, colonnes) + mécaniques
+   - baril d'eau bénite : explose au contact, étourdit Kendrick, repousse tout le monde, revient après 12 s
+   - gargouille : rebond violent (les deux)
+   - crypte : téléporte vers la crypte jumelle
+   - ronces : ralentissent
+   - fiole de sang : recharge tous les pouvoirs de celui qui la prend */
+var TQ_MURS = [
+  ["fontaine",500,300,46],
+  ["haie",230,230,24,140],["haie",746,230,24,140],
+  ["haie",380,60,90,22],["haie",530,60,90,22],["haie",380,518,90,22],["haie",530,518,90,22],
+  ["tombe",160,410,24,30],["tombe",816,160,24,30],["tombe",420,196,24,30],["tombe",556,374,24,30],
+  ["colonne",430,410,14],["colonne",570,190,14]
 ];
+var TQ_GARGOUILLES = [[500,128],[500,472],[372,300],[628,300]];
+var TQ_BARILS_POS = [[300,140],[700,460],[300,460],[700,140],[110,170],[890,430]];
+var TQ_CRYPTES = [{x:62,y:62,vers:1,col:"#b3001b"},{x:938,y:538,vers:0,col:"#b3001b"},{x:938,y:62,vers:3,col:"#3fb68b"},{x:62,y:538,vers:2,col:"#3fb68b"}];
+var TQ_RONCES = [[140,232,62,70],[798,298,62,70]];
+var TQ_DECOR = TQ_MURS;
 var JOY = {b:{x:0,y:0}, v:{x:0,y:0}}, JOYK = {b:{}, v:{}};
 function tqCollision(x, y, r){
   if(x<r+10 || x>990-r || y<r+10 || y>590-r) return true;
+  var J = S.jeu;
+  if(J && J.barils) for(var b=0;b<J.barils.length;b++){ var B = J.barils[b]; if(B.vivant && Math.hypot(x-B.x, y-B.y) < 16+r) return true; }
   for(var i=0;i<TQ_DECOR.length;i++){
     var d = TQ_DECOR[i], t = d[0];
     if(t==="fontaine" || t==="colonne" || t==="arbre"){ if(Math.hypot(x-d[1], y-d[2]) < d[3]+r) return true; }
@@ -2746,7 +2759,7 @@ function tqCollision(x, y, r){
   return false;
 }
 function tqPerso(s){
-  return {s:s, x:s==="b" ? 195 : 805, y:300, vx:0, vy:0, a:s==="b" ? 0 : Math.PI, cd:{}, utilise:{}, ruee:0, brume:0, ralenti:0, fige:0, trace:[]};
+  return {s:s, x:s==="b" ? 120 : 880, y:300, vx:0, vy:0, a:s==="b" ? 0 : Math.PI, cd:{}, utilise:{}, ruee:0, brume:0, ralenti:0, fige:0, stun:0, knock:0, tp:0, trace:[]};
 }
 function traque(){
   JOYK = {b:{}, v:{}};
@@ -2769,6 +2782,9 @@ function traque(){
 function tqManche(){
   var J = S.jeu;
   J.p = {b:tqPerso("b"), v:tqPerso("v")}; J.leurres = []; J.instinct = 0; J.reste = TQ.DUREE;
+  J.barils = TQ_BARILS_POS.map(function(p){ return {x:p[0], y:p[1], vivant:true, retour:0}; });
+  J.garg = TQ_GARGOUILLES.map(function(){ return 0; });
+  J.fiole = null; J.fioleT = 6; J.explosions = []; J.textes = [];
   J.phase = "intro"; J.introT = 0; J.msg = "Manche "+J.manche; J.sous = "Kendrick traque Emilia…";
   diffuser();
 }
@@ -2778,10 +2794,10 @@ function majTraque(dt, now){
   J.brouillard.forEach(function(b){ b.x += b.v*dt; if(b.x-b.r>1000) b.x = -b.r; });
   if(J.phase==="intro"){
     J.introT += dt;
-    if(J.introT<2.2){ J.msg = "Manche "+J.manche; J.sous = "Kendrick traque Emilia…"; }
-    else if(J.introT<3){ J.msg = "Fuis, Emilia !"; J.sous = ""; }
+    if(J.introT<3.2){ J.msg = "Manche "+J.manche; J.sous = "Kendrick traque Emilia…"; }
+    else if(J.introT<4){ J.msg = "Fuis, Emilia !"; J.sous = ""; }
     else { J.phase = "chasse"; J.t0 = now; J.msg = ""; J.sous = ""; bip(220, 0.4, 0.08); diffuser(); }
-    if(J.introT>2.2 && J.introT-dt<=2.2) bip(660, 0.15, 0.06);
+    if(J.introT>3.2 && J.introT-dt<=3.2) bip(660, 0.15, 0.06);
     return;
   }
   if(J.phase!=="chasse"){ return; }
@@ -2791,18 +2807,40 @@ function majTraque(dt, now){
     var c = J.p[s];
     for(var k in c.cd) c.cd[k] = Math.max(0, c.cd[k]-dt);
     c.ruee = Math.max(0, c.ruee-dt); c.brume = Math.max(0, c.brume-dt); c.ralenti = Math.max(0, c.ralenti-dt); c.fige = Math.max(0, c.fige-dt);
+    c.stun = Math.max(0, c.stun-dt); c.knock = Math.max(0, c.knock-dt); c.tp = Math.max(0, c.tp-dt);
     var j = JOY[s], jk = JOYK[s], jx = j.x + (jk.d?1:0) - (jk.g?1:0), jy = j.y + (jk.b?1:0) - (jk.h?1:0);
     var n = Math.hypot(jx, jy); if(n>1){ jx /= n; jy /= n; }
     if(s==="b" && e<TQ.REVEIL){ jx = 0; jy = 0; }
-    if(c.fige>0){ jx = 0; jy = 0; }
-    var vmax = (s==="b" ? TQ.VK : TQ.VE) * (c.ruee>0 ? 2.3 : 1) * (c.ralenti>0 ? 0.5 : 1);
+    if(c.fige>0 || c.stun>0){ jx = 0; jy = 0; }
+    var ronce = TQ_RONCES.some(function(r){ return c.x>r[0] && c.x<r[0]+r[2] && c.y>r[1] && c.y<r[1]+r[3]; });
+    if(ronce && Math.random()<dt*8) J.parts.push({x:c.x, y:c.y, vx:(Math.random()-0.5)*40, vy:(Math.random()-0.5)*40, vie:0.5, max:0.5, t:3, col:"#3b6b2a"});
+    var vmax = (s==="b" ? TQ.VK : TQ.VE) * (c.ruee>0 ? 2.3 : 1) * (c.ralenti>0 ? 0.5 : 1) * (ronce ? 0.5 : 1);
     var acc = s==="b" ? TQ.ACC_K*(c.ruee>0 ? 3 : 1) : TQ.ACC_E;
+    if(c.knock>0) acc *= 0.12;
     var k2 = Math.min(1, acc*dt);
     c.vx += (jx*vmax - c.vx)*k2; c.vy += (jy*vmax - c.vy)*k2;
     var nx = c.x + c.vx*dt, ny = c.y + c.vy*dt;
     if(!tqCollision(nx, c.y, TQ.R)) c.x = nx; else c.vx *= -0.2;
     if(!tqCollision(c.x, ny, TQ.R)) c.y = ny; else c.vy *= -0.2;
     if(Math.hypot(c.vx, c.vy)>20) c.a = Math.atan2(c.vy, c.vx);
+    TQ_GARGOUILLES.forEach(function(g, gi){
+      var dx = c.x-g[0], dy = c.y-g[1], d = Math.hypot(dx, dy), rr = 20+TQ.R;
+      if(d<rr && d>0.01){
+        var ux = dx/d, uy = dy/d; c.x = g[0]+ux*(rr+1); c.y = g[1]+uy*(rr+1);
+        c.vx = ux*520; c.vy = uy*520; c.knock = 0.35; J.garg[gi] = 0.3;
+        bip(320+Math.random()*80, 0.08, 0.07);
+        for(var q=0;q<10;q++) J.parts.push({x:g[0]+ux*20, y:g[1]+uy*20, vx:ux*180+(Math.random()-0.5)*120, vy:uy*180+(Math.random()-0.5)*120, vie:0.4, max:0.4, t:3, col:"#5ff2d0"});
+      }
+    });
+    J.barils.forEach(function(B){ if(B.vivant && Math.hypot(c.x-B.x, c.y-B.y) < 16+TQ.R+3) tqExplosion(B); });
+    if(c.tp<=0) TQ_CRYPTES.forEach(function(cr){
+      if(c.tp>0 || Math.hypot(c.x-cr.x, c.y-cr.y)>20) return;
+      var dest = TQ_CRYPTES[cr.vers], ux = 500-dest.x, uy = 300-dest.y, n = Math.hypot(ux, uy);
+      for(var q=0;q<18;q++) J.parts.push({x:c.x, y:c.y, vx:(Math.random()-0.5)*160, vy:(Math.random()-0.5)*160, vie:0.5, max:0.5, t:4, col:cr.col});
+      c.x = dest.x + ux/n*34; c.y = dest.y + uy/n*34; c.tp = 2.5; c.trace = [];
+      for(var q2=0;q2<18;q2++) J.parts.push({x:c.x, y:c.y, vx:(Math.random()-0.5)*160, vy:(Math.random()-0.5)*160, vie:0.5, max:0.5, t:4, col:cr.col});
+      bip(1600, 0.12, 0.05); bip(800, 0.2, 0.04);
+    });
     c.trace.push({x:c.x, y:c.y, t:now}); while(c.trace.length && now-c.trace[0].t>450) c.trace.shift();
     if(c.ruee>0 && Math.random()<dt*60) J.parts.push({x:c.x, y:c.y, vx:(Math.random()-0.5)*30, vy:(Math.random()-0.5)*30, vie:0.4, max:0.4, t:4, col:"#2fa8ff"});
   });
@@ -2810,6 +2848,17 @@ function majTraque(dt, now){
   J.leurres.forEach(function(l){ l.vie -= dt; l.x += l.vx*dt; l.y += l.vy*dt; if(tqCollision(l.x, l.y, TQ.R)){ l.vx *= -1; l.vy *= -1; } });
   J.leurres = J.leurres.filter(function(l){ if(l.vie<=0){ for(var i=0;i<10;i++) J.parts.push({x:l.x, y:l.y, vx:(Math.random()-0.5)*160, vy:(Math.random()-0.5)*160, vie:0.6, max:0.6, t:4, col:"#3a2350"}); return false; } return true; });
   J.instinct = Math.max(0, J.instinct-dt);
+  J.garg = J.garg.map(function(g){ return Math.max(0, g-dt); });
+  J.barils.forEach(function(B){ if(!B.vivant){ B.retour -= dt; if(B.retour<=0 && Math.hypot(J.p.b.x-B.x, J.p.b.y-B.y)>60 && Math.hypot(J.p.v.x-B.x, J.p.v.y-B.y)>60){ B.vivant = true; } } });
+  J.explosions = J.explosions.filter(function(x){ x.t += dt; return x.t<0.6; });
+  if(!J.fiole){ J.fioleT -= dt; if(J.fioleT<=0){ for(var essai=0;essai<30;essai++){ var fx = 80+Math.random()*840, fy = 80+Math.random()*440; if(!tqCollision(fx, fy, 22) && Math.hypot(fx-J.p.b.x, fy-J.p.b.y)>150 && Math.hypot(fx-J.p.v.x, fy-J.p.v.y)>150){ J.fiole = {x:fx, y:fy}; bip(1800, 0.1, 0.04); break; } } J.fioleT = 3; } }
+  else ["b","v"].forEach(function(s){
+    var c = J.p[s]; if(!J.fiole || Math.hypot(c.x-J.fiole.x, c.y-J.fiole.y)>26) return;
+    c.cd = {}; J.fiole = null; J.fioleT = 9;
+    J.textes.push({x:c.x, y:c.y-30, txt:"POUVOIRS RECHARGÉS", col:"#ff4d6d", vie:1.2});
+    bip(1200, 0.1, 0.06); plus_tard(function(){ bip(1600, 0.15, 0.06); }, 90); diffuser();
+  });
+  J.textes.forEach(function(tx){ tx.vie -= dt; tx.y -= 30*dt; }); J.textes = J.textes.filter(function(tx){ return tx.vie>0; });
   /* tension : proximité */
   var K = J.p.b, E = J.p.v, d = Math.hypot(K.x-E.x, K.y-E.y);
   var proche = d<170;
@@ -2824,6 +2873,19 @@ function majTraque(dt, now){
     boum(); J.msg = "CAPTURÉE !"; J.sous = "Kendrick a mordu Emilia"; tqFinManche("b"); return;
   }
   if(J.reste<=0){ J.phase = "fin"; J.gagnant = "v"; J.msg = "ÉCHAPPÉE !"; J.sous = "Emilia a survécu à la traque"; bip(880,0.15,0.07); plus_tard(function(){ bip(1320,0.3,0.07); },150); tqFinManche("v"); }
+}
+function tqExplosion(B){
+  var J = S.jeu; B.vivant = false; B.retour = 12;
+  J.explosions.push({x:B.x, y:B.y, t:0});
+  for(var i=0;i<50;i++){ var an = Math.random()*Math.PI*2, v = 80+Math.random()*320; J.parts.push({x:B.x, y:B.y, vx:Math.cos(an)*v, vy:Math.sin(an)*v, vie:0.7, max:0.7, t:3+Math.random()*4, col:["#e8fbff","#9fd8ff","#ffe8a8","#ffffff"][i%4]}); }
+  boum();
+  ["b","v"].forEach(function(s){
+    var c = J.p[s], dx = c.x-B.x, dy = c.y-B.y, d = Math.hypot(dx, dy) || 1;
+    if(d>110) return;
+    var f = 260 + 380*(1-d/110); c.vx = dx/d*f; c.vy = dy/d*f; c.knock = 0.4;
+    if(s==="b"){ c.stun = 1.7; c.ruee = 0; J.textes.push({x:c.x, y:c.y-34, txt:"BRÛLÉ PAR L'EAU BÉNITE !", col:"#9fd8ff", vie:1.4}); }
+  });
+  diffuser();
 }
 function tqFinManche(g){
   var J = S.jeu; J.wins[g]++; J.leurres = []; diffuser();
@@ -2845,7 +2907,7 @@ function tqEtatPouvoirs(){
 function pouvoirTraque(s, id){
   var J = S.jeu; if(!J || J.id!=="traque" || J.phase!=="chasse") return;
   var c = J.p[s], o = J.p[autre(s)], P = null;
-  TQ_POUVOIRS[s].forEach(function(p){ if(p.id===id) P = p; }); if(!P || c.fige>0) return;
+  TQ_POUVOIRS[s].forEach(function(p){ if(p.id===id) P = p; }); if(!P || c.fige>0 || c.stun>0) return;
   if(P.unique){ if(c.utilise[id]) return; c.utilise[id] = true; } else { if(c.cd[id]>0) return; c.cd[id] = P.cd; }
   if(id==="ruee"){ c.ruee = 0.8; bip(180, 0.25, 0.07); }
   else if(id==="instinct"){ J.instinct = 2.2; bip(1400, 0.3, 0.05); }
@@ -2901,6 +2963,50 @@ function tqDessinerDecor(ctx, now){
     ctx.restore();
   });
 }
+function tqDessinerMecaniques(ctx, now){
+  var J = S.jeu, t = now/1000;
+  TQ_RONCES.forEach(function(r){
+    ctx.fillStyle = "rgba(30,55,22,.75)"; ctx.fillRect(r[0], r[1], r[2], r[3]);
+    ctx.strokeStyle = "#4f8a35"; ctx.lineWidth = 1.6;
+    for(var i=0;i<14;i++){ var x = r[0]+((i*37)%r[2]), y = r[1]+((i*23)%r[3]); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+6, y-7); ctx.moveTo(x+3, y-3); ctx.lineTo(x+9, y-1); ctx.stroke(); }
+    ctx.strokeStyle = "rgba(79,138,53,.6)"; ctx.setLineDash([4,4]); ctx.strokeRect(r[0], r[1], r[2], r[3]); ctx.setLineDash([]);
+  });
+  TQ_CRYPTES.forEach(function(cr){
+    ctx.fillStyle = "#14101c"; ctx.beginPath(); ctx.arc(cr.x, cr.y, 24, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = cr.col; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cr.x, cr.y, 24, 0, Math.PI*2); ctx.stroke();
+    for(var k=0;k<3;k++){ ctx.globalAlpha = 0.6-k*0.15; ctx.beginPath(); ctx.arc(cr.x, cr.y, 18-k*5, t*3+k*2, t*3+k*2+Math.PI*1.3); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  });
+  TQ_GARGOUILLES.forEach(function(g, gi){
+    var f = J.garg ? J.garg[gi] : 0, r = 20 + f*14;
+    ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.beginPath(); ctx.arc(g[0]+3, g[1]+4, r, 0, Math.PI*2); ctx.fill();
+    var gg = ctx.createRadialGradient(g[0]-6, g[1]-6, 2, g[0], g[1], r); gg.addColorStop(0,"#7b7891"); gg.addColorStop(1,"#2f2d42");
+    ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(g[0], g[1], r, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "rgba(95,242,208,"+Math.min(1, 0.45+0.3*Math.sin(t*4+gi)+f*2)+")"; ctx.lineWidth = 2.5; ctx.shadowColor = "#5ff2d0"; ctx.shadowBlur = 12+f*40;
+    ctx.beginPath(); ctx.arc(g[0], g[1], r-4, 0, Math.PI*2); ctx.stroke();
+    for(var k=0;k<6;k++){ var an = k*Math.PI/3 + t*0.6; ctx.beginPath(); ctx.moveTo(g[0]+Math.cos(an)*(r-9), g[1]+Math.sin(an)*(r-9)); ctx.lineTo(g[0]+Math.cos(an)*(r-14), g[1]+Math.sin(an)*(r-14)); ctx.stroke(); }
+    ctx.shadowBlur = 0;
+  });
+  (J.barils||[]).forEach(function(B){
+    if(!B.vivant){ ctx.strokeStyle = "rgba(159,216,255,.25)"; ctx.lineWidth = 1.5; ctx.setLineDash([3,4]); ctx.beginPath(); ctx.arc(B.x, B.y, 16, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]); return; }
+    var pul = 0.5+0.5*Math.sin(t*5+B.x);
+    var gl = ctx.createRadialGradient(B.x, B.y, 6, B.x, B.y, 34); gl.addColorStop(0,"rgba(159,216,255,"+(0.25+pul*0.2)+")"); gl.addColorStop(1,"rgba(159,216,255,0)");
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(B.x, B.y, 34, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#5a3a22"; ctx.beginPath(); ctx.arc(B.x, B.y, 16, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "#2b1a10"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(B.x, B.y, 12, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = "#9a9aa8"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(B.x, B.y, 16, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = "#e8fbff"; ctx.lineWidth = 2.6; ctx.shadowColor = "#9fd8ff"; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.moveTo(B.x, B.y-7); ctx.lineTo(B.x, B.y+7); ctx.moveTo(B.x-5, B.y-2); ctx.lineTo(B.x+5, B.y-2); ctx.stroke(); ctx.shadowBlur = 0;
+  });
+  (J.explosions||[]).forEach(function(x){ var k = x.t/0.6; ctx.strokeStyle = "rgba(232,251,255,"+(1-k)+")"; ctx.lineWidth = 6*(1-k)+1; ctx.beginPath(); ctx.arc(x.x, x.y, 20+k*100, 0, Math.PI*2); ctx.stroke(); ctx.fillStyle = "rgba(200,235,255,"+(0.35*(1-k))+")"; ctx.beginPath(); ctx.arc(x.x, x.y, 20+k*90, 0, Math.PI*2); ctx.fill(); });
+  if(J.fiole){
+    var fx = J.fiole.x, fy = J.fiole.y + Math.sin(t*3)*3;
+    ctx.fillStyle = "rgba(255,40,70,.25)"; ctx.beginPath(); ctx.arc(fx, fy, 22+Math.sin(t*6)*3, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#b3001b"; ctx.shadowColor = "#ff2b3d"; ctx.shadowBlur = 16;
+    ctx.beginPath(); ctx.moveTo(fx-3, fy-12); ctx.lineTo(fx+3, fy-12); ctx.lineTo(fx+3, fy-5); ctx.quadraticCurveTo(fx+10, fy, fx+8, fy+8); ctx.quadraticCurveTo(fx, fy+13, fx-8, fy+8); ctx.quadraticCurveTo(fx-10, fy, fx-3, fy-5); ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0; ctx.fillStyle = "#c9b38a"; ctx.fillRect(fx-3.5, fy-15, 7, 4);
+  }
+}
 function tqCercueil(ctx, d){
   var x = d[1], y = d[2], w = d[3], h = d[4];
   ctx.beginPath(); ctx.moveTo(x, y+h*0.3); ctx.lineTo(x+w*0.25, y); ctx.lineTo(x+w, y+h*0.15); ctx.lineTo(x+w, y+h*0.85); ctx.lineTo(x+w*0.25, y+h); ctx.lineTo(x, y+h*0.7); ctx.closePath();
@@ -2953,6 +3059,7 @@ function dessinerTraque(ctx, cv, now){
   ctx.fillRect(0,282,1000,36); ctx.fillRect(482,0,36,600);
   ctx.beginPath(); ctx.arc(500,300,90,0,Math.PI*2); ctx.fill();
   tqDessinerDecor(ctx, now);
+  tqDessinerMecaniques(ctx, now);
   /* leurres */
   J.leurres.forEach(function(l){
     var rev = J.instinct>0;
@@ -2965,6 +3072,9 @@ function dessinerTraque(ctx, cv, now){
   if(J.instinct>0){ ctx.strokeStyle = "rgba(255,60,80,"+(0.5+0.4*Math.sin(t*12))+")"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(E.x, E.y, 30, 0, Math.PI*2); ctx.stroke(); }
   if(!(J.phase==="fin" && J.gagnant==="b" && Math.floor(t*10)%2)) tqDessinerVampire(ctx, K, now, 1);
   if(K.fige>0){ ctx.fillStyle = "#ff6ad5"; ctx.font = "800 18px Sora, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.fillText("♥ charmé ♥", K.x, K.y-34); }
+  ["b","v"].forEach(function(s){ var c = J.p[s]; if(c.stun>0){ ctx.fillStyle = "#ffe14d"; for(var i=0;i<3;i++){ var an = t*6+i*2.1; ctx.font = "16px serif"; ctx.textAlign = "center"; ctx.fillText("★", c.x+Math.cos(an)*22, c.y-28+Math.sin(an)*6); } } });
+  (J.textes||[]).forEach(function(tx){ ctx.globalAlpha = Math.min(1, tx.vie*2); ctx.font = "800 17px Sora, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = tx.col; ctx.shadowColor = "#000"; ctx.shadowBlur = 8; ctx.fillText(tx.txt, tx.x, tx.y); ctx.shadowBlur = 0; });
+  ctx.globalAlpha = 1;
   if(E.ralenti>0){ ctx.fillStyle = "#2fa8ff"; ctx.font = "800 16px Sora, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.fillText("terrifiée", E.x, E.y-32); }
   if(J.onde){ J.onde.t += 1/60; var rr = J.onde.t*700; ctx.strokeStyle = J.onde.col; ctx.globalAlpha = Math.max(0, 1-J.onde.t*1.6); ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(J.onde.x, J.onde.y, rr, 0, Math.PI*2); ctx.stroke(); ctx.globalAlpha = 1; if(J.onde.t>0.7) J.onde = null; }
   J.parts.forEach(function(p){ var k = Math.max(0, p.vie/p.max); ctx.globalAlpha = k; ctx.fillStyle = p.col; ctx.fillRect(p.x-p.t/2, p.y-p.t/2, p.t, p.t); });
@@ -2999,6 +3109,16 @@ function dessinerTraque(ctx, cv, now){
     ctx.fillText(J.msg, 500, 270);
     if(J.sous){ ctx.font = "700 28px Sora, system-ui, sans-serif"; ctx.fillStyle = "rgba(255,255,255,.88)"; ctx.fillText(J.sous, 500, 334); }
     ctx.shadowBlur = 0;
+  }
+  if(J.phase==="intro"){
+    ctx.fillStyle = "rgba(5,5,12,.8)"; ctx.fillRect(150, 386, 700, 150);
+    ctx.strokeStyle = "rgba(255,255,255,.15)"; ctx.strokeRect(150, 386, 700, 150);
+    ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.font = "600 17px Sora, system-ui, sans-serif";
+    [["#9fd8ff","✚ Baril d'eau bénite : explose, étourdit Kendrick et repousse tout le monde"],
+     ["#5ff2d0","◎ Gargouille : rebondit violemment, pour les deux"],
+     ["#ff4d6d","↺ Crypte : téléporte à la crypte de même couleur, à l'autre bout"],
+     ["#7fbf5a","≋ Ronces : ralentissent"],
+     ["#ff2b3d","♦ Fiole de sang : recharge tous tes pouvoirs"]].forEach(function(l, i){ ctx.fillStyle = l[0]; ctx.fillText(l[1], 176, 410+i*26); });
   }
   ctx.setTransform(1,0,0,1,0,0);
 }
@@ -4272,7 +4392,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "32";
+var VERSION_SITE = "33";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
