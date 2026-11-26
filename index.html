@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#06060d">
 <title>Le Jeu de Noël</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Sora:wght@300;400;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Playfair+Display:ital,wght@0,600;0,800;1,600;1,800&family=Sora:wght@300;400;600;800&display=swap">
 <style>
 /* Écran TV plein cadre, fond nuit, néon bleu (lui) / violet (elle). Thème unique sombre, voulu. */
 :root{
@@ -367,6 +367,14 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 /* Gages à minuteur */
 .g-duree{color:var(--fg);font-weight:800;padding:0 .15em;border-bottom:3px solid currentColor;text-shadow:0 0 18px rgba(255,255,255,.35)}
 #gage.b .g-duree{color:var(--bleu)} #gage.v .g-duree{color:var(--violet)}
+/* Roue du corps : style « salon de jeu » chic, ivoire / bordeaux / laiton, sans néon */
+.rc{--w:min(46vh,400px);position:relative;width:var(--w);height:var(--w);margin:1vh auto 2vh;filter:drop-shadow(0 18px 30px rgba(0,0,0,.6))}
+.rc svg{width:100%;height:100%;overflow:visible;display:block}
+.rc .rc-l{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:800}
+.rc .rc-gagne{animation:rcBrille .6s ease-in-out 3}
+@keyframes rcBrille{50%{filter:brightness(1.35)}}
+.rc.fini{transition:opacity .4s, transform .4s}
+.g-corps{font-family:"Playfair Display",Georgia,serif;font-style:italic;color:#e9c77b;padding:0 .12em;border-bottom:3px solid #b8893a}
 /* Montre du minuteur : cadran néon, anneau qui se vide, temps au centre */
 .montre{--w:min(30vh,300px);position:relative;width:var(--w);height:calc(var(--w)*1.1);margin:1vh auto 3vh;color:var(--bleu)}
 #gage.v .montre{color:var(--violet)}
@@ -390,10 +398,12 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 @keyframes moSecoue{25%{transform:rotate(-2deg)}75%{transform:rotate(2deg)}}
 @keyframes moVibre{25%{transform:translateX(-3px) rotate(-1deg)}75%{transform:translateX(3px) rotate(1deg)}}
 .m-montre{--w:230px;margin:6px auto 14px}
+.m-corps{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:800;font-size:34px;color:#e9c77b;text-align:center;margin:0 0 10px}
 @keyframes gClignote{50%{opacity:.15}}
 .bq-duree{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .bq-duree select{font:600 15px var(--text);color:var(--fg);background:var(--bg2);border:2px solid var(--line);border-radius:10px;padding:.4em .6em}
 .bq-astuce{font-size:13px;color:var(--mute);margin:0}
+.bq-chrono.corps{margin-left:.35em}
 .bq-chrono{display:inline-block;margin-left:.5em;font-size:.8em;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:.05em .6em;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -548,6 +558,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
     <p class="qui" id="gQui"></p>
     <p class="texte" id="gTexte"></p>
     <p class="sub" id="gDuree"></p>
+    <div class="rc" id="gCorps" hidden></div>
     <div class="montre" id="gMontre" hidden></div>
     <p class="sub" id="gNote"></p>
     <div class="actions" id="gActions"></div>
@@ -584,7 +595,8 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
       <div class="ajout">
         <textarea id="bqTexte" rows="3" maxlength="6000" placeholder="Écris un gage. Pour en ajouter plusieurs d'un coup, mets-en un par ligne."></textarea>
         <div class="bq-duree"><span class="sub">Minuteur (facultatif) : entre</span><select id="bqDmin" aria-label="Durée minimale"></select><span class="sub">et</span><select id="bqDmax" aria-label="Durée maximale"></select></div>
-        <p class="bq-astuce">Avec un minuteur, écris X dans le gage à l'endroit du temps, par exemple « Masse-moi pendant X ».</p>
+        <div class="bq-duree"><span class="sub">Roue du corps (facultatif) :</span><select id="bqCorps" aria-label="Roue du corps"></select></div>
+        <p class="bq-astuce">Avec un minuteur, écris X à l'endroit du temps. Avec la roue du corps, écris Z à l'endroit de la partie du corps. Exemple : « Embrasse-moi sur Z pendant X ».</p>
         <div class="row"><button class="plein" id="bqAjouter" data-primary>Ajouter</button><span class="sub" id="bqMsg"></span></div>
       </div>
       <ul id="bqListe"></ul>
@@ -663,7 +675,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=20"></script>
+<script src="config.js?v=21"></script>
 <script>
 (function(){
 "use strict";
@@ -735,7 +747,7 @@ function tirerGage(){
   }
   if(dispo.length){
     var g = dispo[rnd(dispo.length)]; utilises[g.id] = 1;
-    return {niveau:g.niveau, texte:g.texte, dmin:g.dmin, dmax:g.dmax};
+    return {niveau:g.niveau, texte:g.texte, dmin:g.dmin, dmax:g.dmax, corps:g.corps};
   }
   var n = niv[rnd(niv.length)];
   if(!paquets[n] || !paquets[n].length) paquets[n] = melange(GAGES[n]);
@@ -753,7 +765,7 @@ function brancherDb(){
   if(unsubBanque) unsubBanque();
   unsubBanque = gagesCol().onSnapshot(function(snap){
     clearTimeout(t); banqueEtat = "ok";
-    BANQUE = snap.docs.map(function(d){ var x = d.data()||{}; return {id:d.id, texte:String(x.texte||""), pour:x.pour, niveau:x.niveau, cree:+x.cree||0, dmin:+x.dmin||0, dmax:+x.dmax||0}; })
+    BANQUE = snap.docs.map(function(d){ var x = d.data()||{}; return {id:d.id, texte:String(x.texte||""), pour:x.pour, niveau:x.niveau, cree:+x.cree||0, dmin:+x.dmin||0, dmax:+x.dmax||0, corps:CORPS[x.corps] ? x.corps : ""}; })
       .filter(function(g){ return g.texte && (g.pour==="lui"||g.pour==="elle") && NOM_NIV[g.niveau]; });
     rendreBanque();
   }, function(){ clearTimeout(t); banqueEtat = "erreur"; rendreBanque(); });
@@ -845,7 +857,7 @@ function rendreBanque(){
   else if(banqueEtat==="erreur") vide = "Impossible de lire la banque. Recharge la page.";
   $("bqVide").textContent = vide;
 }
-var ouverts = {}, dernierFiltre = null, editDmin = 0, editDmax = 0;
+var ouverts = {}, dernierFiltre = null, editDmin = 0, editDmax = 0, editCorps = "";
 /* Codes de la banque : chacun ne voit que les gages dont il a le code */
 var CODES = {lui:"0000", elle:"0000"}, deverrouille = {lui:false, elle:false}, codeSaisi = {}, codeErreur = {};
 function ligneGage(g){
@@ -856,11 +868,13 @@ function ligneGage(g){
       remplirSelectDuree(sMin, editDmin); remplirSelectDuree(sMax, editDmax);
       sMin.onchange = function(){ editDmin = +sMin.value||0; }; sMax.onchange = function(){ editDmax = +sMax.value||0; };
       ed.appendChild(el("span","sub","Minuteur : entre")); ed.appendChild(sMin); ed.appendChild(el("span","sub","et")); ed.appendChild(sMax);
+      var sCo = el("select"); remplirSelectCorps(sCo, editCorps); sCo.onchange = function(){ editCorps = sCo.value; };
+      ed.appendChild(el("span","sub","Roue :")); ed.appendChild(sCo);
       var sv = el("button","mini ok","Enregistrer"), an = el("button","mini","Annuler");
       sv.onclick = function(){
         var t = editTexte.trim().slice(0,300); if(!t) return;
         var d = lireDurees(sMin, sMax);
-        gagesCol().doc(g.id).update({texte:t, dmin:d.dmin||null, dmax:d.dmax||null}).catch(function(){ $("bqMsg").textContent = "La modification n'a pas été enregistrée, réessaie."; });
+        gagesCol().doc(g.id).update({texte:t, dmin:d.dmin||null, dmax:d.dmax||null, corps:CORPS[sCo.value] ? sCo.value : null}).catch(function(){ $("bqMsg").textContent = "La modification n'a pas été enregistrée, réessaie."; });
         editId = null; rendreBanque();
       };
       an.onclick = function(){ editId = null; rendreBanque(); };
@@ -868,9 +882,10 @@ function ligneGage(g){
     } else {
       var pt = el("p",null,g.texte);
       if(g.dmin) pt.appendChild(el("span","bq-chrono","⏱ "+(g.dmin===g.dmax ? fmtDuree(g.dmin) : fmtDuree(g.dmin)+" – "+fmtDuree(g.dmax))));
+      if(g.corps) pt.appendChild(el("span","bq-chrono corps","◎ roue "+CORPS[g.corps].nom));
       li.appendChild(pt);
       var md = el("button","mini","Modifier");
-      md.onclick = function(){ editId = g.id; editTexte = g.texte; editDmin = g.dmin||0; editDmax = g.dmax||0; rendreBanque(); };
+      md.onclick = function(){ editId = g.id; editTexte = g.texte; editDmin = g.dmin||0; editDmax = g.dmax||0; editCorps = g.corps||""; rendreBanque(); };
       var sp = el("button","mini danger", supId===g.id ? "Confirmer" : "Supprimer");
       sp.onclick = function(){
         if(supId===g.id){ supId = null; gagesCol().doc(g.id).delete().catch(function(){ $("bqMsg").textContent = "La suppression a échoué, réessaie."; }); return; }
@@ -902,6 +917,17 @@ function lireDurees(selMin, selMax){
   return {dmin:Math.min(a,b), dmax:Math.max(a,b)};
 }
 remplirSelectDuree($("bqDmin"), 0); remplirSelectDuree($("bqDmax"), 0);
+/* Roues du corps : féminine et masculine */
+var CORPS = {
+  f: {nom:"féminine", parties:["Pussy","Seins","Fesses","Bouche","Cou","Bras","Main","Ventre","Cuisse","Pied","Dos","Jambe"]},
+  m: {nom:"masculine", parties:["Bite","Bouche","Cou","Bras","Main","Ventre","Cuisse","Pied","Dos","Jambe"]}
+};
+function remplirSelectCorps(sel, val){
+  sel.innerHTML = "";
+  [["","—"],["f","Féminine"],["m","Masculine"]].forEach(function(o){ var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op); });
+  sel.value = val||"";
+}
+remplirSelectCorps($("bqCorps"), "");
 function ajouterGages(){
   if(!db) return;
   var lignes = $("bqTexte").value.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
@@ -910,12 +936,13 @@ function ajouterGages(){
   Promise.all(lignes.map(function(l,i){
     var d = lireDurees($("bqDmin"), $("bqDmax")), doc = {texte:l.slice(0,300), pour:F.pour, niveau:F.niveau, cree:base+i};
     if(d.dmin){ doc.dmin = d.dmin; doc.dmax = d.dmax; }
+    if(CORPS[$("bqCorps").value]) doc.corps = $("bqCorps").value;
     return gagesCol().add(doc);
   })).then(function(){
     $("bqMsg").textContent = lignes.length===1 ? "Gage ajouté." : lignes.length+" gages ajoutés.";
   }).catch(function(){ $("bqMsg").textContent = "Certains gages n'ont pas été enregistrés, vérifie la liste."; });
   $("bqTexte").value = "";
-  remplirSelectDuree($("bqDmin"), 0); remplirSelectDuree($("bqDmax"), 0);
+  remplirSelectDuree($("bqDmin"), 0); remplirSelectDuree($("bqDmax"), 0); remplirSelectCorps($("bqCorps"), "");
 }
 function ouvrirBanque(){ deverrouille = {lui:false, elle:false}; codeSaisi = {}; codeErreur = {}; editId = null; montrer("banque"); $("bqMsg").textContent = ""; rendreBanque(); try{ $("bqTexte").focus({preventScroll:true}); }catch(e){} }
 $("bqRetour").onclick = function(){ editId = null; deverrouille = {lui:false, elle:false}; montrer(S.noms.b && S.noms.v ? "modes" : "accueil"); };
@@ -1860,28 +1887,99 @@ function afficherGage(){
   var g = tirerGage(); S.fait = false;
   S.gtexte = g.texte;
   S.gt = (g.dmin && g.dmax) ? {dmin:g.dmin, dmax:g.dmax, duree:0, tirage:false, fin:0, reste:0, pause:false, fini:false} : null;
+  S.gc = CORPS[g.corps] ? {type:g.corps, res:"", tourne:false, vu:false} : null;
   montrer("gage");
   $("gage").className = "screen "+S.perdant;
   $("gQui").textContent = S.noms[S.perdant];
-  $("gMontre").hidden = true;
+  $("gMontre").hidden = true; $("gCorps").hidden = true; $("gCorps").innerHTML = "";
   afficherTexteGage();
   $("gNote").textContent = g.exemple ? "Gage d'exemple : la banque n'a pas encore de gage "+NOM_NIV[g.niveau]+" pour "+(S.perdant==="b"?"lui":"elle")+"." : "";
   neon(S.perdant);
   boutonsGage();
 }
-/* Texte du gage : X est remplacé par la fourchette, puis par la durée tirée */
+/* Texte du gage : X devient la durée (fourchette puis durée tirée), Z la partie du corps */
 function afficherTexteGage(){
-  var gt = S.gt, zone = $("gTexte"), morceaux = String(S.gtexte||"").split(/\bX\b/);
-  var val = gt ? (gt.duree ? fmtDuree(gt.duree) : fourchette(gt, " à ")) : "X";
+  var gt = S.gt, gc = S.gc, zone = $("gTexte"), morceaux = String(S.gtexte||"").split(/\b([XZ])\b/);
+  var valX = gt ? (gt.duree ? fmtDuree(gt.duree) : fourchette(gt, " à ")) : "X";
+  var valZ = gc ? (gc.res ? gc.res.toLowerCase() : "?") : "Z";
+  var aX = false, aZ = false;
   zone.textContent = "";
   morceaux.forEach(function(m, i){
-    zone.appendChild(document.createTextNode(m));
-    if(i<morceaux.length-1) zone.appendChild(el("span", gt ? "g-duree" : null, val));
+    if(i%2===0){ zone.appendChild(document.createTextNode(m)); return; }
+    if(m==="X"){ aX = true; zone.appendChild(el("span", gt ? "g-duree" : null, valX)); }
+    else { aZ = true; zone.appendChild(el("span", gc ? "g-corps" : null, valZ)); }
   });
-  $("gDuree").textContent = (gt && morceaux.length===1) ? (gt.duree ? "Pendant "+fmtDuree(gt.duree) : "Durée : "+fourchette(gt, " et ", "entre ")) : "";
+  var info = $("gDuree"); info.textContent = "";
+  if(gc && !aZ && gc.res){ info.appendChild(document.createTextNode("Sur : ")); var sz = el("span","g-corps",gc.res.toLowerCase()); sz.style.fontSize = "1.5em"; info.appendChild(sz); }
+  if(gt && !aX) info.appendChild(document.createTextNode((info.textContent ? "   ·   " : "") + (gt.duree ? "Pendant "+fmtDuree(gt.duree) : "Durée : "+fourchette(gt, " et ", "entre "))));
+}
+/* Roue du corps : dessin et lancer */
+function dessinerRoueCorps(root, type){
+  var parts = CORPS[type].parties, n = parts.length, seg = 360/n, R = 92;
+  var pal = type==="f" ? {a:"#f6e7dc", b:"#7a1f35", ta:"#5a1426", tb:"#f6e7dc", fond:"#3b0f1c"} : {a:"#efe4d0", b:"#1d2b45", ta:"#1d2b45", tb:"#efe4d0", fond:"#101a2c"};
+  var NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS,"svg");
+  function E(par,t,a){ var e = document.createElementNS(NS,t); for(var k in a) e.setAttribute(k,a[k]); par.appendChild(e); return e; }
+  svg.setAttribute("viewBox","-112 -118 224 230");
+  var defs = E(svg,"defs",{});
+  var lg = E(defs,"linearGradient",{id:"rcLaiton",x1:"0",y1:"0",x2:"1",y2:"1"});
+  [["0","#f7e3a6"],[".35","#c99a45"],[".6","#8a6424"],["1","#e9c77b"]].forEach(function(o){ E(lg,"stop",{offset:o[0],"stop-color":o[1]}); });
+  var rg = E(defs,"radialGradient",{id:"rcClou",cx:".35",cy:".35",r:".7"});
+  [["0","#fff6d8"],[".5","#d4a650"],["1","#6e4c17"]].forEach(function(o){ E(rg,"stop",{offset:o[0],"stop-color":o[1]}); });
+  var vg = E(defs,"radialGradient",{id:"rcVoile",cx:"0",cy:"0",r:"1",gradientUnits:"objectBoundingBox"});
+  E(vg,"stop",{offset:".55","stop-color":"#000","stop-opacity":"0"}); E(vg,"stop",{offset:"1","stop-color":"#000","stop-opacity":".28"});
+  E(svg,"circle",{r:"108",fill:pal.fond});
+  E(svg,"circle",{r:"104",fill:"none",stroke:"url(#rcLaiton)","stroke-width":"9"});
+  var g = E(svg,"g",{class:"rc-g"});
+  parts.forEach(function(nom, i){
+    var a0 = (i*seg-90)*Math.PI/180, a1 = ((i+1)*seg-90)*Math.PI/180, pair = i%2===0;
+    var d = "M0 0 L"+(R*Math.cos(a0)).toFixed(2)+" "+(R*Math.sin(a0)).toFixed(2)+" A"+R+" "+R+" 0 0 1 "+(R*Math.cos(a1)).toFixed(2)+" "+(R*Math.sin(a1)).toFixed(2)+" Z";
+    E(g,"path",{d:d,fill:pair?pal.a:pal.b,stroke:"#b8893a","stroke-width":".9",class:"rc-s",id:"rcS"+i});
+    var c = i*seg+seg/2, gauche = c>180, tr = "rotate("+(gauche ? c+90 : c-90)+")";
+    var fs = Math.min(12, 58/(nom.length*0.55));
+    var t = E(g,"text",{class:"rc-l",x:gauche?"-84":"84",y:"0","dominant-baseline":"central","text-anchor":gauche?"start":"end",transform:tr,fill:pair?pal.ta:pal.tb,style:"font-size:"+fs.toFixed(1)+"px"});
+    t.textContent = nom;
+  });
+  E(g,"circle",{r:R,fill:"url(#rcVoile)"});
+  for(var k=0;k<n;k++){ var aa = (k*seg-90)*Math.PI/180; E(svg,"circle",{cx:(104*Math.cos(aa)).toFixed(2),cy:(104*Math.sin(aa)).toFixed(2),r:"3.2",fill:"url(#rcClou)"}); }
+  E(svg,"circle",{r:"20",fill:"url(#rcLaiton)",stroke:"#6e4c17","stroke-width":"1"});
+  E(svg,"circle",{r:"13",fill:pal.b,stroke:"#f7e3a6","stroke-width":"1.2"});
+  E(svg,"circle",{r:"4",fill:"url(#rcClou)"});
+  /* Pointeur en laiton en haut */
+  E(svg,"path",{d:"M0 -86 L-11 -112 Q0 -122 11 -112 Z",fill:"url(#rcLaiton)",stroke:"#6e4c17","stroke-width":"1.2"});
+  E(svg,"circle",{cy:"-110",r:"3.5",fill:pal.b});
+  root.innerHTML = ""; root.appendChild(svg);
+  return g;
+}
+function tournerCorps(){
+  var gc = S.gc; if(S.ecran!=="gage" || !gc || gc.res || gc.tourne || S.fait) return;
+  gc.tourne = true;
+  var root = $("gCorps"); root.hidden = false; root.style.opacity = ""; root.style.transform = "";
+  $("gMontre").hidden = true;
+  var g = dessinerRoueCorps(root, gc.type), parts = CORPS[gc.type].parties, n = parts.length, seg = 360/n;
+  var k = rnd(n), cible = -(k*seg + seg/2 + (Math.random()-0.5)*seg*0.6);
+  var fin = 360*6 + ((cible%360)+360)%360, duree = 5000, t0 = null, g0 = gen, dernier = 0;
+  $("gActions").innerHTML = "";
+  diffuser();
+  function frame(now){
+    if(g0!==gen) return;
+    if(t0===null) t0 = now;
+    var p = Math.min(1, (now-t0)/duree), e = 1 - Math.pow(1-p, 4), rot = fin*e;
+    g.setAttribute("transform","rotate("+rot.toFixed(2)+")");
+    var cran = Math.floor(rot/seg); if(cran!==dernier){ dernier = cran; bip(520, 0.025, 0.05); }
+    if(p<1){ requestAnimationFrame(frame); return; }
+    gc.res = parts[k]; gc.tourne = false;
+    var sg = document.getElementById("rcS"+k); if(sg) sg.classList.add("rc-gagne");
+    bip(660, 0.15, 0.08); plus_tard(function(){ bip(990, 0.25, 0.08); }, 140);
+    afficherTexteGage(); diffuser();
+    plus_tard(function(){
+      root.classList.add("fini"); root.style.opacity = "0"; root.style.transform = "scale(.9)";
+      plus_tard(function(){ root.hidden = true; gc.vu = true; boutonsGage(); diffuser(); }, 420);
+    }, 1800);
+  }
+  requestAnimationFrame(frame);
 }
 function tirerDuree(){
-  var gt = S.gt; if(S.ecran!=="gage" || !gt || gt.duree || gt.tirage || S.fait) return;
+  var gt = S.gt; if(S.ecran!=="gage" || !gt || gt.duree || gt.tirage || S.fait || (S.gc && !S.gc.vu)) return;
   gt.tirage = true;
   var lo = Math.ceil(gt.dmin/15)*15, hi = Math.floor(gt.dmax/15)*15; if(hi<lo) hi = lo;
   var choix = []; for(var v=lo; v<=hi; v+=15) choix.push(v);
@@ -1956,7 +2054,13 @@ function finMinuteur(){
 }
 function boutonsGage(){
   var a = $("gActions"); a.innerHTML = "";
-  var gt = S.gt;
+  var gt = S.gt, gc = S.gc;
+  if(!S.fait && gc && !gc.vu){
+    if(gc.res || gc.tourne) return;
+    var tc = document.createElement("button"); tc.className = "plein"; tc.textContent = "Tourner la roue"; tc.setAttribute("data-primary",""); tc.onclick = function(){ choisir("corps"); };
+    a.appendChild(tc); try{ tc.focus({preventScroll:true}); }catch(e){}
+    return;
+  }
   if(!S.fait && gt && !gt.duree){
     if(gt.tirage) return;
     var td = document.createElement("button"); td.className = "plein"; td.textContent = "Tirer la durée"; td.setAttribute("data-primary",""); td.onclick = function(){ choisir("duree"); };
@@ -1982,7 +2086,9 @@ function boutonsGage(){
 }
 function choisir(c){
   if(S.ecran!=="gage") return;
+  if(c==="corps"){ tournerCorps(); return; }
   if(c==="duree"){ tirerDuree(); return; }
+  if((c==="fais" || c==="bois") && S.gc && !S.gc.vu) return;
   if(c==="pause"){ basculerPause(); return; }
   if(c==="fais" && !S.fait){
     if(S.gt && !S.gt.duree) return;
@@ -2001,7 +2107,7 @@ function choisir(c){
   }
 }
 function mancheSuivante(){
-  S.jeu = null; S.perdant = null; S.fait = false; S.gt = null;
+  S.jeu = null; S.perdant = null; S.fait = false; S.gt = null; S.gc = null;
   if(S.manche >= nbManches()){ finPartie(); return; }
   S.manche++; roulette();
 }
@@ -2096,7 +2202,8 @@ function etat(){
   }
   var gt = null;
   if(S.ecran==="gage" && S.gt){ var G = S.gt; gt = {dmin:G.dmin, dmax:G.dmax, duree:G.duree, tirage:G.tirage, pause:G.pause, fini:G.fini, reste: S.fait===true ? resteMinuteur(G) : 0}; }
-  return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, gt:gt};
+  var gc = (S.ecran==="gage" && S.gc) ? {type:S.gc.type, res:S.gc.res, tourne:S.gc.tourne, vu:S.gc.vu} : null;
+  return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, gt:gt, gc:gc};
 }
 function diffuser(){
   if(room && !estManette){ room.emit("etat", etat()).catch(function(){}); }
@@ -2253,10 +2360,17 @@ function rendreManette(e){
     var box = $("mGageBtns"); box.className = "m-gage "+e.perdant;
     var gt = e.gt;
     if(gt && e.fait===true && !gt.fini){ mChrono.fin = Date.now() + (gt.reste||0); mChrono.pause = !!gt.pause; mChrono.reste = gt.reste||0; mChrono.total = (gt.duree||1)*1000; }
-    var cle = e.perdant+"|"+e.fait+"|"+e.manche+"|"+(gt ? [gt.duree, gt.tirage, gt.pause, gt.fini].join(",") : "");
+    var gc = e.gc;
+    var cle = e.perdant+"|"+e.fait+"|"+e.manche+"|"+(gt ? [gt.duree, gt.tirage, gt.pause, gt.fini].join(",") : "")+"|"+(gc ? [gc.res, gc.tourne, gc.vu].join(",") : "");
     if(box.getAttribute("data-k")!==cle){
       box.setAttribute("data-k",cle); box.innerHTML = "";
-      if(gt && e.fait===true){
+      if(gc && gc.res && e.fait!=="bu"){ var rz = el("p","m-corps",gc.res); box.appendChild(rz); }
+      if(gc && !gc.vu && e.fait===false){
+        if(e.perdant===COTE && !gc.res && !gc.tourne){
+          box.appendChild(el("p","sub","Roue du corps "+(CORPS[gc.type] ? CORPS[gc.type].nom : "")));
+          var trb = el("button","plein m-gros","Tourner la roue"); trb.onclick = function(){ envoyer("choix",{c:"corps",side:COTE}); }; box.appendChild(trb);
+        } else box.appendChild(el("p","sub", gc.res ? "Regarde la télé…" : gc.tourne ? "La roue tourne…" : (noms[e.perdant]||"L'autre")+" doit tourner la roue."));
+      } else if(gt && e.fait===true){
         var mc = el("div","montre m-montre"); mc.id = "mChrono"; mc.style.color = "var(--"+(e.perdant==="b"?"bleu":"violet")+")"; box.appendChild(mc);
         if(gt.fini) majMontre(mc, "ARRÊTEZ !", 1, "stop", "");
         else majMontre(mc, fmtChrono(gt.reste||0), (gt.reste||0)/((gt.duree||1)*1000), gt.pause ? "pause" : "", gt.pause ? "pause" : "");
@@ -2340,7 +2454,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "20";
+var VERSION_SITE = "21";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
