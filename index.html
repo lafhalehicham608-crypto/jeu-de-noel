@@ -847,7 +847,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=25"></script>
+<script src="config.js?v=26"></script>
 <script>
 (function(){
 "use strict";
@@ -2958,7 +2958,7 @@ function etat(){
           elim:{b:Object.keys(U.elim.b).map(Number), v:Object.keys(U.elim.v).map(Number)}, joker:U.joker, tour:U.tour, type:U.type, n:U.n,
           phase:U.phase, rep:{b:U.rep.b||"", v:U.rep.v||""}, theme:U.theme||null, question:U.question||null, acc:U.acc||null};
   }
-  return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, qui:qq, gt:gt, gc:gc};
+  return {v:VERSION_SITE, ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, qui:qq, gt:gt, gc:gc};
 }
 function diffuser(){
   if(room && !estManette){ room.emit("etat", etat()).catch(function(){}); }
@@ -3070,6 +3070,11 @@ function chargerAvatarManette(){
 function envoyer(topic,data){ if(room) room.emit(topic,data).catch(function(){}); if(navigator.vibrate) try{navigator.vibrate(25)}catch(e){} }
 
 function rendreManette(e){
+  /* La télé a une version plus récente : le téléphone se recharge tout seul (une fois par version) */
+  if(e.v && e.v!==VERSION_SITE){
+    var deja = null; try{ deja = sessionStorage.getItem("jdn-maj"); }catch(er){}
+    if(deja!==e.v){ try{ sessionStorage.setItem("jdn-maj", e.v); }catch(er){} location.replace(location.pathname+"?v="+e.v+location.hash); return; }
+  }
   var noms = e.noms||{b:"",v:""};
   $("mPadB").textContent = noms.b || "Bleu"; $("mPadV").textContent = noms.v || "Violet";
   neon(COTE);
@@ -3213,7 +3218,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "25";
+var VERSION_SITE = "26";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
