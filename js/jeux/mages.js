@@ -49,6 +49,7 @@ function nouveauRound(){
   var J = S.jeu, cles = Object.keys(ELEMENTS);
   J.m = {b:nouveauMage("b"), v:nouveauMage("v")};
   J.m.b.el = cles[rnd(cles.length)]; J.m.v.el = cles[rnd(cles.length)];
+  if(S.labo && typeof LABO!=="undefined" && ELEMENTS[LABO.el]){ J.m.b.el = LABO.el; J.m.v.el = LABO.el; }
   J.sorts = []; J.meteores = []; J.eclairs = []; J.flashs = []; J.textes = []; J.neige = 0; J.reste = MG.DUREE;
   J.phase = "tirage"; J.msg = "Round "+J.round; J.sous = ""; J.tirageT = 0;
   diffuser();

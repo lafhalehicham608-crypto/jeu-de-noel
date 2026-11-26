@@ -1,7 +1,7 @@
 /* Le Jeu de Noël · Écrans de la télé : accueil, joueurs, modes, intro de partie, roulette des mini-jeux */
 "use strict";
 /* ---------- Affichage TV ---------- */
-var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","traque","libre","resultat","gage","fin","banque","persos"];
+var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","traque","libre","resultat","gage","fin","banque","persos","labo"];
 function montrer(id){
   gen++;
   S.ecran = id;
@@ -99,7 +99,9 @@ function verreBu(cote){
 /* Arrêter le jeu : 1er appui demande confirmation, 2e appui ramène à l'accueil */
 var quitterTimer = null;
 function annulerQuitter(){ clearTimeout(quitterTimer); quitterTimer=null; var b=$("btnQuitter"); b.classList.remove("confirme"); b.textContent="Arrêter le jeu"; }
-function quitter(){ S.jeu=null; S.perdant=null; S.fait=false; montrer("accueil"); }
+function quitter(){ S.jeu=null; S.perdant=null; S.fait=false; S.gt=null; S.gc=null; S.oblig=false;
+  if(S.labo && S.ecran!=="labo"){ retourLabo(); return; }
+  S.labo=false; montrer("accueil"); }
 $("btnQuitter").onclick = function(){
   var b=$("btnQuitter");
   if(b.classList.contains("confirme")){ quitter(); return; }
@@ -127,44 +129,12 @@ $("btnParti").onclick = function(){ majNoms(); if(S.noms.b&&S.noms.v) montrer("m
 
 /* Modes */
 $("btnClassique").onclick = function(){
+  S.labo = false;
   S.partie = 0; S.tot = {b:stats0(),v:stats0()}; paquets = {};
   lancerIntro();
 };
 
 $("btnBanque").onclick = function(){ ouvrirBanque(); };
-$("btnTestTraque").onclick = function(){
-  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
-  traque();
-};
-$("btnTestMages").onclick = function(){
-  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
-  mages(); S.jeu.m.v.el = "foudre";
-};
-$("btnTestQui").onclick = function(){
-  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
-  qui();
-};
-$("btnTestQuiz").onclick = function(){
-  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
-  quiz();
-};
-$("btnTestDuel").onclick = function(){
-  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
-  duel();
-};
-$("btnTestCorde").onclick = function(){
-  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
-  corde();
-};
-$("btnTestUno").onclick = function(){
-  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
-  uno();
-};
-$("btnTestCourse").onclick = function(){
-  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
-  course();
-};
-
 /* Intro de partie */
 function lancerIntro(){
   S.manche = 1; S.st = {b:stats0(),v:stats0()};

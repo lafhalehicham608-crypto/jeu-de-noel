@@ -546,3 +546,26 @@ li.oblig{border-left:4px solid #ffcc4d;padding-left:10px;background:linear-gradi
 .bq-chrono.corps{margin-left:.35em}
 .bq-chrono{display:inline-block;margin-left:.5em;font-size:.8em;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:.05em .6em;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Labo */
+#labo{justify-content:flex-start;overflow-y:auto;gap:clamp(10px,2vh,20px);padding-bottom:max(60px,env(safe-area-inset-bottom,0px))}
+#labo .sub{max-width:60ch;font-size:clamp(13px,1.3vw,20px)}
+.lb-reglages{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:center}
+.lb-reg{display:flex;flex-direction:column;align-items:center;gap:6px}
+.lb-lib{font-size:clamp(10px,.9vw,13px);letter-spacing:.22em;text-transform:uppercase;color:var(--mute)}
+.lb-choix{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--bg2);justify-content:center}
+button.lb-opt{font-size:clamp(12px,1.1vw,16px);padding:.45em 1.1em;border:0;color:var(--mute)}
+button.lb-opt[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+button.lb-opt.b[aria-pressed="true"]{background:var(--bleu);color:#fff}
+button.lb-opt.v[aria-pressed="true"]{background:var(--violet);color:#fff}
+button.lb-opt:hover,button.lb-opt:focus-visible{transform:none;box-shadow:0 0 0 2px var(--fg)}
+.lb-titre{margin:clamp(4px,1vh,12px) 0 0;font-size:clamp(12px,1.1vw,16px);letter-spacing:.32em;text-transform:uppercase;color:var(--fg);font-weight:700}
+.lb-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:10px;width:min(1200px,100%)}
+button.lb-tuile{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;border-radius:14px;border:1px solid var(--line);background:var(--bg2);padding:.8em 1em;min-width:0}
+button.lb-tuile:hover,button.lb-tuile:focus-visible{transform:none;border-color:var(--fg);box-shadow:0 0 0 2px var(--fg)}
+button.lb-tuile.or{border-color:#c99a45}
+button.lb-tuile.or .lb-nom{color:#f2c86b}
+.lb-nom{font-size:clamp(14px,1.3vw,19px);font-weight:700}
+.lb-info{font-size:clamp(11px,.95vw,14px);font-weight:300;color:var(--mute);letter-spacing:0}
+.lb-msg{color:var(--n-medium);font-size:clamp(13px,1.2vw,18px)}
+#btnLaboRetour{margin-top:8px;font-size:clamp(14px,1.4vw,20px)}

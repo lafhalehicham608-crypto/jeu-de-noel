@@ -7,7 +7,7 @@
 <title>Le Jeu de Noël</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Playfair+Display:ital,wght@0,600;0,800;1,600;1,800&family=Sora:wght@300;400;600;800&display=swap">
-<link rel="stylesheet" href="style.css?v=36">
+<link rel="stylesheet" href="style.css?v=37">
 </head>
 <body>
 
@@ -55,16 +55,27 @@
     <div class="row">
       <button class="plein mode" data-primary id="btnClassique">Mode classique<small>Parties de 10 manches · mini-jeux et gages</small></button>
       <button class="mode" disabled>Arcade<small>Bientôt</small></button>
-      <button class="mode" id="btnTestCourse">Tester la course<small>Lance directement le mini circuit</small></button>
-      <button class="mode" id="btnTestTraque">Tester La Traque<small>Kendrick chasse Emilia</small></button>
-      <button class="mode" id="btnTestMages">Tester Duel de mages<small>Combat feu / glace</small></button>
-      <button class="mode" id="btnTestQui">Tester Qui est-ce ?<small>Lance directement le jeu des personnages</small></button>
-      <button class="mode" id="btnTestQuiz">Tester le quiz<small>Lance directement le quiz culture G</small></button>
-      <button class="mode" id="btnTestDuel">Tester le duel<small>Lance directement le duel de tanks</small></button>
-      <button class="mode" id="btnTestCorde">Tester la corde<small>Lance directement le tir à la corde</small></button>
-      <button class="mode" id="btnTestUno">Tester les cartes<small>Lance directement Dernière carte</small></button>
+      <button class="mode" id="btnLabo">Labo<small>Tester chaque mini-jeu et chaque écran de gage</small></button>
       <button class="mode" id="btnBanque">Banque à gages<small>Ajouter et gérer vos gages</small></button>
     </div>
+  </section>
+
+  <section class="screen" id="labo" hidden>
+    <p class="eyebrow">Labo · tests</p>
+    <p class="sub">Lance un mini-jeu ou un écran de gage directement. À la fin, on revient ici.</p>
+    <div class="lb-reglages">
+      <div class="lb-reg"><span class="lb-lib">Niveau des gages</span><div class="lb-choix" id="lbPartie"></div></div>
+      <div class="lb-reg"><span class="lb-lib">Après le mini-jeu</span><div class="lb-choix" id="lbApres"></div></div>
+      <div class="lb-reg"><span class="lb-lib">Élément des mages</span><div class="lb-choix" id="lbElement"></div></div>
+    </div>
+    <h3 class="lb-titre">Mini-jeux</h3>
+    <div class="lb-grille" id="lbJeux"></div>
+    <h3 class="lb-titre">Écrans de gage</h3>
+    <div class="lb-reg"><span class="lb-lib">Qui reçoit le gage</span><div class="lb-choix" id="lbPerdant"></div></div>
+    <div class="lb-grille" id="lbGages"></div>
+    <h3 class="lb-titre">Autres écrans</h3>
+    <div class="lb-grille" id="lbAutres"></div>
+    <button id="btnLaboRetour">Retour aux modes</button>
   </section>
 
   <section class="screen" id="intro" hidden>
@@ -387,17 +398,18 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=36"></script>
-<script src="js/base.js?v=36"></script>
-<script src="js/tv.js?v=36"></script>
-<script src="js/jeux/quiz.js?v=36"></script>
-<script src="js/personnages.js?v=36"></script>
-<script src="js/jeux/qui-est-ce.js?v=36"></script>
-<script src="js/jeux/mages.js?v=36"></script>
-<script src="js/jeux/traque.js?v=36"></script>
-<script src="js/jeux/classiques.js?v=36"></script>
-<script src="js/gage.js?v=36"></script>
-<script src="js/manette.js?v=36"></script>
-<script src="js/demarrage.js?v=36"></script>
+<script src="config.js?v=37"></script>
+<script src="js/base.js?v=37"></script>
+<script src="js/tv.js?v=37"></script>
+<script src="js/jeux/quiz.js?v=37"></script>
+<script src="js/personnages.js?v=37"></script>
+<script src="js/jeux/qui-est-ce.js?v=37"></script>
+<script src="js/jeux/mages.js?v=37"></script>
+<script src="js/jeux/traque.js?v=37"></script>
+<script src="js/jeux/classiques.js?v=37"></script>
+<script src="js/gage.js?v=37"></script>
+<script src="js/labo.js?v=37"></script>
+<script src="js/manette.js?v=37"></script>
+<script src="js/demarrage.js?v=37"></script>
 </body>
 </html>

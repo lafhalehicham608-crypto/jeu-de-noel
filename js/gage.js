@@ -4,12 +4,13 @@
 function finManche(perdant, detail){
   S.perdant = perdant; S.st[perdant].perdu++; S.tot[perdant].perdu++;
   montrer("resultat");
+  if(S.labo && LABO.apres==="retour"){ $("resTitre").textContent = S.noms[autre(perdant)]+" gagne la manche"; $("resSub").textContent = detail; plus_tard(retourLabo, 2600); return; }
   $("resTitre").textContent = S.noms[autre(perdant)]+" gagne la manche";
   $("resSub").textContent = detail;
   plus_tard(afficherGage, 2400);
 }
-function afficherGage(){
-  var g = tirerGage(); S.fait = false;
+function afficherGage(g){
+  g = (g && g.texte) ? g : tirerGage(); S.fait = false;
   S.gtexte = g.texte;
   S.gt = (g.dmin && g.dmax) ? {dmin:g.dmin, dmax:g.dmax, duree:0, tirage:false, fin:0, reste:0, pause:false, fini:false} : null;
   S.gc = CORPS[g.corps] ? {type:g.corps, res:"", tourne:false, vu:false} : null;
@@ -20,7 +21,7 @@ function afficherGage(){
   $("gMontre").hidden = true; $("gCorps").hidden = true; $("gCorps").innerHTML = "";
   afficherTexteGage();
   $("gOblig").hidden = !S.oblig; $("gage").classList.toggle("oblig", S.oblig);
-  $("gNote").textContent = S.oblig ? "Ce gage est obligatoire : impossible de boire pour y échapper." : g.exemple ? "Gage d'exemple : la banque n'a pas encore de gage "+NOM_NIV[g.niveau]+" pour "+(S.perdant==="b"?"lui":"elle")+"." : "";
+  $("gNote").textContent = S.oblig ? "Ce gage est obligatoire : impossible de boire pour y échapper." : g.labo ? "Gage de test du Labo." : g.exemple ? "Gage d'exemple : la banque n'a pas encore de gage "+NOM_NIV[g.niveau]+" pour "+(S.perdant==="b"?"lui":"elle")+"." : "";
   neon(S.perdant);
   boutonsGage();
 }
@@ -229,6 +230,7 @@ function choisir(c){
 }
 function mancheSuivante(){
   S.jeu = null; S.perdant = null; S.fait = false; S.gt = null; S.gc = null; S.oblig = false;
+  if(S.labo){ retourLabo(); return; }
   if(S.manche >= nbManches()){ finPartie(); return; }
   S.manche++; roulette();
 }
@@ -257,6 +259,7 @@ function finPartie(){
     corps.appendChild(tr);
   });
   $("btnSuite").textContent = derniere ? "Nouvelle séquence" : "Partie suivante · "+SEQUENCE[S.partie+1].nom;
+  if(S.labo){ $("btnSuite").textContent = "Retour au Labo"; $("btnSuite").onclick = retourLabo; return; }
   $("btnSuite").onclick = function(){
     if(derniere){ S.partie = 0; S.tot = {b:stats0(),v:stats0()}; } else S.partie++;
     lancerIntro();

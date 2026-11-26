@@ -14,7 +14,9 @@ Site en ligne : https://lafhalehicham608-crypto.github.io/jeu-de-noel/
 
 1. **Accueil (télé)** : bouton JOUER et deux QR codes, **Lui** (bleu) et **Elle** (violet). Chacun scanne le sien : son téléphone devient sa manette.
 2. **Joueurs** : chacun tape son prénom sur son téléphone.
-3. **Modes** : mode classique, banque à gages, et des boutons « Tester … » pour lancer directement un mini-jeu.
+3. **Modes** : mode classique, banque à gages, et le **Labo**.
+   - Le Labo lance n'importe quel mini-jeu ou écran de gage (simple, minuteur, roue du corps, obligatoire, gage de la banque), puis revient au Labo.
+   - Réglages : niveau des gages, gage après le mini-jeu ou retour direct, élément imposé aux mages, qui reçoit le gage.
 4. **Mode classique** : une séquence de 3 parties.
 
    | Partie | Manches | Gages tirés |
@@ -83,6 +85,7 @@ js/base.js            contenu de base, outils, état du jeu, banque (données), 
 js/tv.js              écrans de la télé : accueil, joueurs, modes, intro, roulette
 js/personnages.js     personnages, fiches, page Personnages, éditeur d'image, thèmes et questions
 js/gage.js            résultat de manche, page de gage, fin de partie
+js/labo.js            Labo : tests des mini-jeux et des écrans de gage
 js/manette.js         clavier de la télé, liaison téléphone ↔ télé, affichage de la manette
 js/demarrage.js       démarrage, salon temps réel, banque privée, mode banque seule, VERSION_SITE
 js/jeux/quiz.js       quiz culture générale
@@ -103,9 +106,9 @@ Les scripts sont de simples fichiers chargés dans l'ordre par `index.html` et p
 
 ## 4. Règles pour modifier le site
 
-1. **Changer la version à chaque publication**, sinon télés et téléphones gardent l'ancienne en mémoire : remplacer partout `?v=36` dans `index.html` et `VERSION_SITE` dans `js/demarrage.js` par le numéro suivant. Les téléphones se rechargent tout seuls quand la télé a une version plus récente.
+1. **Changer la version à chaque publication**, sinon télés et téléphones gardent l'ancienne en mémoire : remplacer partout `?v=37` dans `index.html` et `VERSION_SITE` dans `js/demarrage.js` par le numéro suivant. Les téléphones se rechargent tout seuls quand la télé a une version plus récente.
 2. **Ne pas changer** les chemins Firebase ni le calcul de l'empreinte, sinon les données deviennent introuvables.
-3. **Tester avant de jouer** : télé + deux téléphones (ou deux onglets avec les liens des QR codes), au moins un mini-jeu et un gage.
+3. **Tester avant de jouer** : télé + deux téléphones (ou deux onglets avec les liens des QR codes), via le Labo : au moins le mini-jeu modifié et un gage.
 4. **Ne pas modifier en même temps** que l'autre personne.
 5. **Rien de personnel dans le dépôt** : il est public.
 6. Publication : un commit sur `main` ; GitHub Pages met le site à jour en une minute environ.

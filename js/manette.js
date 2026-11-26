@@ -280,8 +280,8 @@ function rendreManette(e){
         if(moi) btn("C'est fait", "fait"); else info(qui+" fait son gage. Surveille bien !");
       }
     }
-  } else if(e.ecran==="roulette" || e.ecran==="resultat" || e.ecran==="banque" || e.ecran==="persos" || e.ecran==="qui"){
-    mMontrer("m-ok"); $("mOkTitre").textContent = e.ecran==="roulette" ? "Tirage du mini-jeu…" : e.ecran==="banque" ? "Banque à gages ouverte sur la télé" : e.ecran==="persos" ? "Personnages ouverts sur la télé" : e.ecran==="qui" ? "Qui est-ce ? · regarde la télé" : "Résultat à l'écran";
+  } else if(e.ecran==="roulette" || e.ecran==="resultat" || e.ecran==="banque" || e.ecran==="persos" || e.ecran==="qui" || e.ecran==="labo"){
+    mMontrer("m-ok"); $("mOkTitre").textContent = e.ecran==="roulette" ? "Tirage du mini-jeu…" : e.ecran==="banque" ? "Banque à gages ouverte sur la télé" : e.ecran==="persos" ? "Personnages ouverts sur la télé" : e.ecran==="labo" ? "Labo ouvert sur la télé" : e.ecran==="qui" ? "Qui est-ce ? · regarde la télé" : "Résultat à l'écran";
     $("mOk").hidden = true;
   } else {
     mMontrer("m-ok"); $("mOk").hidden = false;
