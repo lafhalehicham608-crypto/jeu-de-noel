@@ -250,6 +250,21 @@ thead td{font-weight:600}
 .pads-duel{position:fixed;inset:0;display:grid;grid-template-columns:1fr 1.4fr 1fr}
 .pads-duel .feu span{font-size:34px;letter-spacing:.1em}
 .pads-duel .pad4 span{font-size:44px}
+/* La Traque */
+#traque{padding:0}
+#cvTraque{width:100%;height:100%;display:block}
+#m-traque{position:fixed;inset:0;box-sizing:border-box;display:grid;grid-template-rows:auto 1fr auto;gap:14px;align-items:center;justify-items:center;
+  padding:max(52px,env(safe-area-inset-top,0px)) 14px max(14px,env(safe-area-inset-bottom,0px));transition:background .3s}
+#m-traque.danger{background:radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 40%,rgba(160,0,30,.45))}
+.tq-haut{text-align:center}
+.tq-role{margin:0;font-weight:800;font-size:20px}
+.tq-joy{position:relative;width:min(78vw,52vh);aspect-ratio:1/1;border-radius:50%;border:3px solid var(--line);background:radial-gradient(circle,rgba(255,255,255,.07),rgba(255,255,255,.01) 70%);touch-action:none;display:flex;align-items:center;justify-content:center}
+.tq-bouton{width:34%;aspect-ratio:1/1;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.5),rgba(255,255,255,.12));border:2px solid rgba(255,255,255,.6);pointer-events:none;transition:transform .05s}
+.tq-pouvoirs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
+.tq-btn{border-radius:18px;border:3px solid var(--line);background:rgba(255,255,255,.04);color:var(--fg);padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--text);touch-action:none}
+.tq-btn .tq-ic{font-size:30px} .tq-btn b{font-size:15px} .tq-btn small{font-size:11px;opacity:.65}
+.tq-btn.unique{border-color:#ff2b3d}
+.tq-btn:disabled{opacity:.3}
 /* Duel de mages */
 #mages{padding:0}
 #cvMages{width:100%;height:100%;display:block}
@@ -577,6 +592,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
       <button class="plein mode" data-primary id="btnClassique">Mode classique<small>Parties de 10 manches · mini-jeux et gages</small></button>
       <button class="mode" disabled>Arcade<small>Bientôt</small></button>
       <button class="mode" id="btnTestCourse">Tester la course<small>Lance directement le mini circuit</small></button>
+      <button class="mode" id="btnTestTraque">Tester La Traque<small>Kendrick chasse Emilia</small></button>
       <button class="mode" id="btnTestMages">Tester Duel de mages<small>Combat feu / glace</small></button>
       <button class="mode" id="btnTestQui">Tester Qui est-ce ?<small>Lance directement le jeu des personnages</small></button>
       <button class="mode" id="btnTestQuiz">Tester le quiz<small>Lance directement le quiz culture G</small></button>
@@ -646,6 +662,10 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
     <div class="qui-reps" id="quiRep"></div>
     <div class="qui-grille" id="quiGrille"></div>
     <div class="cotes"><span class="cb" id="quiB"></span><span class="cv" id="quiV"></span></div>
+  </section>
+
+  <section class="screen" id="traque" hidden>
+    <canvas id="cvTraque"></canvas>
   </section>
 
   <section class="screen" id="mages" hidden>
@@ -822,6 +842,11 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
     <p class="eyebrow" id="mUnoInfo"></p>
     <div id="mUnoCorps" class="m-gage"></div>
   </section>
+  <section id="m-traque" hidden>
+    <div class="tq-haut"><p class="tq-role" id="mTqRole"></p><p class="mg-info" id="mTqInfo"></p></div>
+    <div class="tq-joy" id="mTqJoy"><div class="tq-bouton" id="mTqBouton"></div></div>
+    <div class="tq-pouvoirs" id="mTqPouvoirs"></div>
+  </section>
   <section id="m-mages" hidden>
     <div class="mg-haut">
       <p class="mg-info" id="mMgInfo"></p>
@@ -894,7 +919,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=31"></script>
+<script src="config.js?v=32"></script>
 <script>
 (function(){
 "use strict";
@@ -937,7 +962,8 @@ var JEUX = [
   {id:"duel",    type:"Combat",  nom:"Duel de tanks"},
   {id:"quiz",    type:"Culture", nom:"Quiz culture G"},
   {id:"qui",     type:"Déduction", nom:"Qui est-ce ?"},
-  {id:"mages",   type:"Combat", nom:"Duel de mages"}
+  {id:"mages",   type:"Combat", nom:"Duel de mages"},
+  {id:"traque",  type:"Poursuite", nom:"La Traque"}
 ];
 var VALEURS = {11:"V",12:"D",13:"R",14:"A"};
 
@@ -1183,15 +1209,15 @@ var gen = 0;
 function plus_tard(fn,ms){var g=gen;setTimeout(function(){if(g===gen)fn()},ms)}
 
 /* ---------- Affichage TV ---------- */
-var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","libre","resultat","gage","fin","banque","persos"];
+var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","traque","libre","resultat","gage","fin","banque","persos"];
 function montrer(id){
   gen++;
   S.ecran = id;
   ECRANS.forEach(function(e){$(e).hidden = e!==id});
-  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","libre","resultat","gage"].indexOf(id)<0;
+  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","traque","libre","resultat","gage"].indexOf(id)<0;
   if(id!=="gage") neon(null);
   $("btnQuitter").hidden = id==="accueil" || id==="banque" || id==="persos";
-  $("btnPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages"].indexOf(id)<0; $("btnPasser").classList.remove("confirme"); $("btnPasser").textContent = "Passer ce jeu";
+  $("btnPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","traque"].indexOf(id)<0; $("btnPasser").classList.remove("confirme"); $("btnPasser").textContent = "Passer ce jeu";
   annulerQuitter();
   majHud();
   var p = $(id).querySelector("[data-primary]:not([disabled])") || $(id).querySelector("input,button:not([disabled])");
@@ -1229,7 +1255,7 @@ function majHud(){
 }
 var hudPrec = {b:0, v:0};
 /* Passer un mini-jeu : on joue à un jeu libre dans la vraie vie et on désigne le gagnant */
-var ECRANS_JEUX = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages"];
+var ECRANS_JEUX = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","traque"];
 function passerJeu(){
   if(ECRANS_JEUX.indexOf(S.ecran)<0) return;
   S.jeu = null; touches = {}; DIRK = {b:0,v:0};
@@ -1314,6 +1340,10 @@ $("btnClassique").onclick = function(){
 };
 
 $("btnBanque").onclick = function(){ ouvrirBanque(); };
+$("btnTestTraque").onclick = function(){
+  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
+  traque();
+};
 $("btnTestMages").onclick = function(){
   S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
   mages(); S.jeu.m.v.el = "foudre";
@@ -1435,7 +1465,7 @@ function atterrir(choix){
   (function flash(){ var on = c%2===0; ampoules(function(a){ a.classList.toggle("on", on); }); c++; if(c<10) plus_tard(flash, 140); })();
   plus_tard(function(){ demarrer(JEUX[choix].id); }, 2200);
 }
-function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else if(id==="corde") corde(); else if(id==="duel") duel(); else if(id==="quiz") quiz(); else if(id==="qui") qui(); else if(id==="mages") mages(); else carteHaute(); }
+function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else if(id==="corde") corde(); else if(id==="duel") duel(); else if(id==="quiz") quiz(); else if(id==="qui") qui(); else if(id==="mages") mages(); else if(id==="traque") traque(); else carteHaute(); }
 
 /* Mini-jeu 8 : quiz culture générale (premier à 2 bonnes réponses, jamais deux fois la même question) */
 var QUESTIONS = [["Quelle est la capitale de l'Australie ?", "Canberra", "Sydney", "Melbourne", "Perth"], ["Quel est le plus long fleuve de France ?", "La Loire", "La Seine", "Le Rhône", "La Garonne"], ["Quelle est la capitale du Canada ?", "Ottawa", "Toronto", "Montréal", "Vancouver"], ["Quel pays a la plus grande superficie au monde ?", "La Russie", "Le Canada", "La Chine", "Les États-Unis"], ["Quel est le plus haut sommet du monde ?", "L'Everest", "Le K2", "Le Kilimandjaro", "Le mont Blanc"], ["Dans quel pays se trouve Marrakech ?", "Le Maroc", "La Tunisie", "L'Algérie", "L'Égypte"], ["Quelle est la capitale du Japon ?", "Tokyo", "Kyoto", "Osaka", "Yokohama"], ["Quel est le plus grand océan du monde ?", "Le Pacifique", "L'Atlantique", "L'océan Indien", "L'Arctique"], ["Quelle mer borde la ville de Marseille ?", "La Méditerranée", "La Manche", "La mer du Nord", "La mer Noire"], ["Quel est le plus grand désert chaud du monde ?", "Le Sahara", "Le Gobi", "Le Kalahari", "L'Atacama"], ["Quelle est la capitale de l'Espagne ?", "Madrid", "Barcelone", "Séville", "Valence"], ["Quelle est la capitale de l'Italie ?", "Rome", "Milan", "Naples", "Florence"], ["Dans quelle ville se trouve la statue du Christ Rédempteur ?", "Rio de Janeiro", "São Paulo", "Buenos Aires", "Lisbonne"], ["Quel pays a pour capitale Lisbonne ?", "Le Portugal", "L'Espagne", "Le Brésil", "L'Italie"], ["Quelle est la monnaie du Royaume-Uni ?", "La livre sterling", "L'euro", "Le dollar", "Le franc"], ["Quelle est la monnaie du Maroc ?", "Le dirham", "Le dinar", "Le riyal", "La livre"], ["Combien d'États compte les États-Unis ?", "50", "48", "51", "52"], ["Quel est le plus petit pays du monde ?", "Le Vatican", "Monaco", "Saint-Marin", "Le Liechtenstein"], ["Quelle est la capitale de l'Égypte ?", "Le Caire", "Alexandrie", "Louxor", "Gizeh"], ["Quel fleuve traverse Paris ?", "La Seine", "La Loire", "La Marne", "Le Rhin"], ["Quelle chaîne de montagnes sépare la France de l'Espagne ?", "Les Pyrénées", "Les Alpes", "Le Jura", "Les Vosges"], ["Quel est le plus long fleuve d'Afrique ?", "Le Nil", "Le Congo", "Le Niger", "Le Zambèze"], ["Quelle est la capitale de l'Allemagne ?", "Berlin", "Munich", "Francfort", "Hambourg"], ["Quelle ville est surnommée « la Grosse Pomme » ?", "New York", "Los Angeles", "Chicago", "San Francisco"], ["Dans quel pays se trouve le Machu Picchu ?", "Le Pérou", "Le Mexique", "La Bolivie", "Le Chili"], ["En quelle année a eu lieu la prise de la Bastille ?", "1789", "1792", "1776", "1815"], ["Qui a été le premier empereur des Français ?", "Napoléon Ier", "Louis XIV", "Charlemagne", "Napoléon III"], ["En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?", "1969", "1965", "1972", "1959"], ["Qui a été le premier homme à marcher sur la Lune ?", "Neil Armstrong", "Buzz Aldrin", "Youri Gagarine", "Michael Collins"], ["En quelle année a commencé la Première Guerre mondiale ?", "1914", "1918", "1912", "1939"], ["En quelle année s'est terminée la Seconde Guerre mondiale ?", "1945", "1944", "1946", "1939"], ["En quelle année le mur de Berlin est-il tombé ?", "1989", "1991", "1985", "1975"], ["Quel roi de France était surnommé le Roi-Soleil ?", "Louis XIV", "Louis XVI", "Louis XIII", "François Ier"], ["Quelle civilisation a construit les pyramides de Gizeh ?", "Les Égyptiens", "Les Romains", "Les Mayas", "Les Grecs"], ["Qui a atteint l'Amérique en 1492 ?", "Christophe Colomb", "Vasco de Gama", "Magellan", "Amerigo Vespucci"], ["Quelle reine de France a été guillotinée en 1793 ?", "Marie-Antoinette", "Catherine de Médicis", "Anne d'Autriche", "Marie de Médicis"], ["Quel paquebot a coulé en 1912 après avoir heurté un iceberg ?", "Le Titanic", "Le Lusitania", "Le Britannic", "Le Queen Mary"], ["Dans quelle ville Jules César a-t-il été assassiné ?", "Rome", "Athènes", "Alexandrie", "Carthage"], ["En quelle année le Maroc a-t-il obtenu son indépendance ?", "1956", "1962", "1945", "1960"], ["Quel pays a offert la statue de la Liberté aux États-Unis ?", "La France", "Le Royaume-Uni", "L'Espagne", "L'Italie"], ["Quelle guerre a opposé le Nord et le Sud des États-Unis ?", "La guerre de Sécession", "La guerre d'Indépendance", "La guerre de Cent Ans", "La guerre froide"], ["Qui a été le premier président de la Ve République ?", "Charles de Gaulle", "Georges Pompidou", "François Mitterrand", "Vincent Auriol"], ["Quel est le symbole chimique de l'or ?", "Au", "Or", "Ag", "Fe"], ["Quelle planète est la plus proche du Soleil ?", "Mercure", "Vénus", "Mars", "La Terre"], ["Quelle est la plus grande planète du système solaire ?", "Jupiter", "Saturne", "Neptune", "Uranus"], ["Combien d'os compte le squelette d'un adulte ?", "206", "186", "226", "250"], ["Quel gaz les plantes absorbent-elles pour la photosynthèse ?", "Le dioxyde de carbone", "L'oxygène", "L'azote", "L'hélium"], ["À quelle température l'eau bout-elle au niveau de la mer ?", "100 °C", "90 °C", "120 °C", "80 °C"], ["Quelle est la formule chimique de l'eau ?", "H₂O", "CO₂", "O₂", "H₂O₂"], ["Quelle planète est surnommée la planète rouge ?", "Mars", "Jupiter", "Vénus", "Saturne"], ["Combien de cœurs a une pieuvre ?", "3", "1", "2", "4"], ["Quel est le plus grand organe du corps humain ?", "La peau", "Le foie", "Les poumons", "L'intestin"], ["Qui a formulé la théorie de la relativité ?", "Albert Einstein", "Isaac Newton", "Galilée", "Niels Bohr"], ["Quel est le symbole chimique du fer ?", "Fe", "Fr", "Ir", "F"], ["Combien de pattes a une araignée ?", "8", "6", "10", "12"], ["Quel est l'animal terrestre le plus rapide ?", "Le guépard", "Le lion", "L'antilope", "Le lévrier"], ["Quel est le plus grand animal du monde ?", "La baleine bleue", "L'éléphant d'Afrique", "Le cachalot", "La girafe"], ["Combien de chromosomes possède une cellule humaine ordinaire ?", "46", "23", "44", "48"], ["Quelle est la vitesse approximative de la lumière dans le vide ?", "300 000 km/s", "30 000 km/s", "3 000 km/s", "3 millions de km/s"], ["Qui a découvert la pénicilline ?", "Alexander Fleming", "Louis Pasteur", "Marie Curie", "Robert Koch"], ["Qui a reçu un prix Nobel de physique et un prix Nobel de chimie ?", "Marie Curie", "Albert Einstein", "Louis Pasteur", "Niels Bohr"], ["Quel métal est liquide à température ambiante ?", "Le mercure", "Le plomb", "L'aluminium", "Le zinc"], ["Combien de temps met environ la lumière du Soleil pour atteindre la Terre ?", "8 minutes", "8 secondes", "1 heure", "1 seconde"], ["Quel est le plus grand oiseau vivant ?", "L'autruche", "L'émeu", "Le condor", "L'albatros"], ["Qui a peint la Joconde ?", "Léonard de Vinci", "Michel-Ange", "Raphaël", "Botticelli"], ["Qui a écrit « Les Misérables » ?", "Victor Hugo", "Émile Zola", "Gustave Flaubert", "Alexandre Dumas"], ["Qui a écrit « Le Petit Prince » ?", "Antoine de Saint-Exupéry", "Jules Verne", "Albert Camus", "Marcel Pagnol"], ["Dans quel musée est exposée la Joconde ?", "Le Louvre", "Le musée d'Orsay", "Le Prado", "Le British Museum"], ["Qui a peint « La Nuit étoilée » ?", "Vincent van Gogh", "Claude Monet", "Paul Cézanne", "Pablo Picasso"], ["Qui a écrit « Roméo et Juliette » ?", "William Shakespeare", "Molière", "Victor Hugo", "Charles Dickens"], ["Quel écrivain a créé le détective Sherlock Holmes ?", "Arthur Conan Doyle", "Agatha Christie", "Edgar Allan Poe", "Georges Simenon"], ["Qui a écrit « Vingt mille lieues sous les mers » ?", "Jules Verne", "Alexandre Dumas", "H. G. Wells", "Victor Hugo"], ["Qui a composé « La Flûte enchantée » ?", "Mozart", "Beethoven", "Bach", "Verdi"], ["Qui a peint le plafond de la chapelle Sixtine ?", "Michel-Ange", "Léonard de Vinci", "Raphaël", "Le Caravage"], ["Qui a écrit « Les Trois Mousquetaires » ?", "Alexandre Dumas", "Victor Hugo", "Honoré de Balzac", "Stendhal"], ["Qui a écrit « L'Étranger » ?", "Albert Camus", "Jean-Paul Sartre", "André Gide", "Marcel Proust"], ["Quel peintre est célèbre pour ses « Nymphéas » ?", "Claude Monet", "Édouard Manet", "Auguste Renoir", "Edgar Degas"], ["Qui est l'autrice de la saga « Harry Potter » ?", "J. K. Rowling", "J. R. R. Tolkien", "C. S. Lewis", "Stephen King"], ["Qui a écrit « Le Seigneur des anneaux » ?", "J. R. R. Tolkien", "C. S. Lewis", "George R. R. Martin", "J. K. Rowling"], ["Qui a peint « Guernica » ?", "Pablo Picasso", "Salvador Dalí", "Joan Miró", "Francisco Goya"], ["Combien de joueurs compte une équipe de football sur le terrain ?", "11", "10", "12", "9"], ["Tous les combien d'années ont lieu les Jeux olympiques d'été ?", "4 ans", "2 ans", "3 ans", "5 ans"], ["Quel pays a remporté la Coupe du monde de football 2018 ?", "La France", "La Croatie", "L'Allemagne", "Le Brésil"], ["Quel pays a remporté le plus de Coupes du monde de football ?", "Le Brésil", "L'Allemagne", "L'Italie", "L'Argentine"], ["Dans quel sport utilise-t-on un volant ?", "Le badminton", "Le tennis", "Le squash", "Le ping-pong"], ["Quelle est la distance officielle d'un marathon ?", "42,195 km", "40 km", "21,1 km", "50 km"], ["Combien de joueurs compte une équipe de basket sur le terrain ?", "5", "6", "7", "4"], ["Quel tournoi de tennis se joue sur terre battue à Paris ?", "Roland-Garros", "Wimbledon", "L'US Open", "L'Open d'Australie"], ["Quelle ville a accueilli les Jeux olympiques d'été de 2024 ?", "Paris", "Los Angeles", "Tokyo", "Londres"], ["Combien de points vaut un essai au rugby à XV, sans la transformation ?", "5", "3", "4", "7"], ["Quel pays a accueilli la Coupe du monde de football 2022 ?", "Le Qatar", "La Russie", "Le Brésil", "L'Afrique du Sud"], ["Combien de joueurs compte une équipe de volley-ball sur le terrain ?", "6", "5", "7", "4"], ["Combien de couleurs compte traditionnellement un arc-en-ciel ?", "7", "6", "5", "8"], ["Combien de jours compte une année bissextile ?", "366", "365", "364", "367"], ["Quel instrument possède généralement 88 touches ?", "Le piano", "L'orgue", "L'accordéon", "Le synthétiseur"], ["Quelle langue compte le plus de locuteurs natifs au monde ?", "Le mandarin", "L'anglais", "L'espagnol", "L'hindi"], ["Combien de cartes compte un jeu classique, sans les jokers ?", "52", "54", "48", "32"], ["Quel animal est le symbole du WWF ?", "Le panda", "Le koala", "Le tigre", "L'ours polaire"], ["Quel est l'ingrédient principal du guacamole ?", "L'avocat", "La tomate", "Le concombre", "Le poivron"], ["De quel pays la pizza Margherita est-elle originaire ?", "L'Italie", "La Grèce", "L'Espagne", "La France"], ["Combien de côtés a un hexagone ?", "6", "5", "7", "8"], ["Combien font 7 × 8 ?", "56", "54", "64", "48"], ["Combien de minutes compte une journée ?", "1 440", "1 200", "2 400", "1 040"], ["Quel film d'animation raconte l'histoire du poisson-clown Nemo ?", "Le Monde de Nemo", "Le Roi lion", "Toy Story", "Shrek"], ["Quel groupe britannique a chanté « Hey Jude » ?", "Les Beatles", "Les Rolling Stones", "Queen", "The Who"], ["Quel chanteur est surnommé « le roi de la pop » ?", "Michael Jackson", "Elvis Presley", "Prince", "Freddie Mercury"], ["Quel chanteur est surnommé « le King » du rock'n'roll ?", "Elvis Presley", "Michael Jackson", "Chuck Berry", "Johnny Hallyday"], ["Dans quelle ville se trouve le Colisée ?", "Rome", "Athènes", "Naples", "Milan"], ["Dans quelle ville se trouve la Sagrada Família ?", "Barcelone", "Madrid", "Lisbonne", "Séville"], ["Quel monument a été construit pour l'Exposition universelle de Paris en 1889 ?", "La tour Eiffel", "L'Arc de triomphe", "Le Sacré-Cœur", "Le Grand Palais"], ["Quelle est la langue officielle du Brésil ?", "Le portugais", "L'espagnol", "Le brésilien", "Le français"], ["Combien de secondes compte une heure ?", "3 600", "360", "6 000", "1 800"], ["De quel pays les sushis sont-ils originaires ?", "Le Japon", "La Chine", "La Corée du Sud", "La Thaïlande"], ["Quelle fête célèbre-t-on le 25 décembre ?", "Noël", "Pâques", "La Toussaint", "Le Nouvel An"], ["Quel plat marocain est cuit dans un plat en terre au couvercle conique ?", "Le tajine", "Le couscous", "La pastilla", "La harira"], ["Quelle est la nourriture principale du panda géant ?", "Le bambou", "L'eucalyptus", "Le riz", "Les fruits"], ["Quel insecte fabrique le miel que l'on mange ?", "L'abeille", "La guêpe", "La fourmi", "Le papillon"], ["Aux échecs, quelle pièce ne se déplace qu'en diagonale ?", "Le fou", "La tour", "Le cavalier", "Le roi"], ["Dans quel pays le papier a-t-il été inventé ?", "La Chine", "L'Égypte", "L'Inde", "La Grèce"], ["Quelle est la capitale de la Belgique ?", "Bruxelles", "Anvers", "Liège", "Bruges"], ["Quelle est la capitale de la Suisse ?", "Berne", "Zurich", "Genève", "Lausanne"], ["Quelle est la capitale de la Turquie ?", "Ankara", "Istanbul", "Izmir", "Antalya"], ["Quelle est la capitale du Brésil ?", "Brasília", "Rio de Janeiro", "São Paulo", "Salvador"], ["Quelle est la capitale de la Russie ?", "Moscou", "Saint-Pétersbourg", "Novossibirsk", "Kazan"], ["Quel est le symbole chimique de l'oxygène ?", "O", "Ox", "Om", "Og"], ["Quel animal est célèbre pour changer de couleur ?", "Le caméléon", "Le crocodile", "L'iguane", "La tortue"], ["Combien de dents compte en général un adulte, dents de sagesse comprises ?", "32", "28", "30", "36"], ["Quel est l'os le plus long du corps humain ?", "Le fémur", "Le tibia", "L'humérus", "Le péroné"], ["Quelle ville est la capitale du Maroc ?", "Rabat", "Casablanca", "Marrakech", "Fès"], ["Quel détroit sépare le Maroc de l'Espagne ?", "Le détroit de Gibraltar", "Le Bosphore", "Le détroit de Magellan", "Le détroit d'Ormuz"]];
@@ -2685,6 +2715,352 @@ Array.prototype.forEach.call(document.querySelectorAll("#m-mages [data-a]"), fun
   ["pointerup","pointercancel","pointerleave"].forEach(function(ev){ b.addEventListener(ev, function(){ b.classList.remove("appui"); }); });
 });
 
+
+/* ================= Mini-jeu 11 : La Traque =================
+   Vue de dessus dans un jardin gothique. Kendrick (Lui, vampire alpha) chasse Emilia (Elle, vampire beta).
+   Il gagne la manche s'il la touche ; elle gagne si elle tient jusqu'à la fin du temps. 2 manches gagnantes. */
+var TQ = {DUREE:60, R:16, VK:225, VE:200, ACC_K:4.5, ACC_E:10, PRISE:30, REVEIL:1.2};
+var TQ_NOMS = {b:"Kendrick", v:"Emilia"};
+var TQ_POUVOIRS = {
+  b:[{id:"ruee", nom:"Ruée", cd:6, icone:"💨"}, {id:"instinct", nom:"Instinct", cd:12, icone:"👁"}, {id:"hurlement", nom:"Hurlement", cd:0, unique:true, icone:"🐺"}],
+  v:[{id:"brume", nom:"Brume", cd:10, icone:"🌫"}, {id:"nuee", nom:"Nuée", cd:12, icone:"🦇"}, {id:"charme", nom:"Charme", cd:0, unique:true, icone:"💋"}]
+};
+/* Décor : [type, x, y, w/r, h] — tombes, haies, fontaine, cercueils, colonnes, arbres morts */
+var TQ_DECOR = [
+  ["fontaine",500,300,58],
+  ["haie",180,120,200,26],["haie",620,120,200,26],["haie",180,454,200,26],["haie",620,454,200,26],
+  ["haie",120,230,26,140],["haie",854,230,26,140],
+  ["tombe",330,210,26,34],["tombe",380,210,26,34],["tombe",620,356,26,34],["tombe",670,356,26,34],
+  ["tombe",300,390,26,34],["tombe",700,180,26,34],
+  ["cercueil",420,470,70,28],["cercueil",510,60,70,28],
+  ["colonne",260,300,16],["colonne",740,300,16],["arbre",80,80,22],["arbre",920,520,22],["arbre",920,70,22],["arbre",80,530,22]
+];
+var JOY = {b:{x:0,y:0}, v:{x:0,y:0}}, JOYK = {b:{}, v:{}};
+function tqCollision(x, y, r){
+  if(x<r+10 || x>990-r || y<r+10 || y>590-r) return true;
+  for(var i=0;i<TQ_DECOR.length;i++){
+    var d = TQ_DECOR[i], t = d[0];
+    if(t==="fontaine" || t==="colonne" || t==="arbre"){ if(Math.hypot(x-d[1], y-d[2]) < d[3]+r) return true; }
+    else { var cx = Math.max(d[1], Math.min(x, d[1]+d[3])), cy = Math.max(d[2], Math.min(y, d[2]+d[4])); if(Math.hypot(x-cx, y-cy) < r) return true; }
+  }
+  return false;
+}
+function tqPerso(s){
+  return {s:s, x:s==="b" ? 195 : 805, y:300, vx:0, vy:0, a:s==="b" ? 0 : Math.PI, cd:{}, utilise:{}, ruee:0, brume:0, ralenti:0, fige:0, trace:[]};
+}
+function traque(){
+  JOYK = {b:{}, v:{}};
+  S.jeu = {id:"traque", phase:"intro", manche:1, wins:{b:0,v:0}, parts:[], leurres:[], instinct:0, msg:"", sous:"", t0:0, reste:TQ.DUREE, pret:{}, proche:false,
+    p:{b:tqPerso("b"), v:tqPerso("v")}, brouillard:[]};
+  for(var i=0;i<14;i++) S.jeu.brouillard.push({x:Math.random()*1000, y:Math.random()*600, r:80+Math.random()*120, v:6+Math.random()*12});
+  montrer("traque");
+  var cv = $("cvTraque"), ctx = cv.getContext("2d"), r = Math.min(window.devicePixelRatio||1, 1.5);
+  cv.width = Math.max(300, cv.clientWidth*r); cv.height = Math.max(200, cv.clientHeight*r);
+  var g0 = gen, last = null;
+  tqManche();
+  function boucle(now){
+    if(g0!==gen) return;
+    var dt = last===null ? 0 : Math.min(0.05, (now-last)/1000); last = now;
+    majTraque(dt, now); dessinerTraque(ctx, cv, now);
+    requestAnimationFrame(boucle);
+  }
+  requestAnimationFrame(boucle);
+}
+function tqManche(){
+  var J = S.jeu;
+  J.p = {b:tqPerso("b"), v:tqPerso("v")}; J.leurres = []; J.instinct = 0; J.reste = TQ.DUREE;
+  J.phase = "intro"; J.introT = 0; J.msg = "Manche "+J.manche; J.sous = "Kendrick traque Emilia…";
+  diffuser();
+}
+function majTraque(dt, now){
+  var J = S.jeu; if(!J || J.id!=="traque") return;
+  majParticules(dt);
+  J.brouillard.forEach(function(b){ b.x += b.v*dt; if(b.x-b.r>1000) b.x = -b.r; });
+  if(J.phase==="intro"){
+    J.introT += dt;
+    if(J.introT<2.2){ J.msg = "Manche "+J.manche; J.sous = "Kendrick traque Emilia…"; }
+    else if(J.introT<3){ J.msg = "Fuis, Emilia !"; J.sous = ""; }
+    else { J.phase = "chasse"; J.t0 = now; J.msg = ""; J.sous = ""; bip(220, 0.4, 0.08); diffuser(); }
+    if(J.introT>2.2 && J.introT-dt<=2.2) bip(660, 0.15, 0.06);
+    return;
+  }
+  if(J.phase!=="chasse"){ return; }
+  var e = (now-J.t0)/1000;
+  J.reste = Math.max(0, TQ.DUREE - e);
+  ["b","v"].forEach(function(s){
+    var c = J.p[s];
+    for(var k in c.cd) c.cd[k] = Math.max(0, c.cd[k]-dt);
+    c.ruee = Math.max(0, c.ruee-dt); c.brume = Math.max(0, c.brume-dt); c.ralenti = Math.max(0, c.ralenti-dt); c.fige = Math.max(0, c.fige-dt);
+    var j = JOY[s], jk = JOYK[s], jx = j.x + (jk.d?1:0) - (jk.g?1:0), jy = j.y + (jk.b?1:0) - (jk.h?1:0);
+    var n = Math.hypot(jx, jy); if(n>1){ jx /= n; jy /= n; }
+    if(s==="b" && e<TQ.REVEIL){ jx = 0; jy = 0; }
+    if(c.fige>0){ jx = 0; jy = 0; }
+    var vmax = (s==="b" ? TQ.VK : TQ.VE) * (c.ruee>0 ? 2.3 : 1) * (c.ralenti>0 ? 0.5 : 1);
+    var acc = s==="b" ? TQ.ACC_K*(c.ruee>0 ? 3 : 1) : TQ.ACC_E;
+    var k2 = Math.min(1, acc*dt);
+    c.vx += (jx*vmax - c.vx)*k2; c.vy += (jy*vmax - c.vy)*k2;
+    var nx = c.x + c.vx*dt, ny = c.y + c.vy*dt;
+    if(!tqCollision(nx, c.y, TQ.R)) c.x = nx; else c.vx *= -0.2;
+    if(!tqCollision(c.x, ny, TQ.R)) c.y = ny; else c.vy *= -0.2;
+    if(Math.hypot(c.vx, c.vy)>20) c.a = Math.atan2(c.vy, c.vx);
+    c.trace.push({x:c.x, y:c.y, t:now}); while(c.trace.length && now-c.trace[0].t>450) c.trace.shift();
+    if(c.ruee>0 && Math.random()<dt*60) J.parts.push({x:c.x, y:c.y, vx:(Math.random()-0.5)*30, vy:(Math.random()-0.5)*30, vie:0.4, max:0.4, t:4, col:"#2fa8ff"});
+  });
+  /* leurre de chauves-souris */
+  J.leurres.forEach(function(l){ l.vie -= dt; l.x += l.vx*dt; l.y += l.vy*dt; if(tqCollision(l.x, l.y, TQ.R)){ l.vx *= -1; l.vy *= -1; } });
+  J.leurres = J.leurres.filter(function(l){ if(l.vie<=0){ for(var i=0;i<10;i++) J.parts.push({x:l.x, y:l.y, vx:(Math.random()-0.5)*160, vy:(Math.random()-0.5)*160, vie:0.6, max:0.6, t:4, col:"#3a2350"}); return false; } return true; });
+  J.instinct = Math.max(0, J.instinct-dt);
+  /* tension : proximité */
+  var K = J.p.b, E = J.p.v, d = Math.hypot(K.x-E.x, K.y-E.y);
+  var proche = d<170;
+  if(proche!==J.proche){ J.proche = proche; diffuser(); }
+  /* pouvoirs prêts ? (on prévient les téléphones quand ça change) */
+  var pret = tqEtatPouvoirs(), cle = JSON.stringify(pret);
+  if(cle!==J.pretCle){ J.pretCle = cle; diffuser(); }
+  /* capture */
+  if(d<TQ.PRISE && E.brume<=0){
+    J.phase = "fin"; J.gagnant = "b"; J.capT = 0; J.capX = E.x; J.capY = E.y;
+    for(var i=0;i<60;i++) J.parts.push({x:E.x, y:E.y, vx:(Math.random()-0.5)*300, vy:(Math.random()-0.5)*300, vie:0.9, max:0.9, t:3+Math.random()*4, col:Math.random()<.6 ? "#b3001b" : "#ff4d6d"});
+    boum(); J.msg = "CAPTURÉE !"; J.sous = "Kendrick a mordu Emilia"; tqFinManche("b"); return;
+  }
+  if(J.reste<=0){ J.phase = "fin"; J.gagnant = "v"; J.msg = "ÉCHAPPÉE !"; J.sous = "Emilia a survécu à la traque"; bip(880,0.15,0.07); plus_tard(function(){ bip(1320,0.3,0.07); },150); tqFinManche("v"); }
+}
+function tqFinManche(g){
+  var J = S.jeu; J.wins[g]++; J.leurres = []; diffuser();
+  plus_tard(function(){
+    if(J.wins[g]>=2){
+      J.msg = TQ_NOMS[g]+" gagne la traque !"; J.sous = J.wins.b+" – "+J.wins.v; diffuser();
+      plus_tard(function(){
+        if(g==="b") finManche("v", "Kendrick a capturé Emilia ("+J.wins.b+"-"+J.wins.v+")");
+        else finManche("b", "Emilia a échappé à Kendrick ("+J.wins.v+"-"+J.wins.b+")");
+      }, 2600);
+    } else { J.manche++; tqManche(); }
+  }, 3200);
+}
+function tqEtatPouvoirs(){
+  var J = S.jeu, out = {};
+  ["b","v"].forEach(function(s){ var c = J.p[s]; out[s] = TQ_POUVOIRS[s].map(function(p){ return p.unique ? !c.utilise[p.id] : !(c.cd[p.id]>0); }); });
+  return out;
+}
+function pouvoirTraque(s, id){
+  var J = S.jeu; if(!J || J.id!=="traque" || J.phase!=="chasse") return;
+  var c = J.p[s], o = J.p[autre(s)], P = null;
+  TQ_POUVOIRS[s].forEach(function(p){ if(p.id===id) P = p; }); if(!P || c.fige>0) return;
+  if(P.unique){ if(c.utilise[id]) return; c.utilise[id] = true; } else { if(c.cd[id]>0) return; c.cd[id] = P.cd; }
+  if(id==="ruee"){ c.ruee = 0.8; bip(180, 0.25, 0.07); }
+  else if(id==="instinct"){ J.instinct = 2.2; bip(1400, 0.3, 0.05); }
+  else if(id==="hurlement"){ o.ralenti = 2; bip(140, 0.8, 0.09); J.onde = {x:c.x, y:c.y, t:0, col:"#2fa8ff"}; }
+  else if(id==="brume"){ c.brume = 2; bip(500, 0.3, 0.05); for(var i=0;i<30;i++) J.parts.push({x:c.x, y:c.y, vx:(Math.random()-0.5)*90, vy:(Math.random()-0.5)*90, vie:0.9, max:0.9, t:8, col:"rgba(200,180,255,.5)"}); }
+  else if(id==="nuee"){
+    var vx = c.vx, vy = c.vy, n = Math.hypot(vx, vy); if(n<40){ vx = Math.cos(c.a)*TQ.VE; vy = Math.sin(c.a)*TQ.VE; }
+    J.leurres.push({x:c.x, y:c.y, vx:-vy*0.9+vx*0.4, vy:vx*0.9+vy*0.4, a:c.a, vie:3});
+    for(var i2=0;i2<16;i2++) J.parts.push({x:c.x, y:c.y, vx:(Math.random()-0.5)*200, vy:(Math.random()-0.5)*200, vie:0.5, max:0.5, t:5, col:"#2a1838"});
+    bip(2000, 0.08, 0.04); bip(2400, 0.08, 0.04);
+  }
+  else if(id==="charme"){ o.fige = 1.5; bip(990, 0.4, 0.06); J.onde = {x:c.x, y:c.y, t:0, col:"#ff6ad5"}; }
+  diffuser();
+}
+/* ---------- Dessin ---------- */
+function tqDessinerDecor(ctx, now){
+  var t = now/1000;
+  TQ_DECOR.forEach(function(d){
+    var ty = d[0];
+    ctx.save();
+    if(ty==="haie"){
+      ctx.fillStyle = "#0f2418"; ctx.fillRect(d[1], d[2], d[3], d[4]);
+      ctx.fillStyle = "#17361f";
+      for(var x=d[1]+6;x<d[1]+d[3];x+=12) for(var y=d[2]+6;y<d[2]+d[4];y+=12){ ctx.beginPath(); ctx.arc(x+(y%7), y, 7, 0, Math.PI*2); ctx.fill(); }
+      ctx.strokeStyle = "rgba(0,0,0,.5)"; ctx.lineWidth = 2; ctx.strokeRect(d[1], d[2], d[3], d[4]);
+    } else if(ty==="tombe"){
+      ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.fillRect(d[1]+4, d[2]+5, d[3], d[4]);
+      ctx.fillStyle = "#5a5870"; ctx.beginPath(); ctx.moveTo(d[1], d[2]+d[4]); ctx.lineTo(d[1], d[2]+10); ctx.arc(d[1]+d[3]/2, d[2]+10, d[3]/2, Math.PI, 0); ctx.lineTo(d[1]+d[3], d[2]+d[4]); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "#2f2d40"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(d[1]+d[3]/2, d[2]+8); ctx.lineTo(d[1]+d[3]/2, d[2]+24); ctx.moveTo(d[1]+d[3]/2-6, d[2]+14); ctx.lineTo(d[1]+d[3]/2+6, d[2]+14); ctx.stroke();
+    } else if(ty==="fontaine"){
+      ctx.fillStyle = "#3d3a52"; ctx.beginPath(); ctx.arc(d[1], d[2], d[3], 0, Math.PI*2); ctx.fill();
+      var gw = ctx.createRadialGradient(d[1], d[2], 4, d[1], d[2], d[3]-8); gw.addColorStop(0,"#5a1a2a"); gw.addColorStop(1,"#2a0a14");
+      ctx.fillStyle = gw; ctx.beginPath(); ctx.arc(d[1], d[2], d[3]-8, 0, Math.PI*2); ctx.fill();   /* bassin de sang */
+      ctx.strokeStyle = "rgba(255,120,140,.25)"; ctx.lineWidth = 1.5;
+      for(var k=0;k<3;k++){ var rr = ((t*18 + k*16) % 44)+4; ctx.globalAlpha = 1-rr/48; ctx.beginPath(); ctx.arc(d[1], d[2], rr, 0, Math.PI*2); ctx.stroke(); }
+      ctx.globalAlpha = 1; ctx.fillStyle = "#6a6680"; ctx.beginPath(); ctx.arc(d[1], d[2], 9, 0, Math.PI*2); ctx.fill();
+    } else if(ty==="cercueil"){
+      ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.translate(4,5);
+      tqCercueil(ctx, d); ctx.fill(); ctx.translate(-4,-5);
+      ctx.fillStyle = "#3b2216"; tqCercueil(ctx, d); ctx.fill();
+      ctx.strokeStyle = "#8a6a3a"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.strokeStyle = "#b08a4a"; ctx.beginPath(); ctx.moveTo(d[1]+d[3]*0.3, d[2]+d[4]/2); ctx.lineTo(d[1]+d[3]*0.55, d[2]+d[4]/2); ctx.moveTo(d[1]+d[3]*0.42, d[2]+6); ctx.lineTo(d[1]+d[3]*0.42, d[2]+d[4]-6); ctx.stroke();
+    } else if(ty==="colonne"){
+      ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.beginPath(); ctx.arc(d[1]+4, d[2]+5, d[3], 0, Math.PI*2); ctx.fill();
+      var gc = ctx.createRadialGradient(d[1]-5, d[2]-5, 2, d[1], d[2], d[3]); gc.addColorStop(0,"#8a879e"); gc.addColorStop(1,"#3c3a50");
+      ctx.fillStyle = gc; ctx.beginPath(); ctx.arc(d[1], d[2], d[3], 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#ff9a3c"; ctx.shadowColor = "#ff9a3c"; ctx.shadowBlur = 20 + Math.sin(t*9)*5; ctx.beginPath(); ctx.arc(d[1], d[2], 4, 0, Math.PI*2); ctx.fill(); /* bougie */
+    } else if(ty==="arbre"){
+      ctx.strokeStyle = "#1d1626"; ctx.lineCap = "round";
+      for(var b=0;b<6;b++){ var an = b*1.05+0.3; ctx.lineWidth = 6-b*0.5; ctx.beginPath(); ctx.moveTo(d[1], d[2]); ctx.quadraticCurveTo(d[1]+Math.cos(an+0.4)*d[3], d[2]+Math.sin(an+0.4)*d[3], d[1]+Math.cos(an)*d[3]*2.2, d[2]+Math.sin(an)*d[3]*2.2); ctx.stroke(); }
+      ctx.fillStyle = "#2a2033"; ctx.beginPath(); ctx.arc(d[1], d[2], d[3]*0.6, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  });
+}
+function tqCercueil(ctx, d){
+  var x = d[1], y = d[2], w = d[3], h = d[4];
+  ctx.beginPath(); ctx.moveTo(x, y+h*0.3); ctx.lineTo(x+w*0.25, y); ctx.lineTo(x+w, y+h*0.15); ctx.lineTo(x+w, y+h*0.85); ctx.lineTo(x+w*0.25, y+h); ctx.lineTo(x, y+h*0.7); ctx.closePath();
+}
+/* Vampire vu de dessus : cape en goutte orientée dans la direction, tête, cheveux, yeux lumineux */
+function tqDessinerVampire(ctx, c, now, alpha, leurre){
+  var t = now/1000, s = c.s || "v", K = s==="b";
+  var col = K ? "#2fa8ff" : "#c06bff", vit = Math.hypot(c.vx||0, c.vy||0), ond = Math.sin(t*14)*Math.min(1, vit/120);
+  ctx.save(); ctx.globalAlpha = alpha;
+  /* traînée */
+  if(c.trace && !leurre){ c.trace.forEach(function(p, i){ var k = i/c.trace.length; ctx.fillStyle = col; ctx.globalAlpha = alpha*k*0.25; ctx.beginPath(); ctx.arc(p.x, p.y, TQ.R*k, 0, Math.PI*2); ctx.fill(); }); ctx.globalAlpha = alpha; }
+  ctx.translate(c.x, c.y); ctx.rotate(c.a); ctx.scale(1.35, 1.35);
+  /* ombre */
+  ctx.fillStyle = "rgba(0,0,0,.5)"; ctx.beginPath(); ctx.ellipse(-4, 4, 24, 16, 0, 0, Math.PI*2); ctx.fill();
+  if(K){
+    /* cape noire à doublure bleue, épaules larges */
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(6,-17); ctx.quadraticCurveTo(-18,-22-ond*3,-34,-14+ond*4); ctx.lineTo(-30,0); ctx.lineTo(-34,14-ond*4); ctx.quadraticCurveTo(-18,22+ond*3,6,17); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#0b0b14"; ctx.beginPath(); ctx.moveTo(6,-15); ctx.quadraticCurveTo(-16,-19-ond*3,-30,-12+ond*4); ctx.lineTo(-26,0); ctx.lineTo(-30,12-ond*4); ctx.quadraticCurveTo(-16,19+ond*3,6,15); ctx.closePath(); ctx.fill();
+    /* col relevé */
+    ctx.strokeStyle = "#7a0f1f"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0,0,13,Math.PI*0.6,Math.PI*1.4); ctx.stroke();
+    /* tête, cheveux courts plaqués */
+    ctx.fillStyle = "#d9c9c4"; ctx.beginPath(); ctx.arc(2,0,9,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#111018"; ctx.beginPath(); ctx.arc(-1,0,9.5,Math.PI*0.45,Math.PI*1.55); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-3,-9); ctx.quadraticCurveTo(6,-8,7,0); ctx.quadraticCurveTo(6,8,-3,9); ctx.closePath(); ctx.fill();
+  } else {
+    /* robe violette qui flotte + longs cheveux qui traînent */
+    ctx.fillStyle = "#3a1458"; ctx.beginPath(); ctx.moveTo(6,-12); ctx.quadraticCurveTo(-14,-20-ond*4,-30,-16+ond*5); ctx.quadraticCurveTo(-24,0,-30,16-ond*5); ctx.quadraticCurveTo(-14,20+ond*4,6,12); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = col; ctx.globalAlpha = alpha*0.8; ctx.beginPath(); ctx.moveTo(4,-10); ctx.quadraticCurveTo(-10,-14-ond*3,-22,-12+ond*4); ctx.quadraticCurveTo(-18,0,-22,12-ond*4); ctx.quadraticCurveTo(-10,14+ond*3,4,10); ctx.closePath(); ctx.fill(); ctx.globalAlpha = alpha;
+    ctx.fillStyle = "#120a1e";
+    ctx.beginPath(); ctx.moveTo(4,-8); ctx.bezierCurveTo(-10,-12,-22,-6-ond*5,-36,-4+ond*6); ctx.bezierCurveTo(-24,2+ond*4,-12,10,4,8); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#e8cfc4"; ctx.beginPath(); ctx.arc(3,0,7.5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#120a1e"; ctx.beginPath(); ctx.arc(1,0,8,Math.PI*0.5,Math.PI*1.5); ctx.fill();
+    /* lèvres rouges */
+    ctx.fillStyle = "#c2304f"; ctx.beginPath(); ctx.arc(9.5,0,1.4,0,Math.PI*2); ctx.fill();
+  }
+  /* yeux lumineux */
+  ctx.fillStyle = K ? "#ff2b3d" : "#ff6ad5"; ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.arc(8,-3.5,1.8,0,Math.PI*2); ctx.arc(8,3.5,1.8,0,Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+  ctx.restore();
+}
+function dessinerTraque(ctx, cv, now){
+  var J = S.jeu; if(!J || J.id!=="traque") return;
+  var W = cv.width, H = cv.height, sc = Math.min(W/1000, H/600), ox = (W-1000*sc)/2, oy = (H-600*sc)/2, t = now/1000;
+  ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = "#06060c"; ctx.fillRect(0,0,W,H);
+  ctx.setTransform(sc,0,0,sc,ox,oy);
+  /* sol : herbe sombre + allées */
+  var gs = ctx.createRadialGradient(500,300,50,500,300,620); gs.addColorStop(0,"#1a2a22"); gs.addColorStop(1,"#0a120e");
+  ctx.fillStyle = gs; ctx.fillRect(0,0,1000,600);
+  ctx.fillStyle = "rgba(120,110,140,.12)";
+  ctx.fillRect(0,282,1000,36); ctx.fillRect(482,0,36,600);
+  ctx.beginPath(); ctx.arc(500,300,90,0,Math.PI*2); ctx.fill();
+  tqDessinerDecor(ctx, now);
+  /* leurres */
+  J.leurres.forEach(function(l){
+    var rev = J.instinct>0;
+    if(rev){ ctx.fillStyle = "#2a1838"; for(var i=0;i<6;i++){ var a = t*8+i; ctx.beginPath(); ctx.ellipse(l.x+Math.cos(a)*12, l.y+Math.sin(a*1.3)*10, 6, 3, a, 0, Math.PI*2); ctx.fill(); } }
+    else tqDessinerVampire(ctx, {s:"v", x:l.x, y:l.y, vx:l.vx, vy:l.vy, a:Math.atan2(l.vy, l.vx)}, now, Math.min(1, l.vie), true);
+  });
+  /* vampires */
+  var K = J.p.b, E = J.p.v;
+  tqDessinerVampire(ctx, E, now, E.brume>0 ? 0.13 : 1);
+  if(J.instinct>0){ ctx.strokeStyle = "rgba(255,60,80,"+(0.5+0.4*Math.sin(t*12))+")"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(E.x, E.y, 30, 0, Math.PI*2); ctx.stroke(); }
+  if(!(J.phase==="fin" && J.gagnant==="b" && Math.floor(t*10)%2)) tqDessinerVampire(ctx, K, now, 1);
+  if(K.fige>0){ ctx.fillStyle = "#ff6ad5"; ctx.font = "800 18px Sora, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.fillText("♥ charmé ♥", K.x, K.y-34); }
+  if(E.ralenti>0){ ctx.fillStyle = "#2fa8ff"; ctx.font = "800 16px Sora, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.fillText("terrifiée", E.x, E.y-32); }
+  if(J.onde){ J.onde.t += 1/60; var rr = J.onde.t*700; ctx.strokeStyle = J.onde.col; ctx.globalAlpha = Math.max(0, 1-J.onde.t*1.6); ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(J.onde.x, J.onde.y, rr, 0, Math.PI*2); ctx.stroke(); ctx.globalAlpha = 1; if(J.onde.t>0.7) J.onde = null; }
+  J.parts.forEach(function(p){ var k = Math.max(0, p.vie/p.max); ctx.globalAlpha = k; ctx.fillStyle = p.col; ctx.fillRect(p.x-p.t/2, p.y-p.t/2, p.t, p.t); });
+  ctx.globalAlpha = 1;
+  /* brouillard qui dérive */
+  J.brouillard.forEach(function(b){ var g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r); g.addColorStop(0,"rgba(180,170,210,.07)"); g.addColorStop(1,"rgba(180,170,210,0)"); ctx.fillStyle = g; ctx.fillRect(b.x-b.r, b.y-b.r, b.r*2, b.r*2); });
+  ctx.setTransform(1,0,0,1,0,0);
+  /* vignette nocturne + rouge quand il est proche */
+  var d = Math.hypot(K.x-E.x, K.y-E.y), danger = J.phase==="chasse" ? Math.max(0, 1-d/220) : 0;
+  var vg = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.35, W/2, H/2, Math.max(W,H)*0.75);
+  vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1, danger>0 ? "rgba(120,0,20,"+(0.4+danger*0.45*(0.7+0.3*Math.sin(t*10)))+")" : "rgba(0,0,0,.65)");
+  ctx.fillStyle = vg; ctx.fillRect(0,0,W,H);
+  /* HUD */
+  ctx.setTransform(sc,0,0,sc,ox,oy);
+  ctx.textBaseline = "alphabetic";
+  [["b",40,"left"],["v",960,"right"]].forEach(function(x){
+    var s = x[0], c = J.p[s];
+    ctx.textAlign = x[2]; ctx.font = "800 24px Sora, system-ui, sans-serif"; ctx.fillStyle = s==="b" ? "#2fa8ff" : "#c06bff";
+    ctx.fillText(TQ_NOMS[s], x[1], 96);
+    ctx.font = "600 13px Sora, system-ui, sans-serif"; ctx.fillStyle = "rgba(255,255,255,.6)";
+    ctx.fillText((s==="b" ? "vampire alpha · " : "vampire beta · ")+(S.noms[s]||""), x[1], 114);
+    var ic = TQ_POUVOIRS[s].map(function(p){ var ok = p.unique ? !c.utilise[p.id] : !(c.cd[p.id]>0); return (ok ? "" : "·")+p.icone; }).join("  ");
+    ctx.font = "18px serif"; ctx.fillText(ic, x[1], 138);
+    for(var k=0;k<2;k++){ ctx.fillStyle = k<J.wins[s] ? "#ff2b3d" : "rgba(255,255,255,.18)"; ctx.beginPath(); ctx.arc(s==="b" ? x[1]+8+k*20 : x[1]-8-k*20, 152, 7, 0, Math.PI*2); ctx.fill(); }
+  });
+  ctx.textAlign = "center"; ctx.font = "800 34px Sora, system-ui, sans-serif"; ctx.fillStyle = J.reste<10 && J.phase==="chasse" ? "#ff4d6d" : "rgba(255,255,255,.85)";
+  if(J.phase==="chasse") ctx.fillText(String(Math.ceil(J.reste)), 500, 104);
+  ctx.font = "600 14px Sora, system-ui, sans-serif"; ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.fillText("MANCHE "+J.manche, 500, 126);
+  if(J.msg){
+    ctx.textBaseline = "middle";
+    ctx.font = "900 72px Sora, system-ui, sans-serif"; ctx.fillStyle = J.msg==="CAPTURÉE !" ? "#ff2b3d" : "#ffffff"; ctx.shadowColor = "rgba(0,0,0,.95)"; ctx.shadowBlur = 26;
+    ctx.fillText(J.msg, 500, 270);
+    if(J.sous){ ctx.font = "700 28px Sora, system-ui, sans-serif"; ctx.fillStyle = "rgba(255,255,255,.88)"; ctx.fillText(J.sous, 500, 334); }
+    ctx.shadowBlur = 0;
+  }
+  ctx.setTransform(1,0,0,1,0,0);
+}
+/* Clavier : Kendrick ZQSD (ou WASD) + 1 2 3 ; Emilia flèches + 8 9 0 */
+var TQ_TOUCHES = {z:["b","h"], w:["b","h"], s:["b","b"], q:["b","g"], a:["b","g"], d:["b","d"],
+  arrowup:["v","h"], arrowdown:["v","b"], arrowleft:["v","g"], arrowright:["v","d"]};
+var TQ_TOUCHES_P = {"1":["b","ruee"], "2":["b","instinct"], "3":["b","hurlement"], "8":["v","brume"], "9":["v","nuee"], "0":["v","charme"]};
+document.addEventListener("keydown", function(e){
+  if(estManette || S.ecran!=="traque") return;
+  var k = String(e.key).toLowerCase(), t = TQ_TOUCHES[k], p = TQ_TOUCHES_P[k];
+  if(t){ e.preventDefault(); e.stopImmediatePropagation(); JOYK[t[0]][t[1]] = true; }
+  else if(p){ e.preventDefault(); e.stopImmediatePropagation(); if(!e.repeat) pouvoirTraque(p[0], p[1]); }
+}, true);
+document.addEventListener("keyup", function(e){
+  if(estManette) return;
+  var t = TQ_TOUCHES[String(e.key).toLowerCase()]; if(t) JOYK[t[0]][t[1]] = false;
+}, true);
+/* ---------- Téléphone : joystick + pouvoirs ---------- */
+var tqJoyEnvoi = 0, tqJoyDernier = {x:0, y:0}, tqProche = false;
+function envoyerJoy(x, y, force){
+  var now = Date.now();
+  if(!force && now-tqJoyEnvoi<60 && Math.hypot(x-tqJoyDernier.x, y-tqJoyDernier.y)<0.5) return;
+  tqJoyEnvoi = now; tqJoyDernier = {x:x, y:y};
+  if(room) room.presence({joy:{x:Math.round(x*100)/100, y:Math.round(y*100)/100}}).catch(function(){});
+}
+(function(){
+  var zone = $("mTqJoy"), bouton = $("mTqBouton"), actif = null;
+  if(!zone) return;
+  function maj(e){
+    var r = zone.getBoundingClientRect(), cx = r.left+r.width/2, cy = r.top+r.height/2, R = r.width/2;
+    var dx = (e.clientX-cx)/R, dy = (e.clientY-cy)/R, n = Math.hypot(dx, dy);
+    if(n>1){ dx /= n; dy /= n; }
+    if(n<0.12){ dx = 0; dy = 0; }
+    bouton.style.transform = "translate("+(dx*R*0.6)+"px,"+(dy*R*0.6)+"px)";
+    envoyerJoy(dx, dy, false);
+  }
+  zone.addEventListener("pointerdown", function(e){ e.preventDefault(); actif = e.pointerId; try{ zone.setPointerCapture(e.pointerId); }catch(x){} maj(e); });
+  zone.addEventListener("pointermove", function(e){ if(actif===e.pointerId) maj(e); });
+  ["pointerup","pointercancel"].forEach(function(t){ zone.addEventListener(t, function(e){ if(actif!==e.pointerId) return; actif = null; bouton.style.transform = ""; envoyerJoy(0, 0, true); }); });
+})();
+function rendreTraqueManette(z, noms){
+  mMontrer("m-traque");
+  if(!z) return;
+  var K = COTE==="b";
+  $("mTqRole").textContent = K ? "Tu es Kendrick 🧛 · attrape-la !" : "Tu es Emilia 🦇 · survis !";
+  $("mTqInfo").textContent = "Manche "+z.manche+" · "+z.wins.b+" – "+z.wins.v;
+  var box = $("mTqPouvoirs"), pr = (z.pret && z.pret[COTE]) || [], cle = COTE+"|"+pr.join(",");
+  if(box.getAttribute("data-k")!==cle){
+    box.setAttribute("data-k", cle); box.innerHTML = "";
+    TQ_POUVOIRS[COTE].forEach(function(p, i){
+      var b = el("button","tq-btn"+(p.unique ? " unique" : "")); b.disabled = pr[i]===false;
+      b.appendChild(el("span","tq-ic",p.icone)); b.appendChild(el("b",null,p.nom));
+      b.appendChild(el("small",null, p.unique ? "1 fois" : (pr[i]===false ? "recharge…" : "prêt")));
+      b.addEventListener("pointerdown", function(e){ e.preventDefault(); if(b.disabled) return; envoyer("traque",{side:COTE, p:p.id}); b.disabled = true; });
+      box.appendChild(b);
+    });
+  }
+  if(z.proche && !tqProche && navigator.vibrate) try{ navigator.vibrate(K ? [40] : [80,60,80]); }catch(e){}
+  tqProche = !!z.proche;
+  $("m-traque").classList.toggle("danger", !!z.proche);
+}
+
 /* Mini-jeu 6 : tir à la corde (chaque tape tire la corde de son côté) */
 var CORDE_PAS = 0.05, CORDE_DUREE = 20000;
 function majCorde(side){
@@ -3625,7 +4001,9 @@ function etat(){
     var ms = function(c){ return {el:c.el, pv:Math.round(c.pv), en:Math.round(c.en)}; };
     mg = {round:U.round, wins:U.wins, m:{b:ms(U.m.b), v:ms(U.m.v)}, coups:U.coups, phase:U.phase};
   }
-  return {mages:mg, v:VERSION_SITE, ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, qui:qq, gt:gt, gc:gc};
+  var tq = null;
+  if(S.ecran==="traque" && U && U.id==="traque") tq = {manche:U.manche, wins:U.wins, pret:tqEtatPouvoirs(), proche:!!U.proche, phase:U.phase};
+  return {traque:tq, mages:mg, v:VERSION_SITE, ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, qui:qq, gt:gt, gc:gc};
 }
 function diffuser(){
   if(room && !estManette){ room.emit("etat", etat()).catch(function(){}); }
@@ -3657,6 +4035,7 @@ function brancherTV(){
   room.on("passer", function(){ passerJeu(); });
   room.on("quiz", function(m){ if(m.data) quizRepondre(m.data.side, m.data.i); });
   room.on("qui", function(m){ if(m.data && S.ecran==="qui") quiAction(m.data); });
+  room.on("traque", function(m){ if(m.data && S.ecran==="traque") pouvoirTraque(m.data.side, m.data.p); });
   room.on("mage", function(m){ if(m.data && S.ecran==="mages") actionMage(m.data.side, m.data.a); });
   room.on("libre", function(m){ if(m.data) libreGagne(m.data.g); });
   room.on("ok", function(){ if(["accueil","joueurs","modes","intro","fin"].indexOf(S.ecran)>=0) cliquerPrincipal(); });
@@ -3676,7 +4055,7 @@ function brancherTV(){
 var M = {ecran:null};
 var COTE = null;  /* "b" (Lui) ou "v" (Elle) pour ce téléphone */
 var SALLE = null; /* identifiant du salon temps réel */
-var MV = ["m-attente","m-noms","m-pads","m-course","m-duel","m-mages","m-uno","m-quiz","m-qui","m-libre","m-gage","m-ok"];
+var MV = ["m-attente","m-noms","m-pads","m-course","m-duel","m-mages","m-traque","m-uno","m-quiz","m-qui","m-libre","m-gage","m-ok"];
 function rendreUnoManette(u, noms){
   mMontrer("m-uno");
   var box = $("mUnoCorps"); box.innerHTML = "";
@@ -3700,7 +4079,9 @@ function rendreUnoManette(u, noms){
   }
 }
 function lireDirManette(peers){
-  var d = {b:0,v:0};
+  var d = {b:0,v:0}, joy = {b:{x:0,y:0}, v:{x:0,y:0}};
+  peers.forEach(function(p){ var pr = p.presence; if(pr && pr.role==="manette" && pr.joy && (pr.cote==="b" || pr.cote==="v")) joy[pr.cote] = {x:+pr.joy.x||0, y:+pr.joy.y||0}; });
+  JOY = joy;
   peers.forEach(function(p){ var pr = p.presence; if(pr && pr.role==="manette" && pr.dir){ d.b += +pr.dir.b||0; d.v += +pr.dir.v||0; } });
   DIRM.b = Math.max(-1, Math.min(1, d.b)); DIRM.v = Math.max(-1, Math.min(1, d.v));
 }
@@ -3747,6 +4128,7 @@ function rendreManette(e){
   $("mPadB").textContent = noms.b || "Bleu"; $("mPadV").textContent = noms.v || "Violet";
   neon(COTE);
   $("mCrB").textContent = noms.b || "Bleu"; $("mCrV").textContent = noms.v || "Violet";
+  if(M.ecran==="traque" && e.ecran!=="traque") envoyerJoy(0, 0, true);
   if((M.ecran==="course" || M.ecran==="duel" || M.ecran==="mages") && e.ecran!==M.ecran){ tenu = {b:{}, v:{}}; envoyerDir(); }
   if(e.ecran==="quiz" && e.quiz){
     mMontrer("m-quiz");
@@ -3775,6 +4157,8 @@ function rendreManette(e){
       lb.setAttribute("data-k", noms.b+"|"+noms.v); lb.innerHTML = "";
       [["b","plein"],["v",""]].forEach(function(x){ var bt = el("button","m-gros "+x[1], (noms[x[0]]||"")+" a gagné"); bt.style.borderColor = "var(--"+(x[0]==="b"?"bleu":"violet")+")"; bt.onclick = function(){ envoyer("libre",{g:x[0]}); }; lb.appendChild(bt); });
     }
+  } else if(e.ecran==="traque"){
+    rendreTraqueManette(e.traque, noms);
   } else if(e.ecran==="mages"){
     rendreMagesManette(e.mages, noms);
   } else if(e.ecran==="duel"){
@@ -3842,7 +4226,7 @@ function rendreManette(e){
     $("mOk").textContent = e.ecran==="accueil" ? "Jouer" : e.ecran==="modes" ? "Mode classique" : e.ecran==="intro" ? "Lancer la partie" : "Continuer";
   }
   $("mQuitter").hidden = e.ecran==="accueil";
-  $("mPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages"].indexOf(e.ecran)<0;
+  $("mPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","traque"].indexOf(e.ecran)<0;
   M.ecran = e.ecran;
 }
 function brancherManette(){
@@ -3888,7 +4272,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "31";
+var VERSION_SITE = "32";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
