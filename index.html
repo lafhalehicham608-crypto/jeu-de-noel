@@ -922,7 +922,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=33"></script>
+<script src="config.js?v=34"></script>
 <script>
 (function(){
 "use strict";
@@ -3813,7 +3813,11 @@ function afficherTexteGage(){
   });
   var info = $("gDuree"); info.textContent = "";
   if(gc && !aZ && gc.res){ info.appendChild(document.createTextNode("Sur ")); var sz = etiquetteCorps(gc); sz.style.fontSize = "1.6em"; info.appendChild(sz); }
-  if(gt && !aX) info.appendChild(document.createTextNode((info.textContent ? "   ·   " : "") + (gt.duree ? "Pendant "+fmtDuree(gt.duree) : "Durée : "+fourchette(gt, " et ", "entre "))));
+  var notes = [];
+  if(gt && !gt.duree) notes.push(gt.dmin===gt.dmax ? "⏱ Ce gage dure "+fmtDuree(gt.dmin) : "⏱ Ce gage durera entre "+fmtDuree(gt.dmin)+" et "+fmtDuree(gt.dmax)+", tiré au hasard");
+  else if(gt && !aX) notes.push("Pendant "+fmtDuree(gt.duree));
+  if(gc && !gc.res) notes.push("◎ La partie du corps sera tirée à la roue");
+  if(notes.length) info.appendChild(document.createTextNode((info.textContent ? "   ·   " : "") + notes.join("   ·   ")));
 }
 function etiquetteCorps(gc){
   var sp = el("span","g-corps"+(gc.type==="m" ? " m" : ""));
@@ -3858,7 +3862,7 @@ function dessinerRoueCorps(root, type){
   return g;
 }
 function tournerCorps(){
-  var gc = S.gc; if(S.ecran!=="gage" || !gc || gc.res || gc.tourne || S.fait) return;
+  var gc = S.gc; if(S.ecran!=="gage" || !gc || gc.res || gc.tourne || S.fait!==true) return;
   gc.tourne = true;
   var root = $("gCorps"); root.hidden = false; root.style.opacity = ""; root.style.transform = "";
   $("gMontre").hidden = true;
@@ -3886,7 +3890,7 @@ function tournerCorps(){
   requestAnimationFrame(frame);
 }
 function tirerDuree(){
-  var gt = S.gt; if(S.ecran!=="gage" || !gt || gt.duree || gt.tirage || S.fait || (S.gc && !S.gc.vu)) return;
+  var gt = S.gt; if(S.ecran!=="gage" || !gt || gt.duree || gt.tirage || S.fait!==true || (S.gc && !S.gc.vu)) return;
   gt.tirage = true;
   var lo = Math.ceil(gt.dmin/15)*15, hi = Math.floor(gt.dmax/15)*15; if(hi<lo) hi = lo;
   var choix = []; for(var v=lo; v<=hi; v+=15) choix.push(v);
@@ -3948,7 +3952,7 @@ function demarrerMinuteur(){
   })();
 }
 function basculerPause(){
-  var gt = S.gt; if(S.ecran!=="gage" || !gt || S.fait!==true || gt.fini) return;
+  var gt = S.gt; if(S.ecran!=="gage" || !gt || S.fait!==true || !gt.lance || gt.fini) return;
   if(gt.pause){ gt.fin = Date.now() + gt.reste; gt.pause = false; }
   else { gt.reste = Math.max(0, gt.fin - Date.now()); gt.pause = true; }
   boutonsGage(); diffuser();
@@ -3959,57 +3963,42 @@ function finMinuteur(){
   var n = 0; (function sonne(){ if(n>=10) return; bip(n%2 ? 1175 : 880, 0.2, 0.09); n++; plus_tard(sonne, 260); })();
   boutonsGage(); diffuser();
 }
+/* Ordre : 1) Je le fais / Je bois  2) roue du corps  3) tirage de la durée  4) lancer le minuteur  5) fini */
 function boutonsGage(){
   var a = $("gActions"); a.innerHTML = "";
   var gt = S.gt, gc = S.gc;
-  if(!S.fait && gc && !gc.vu){
-    if(gc.res || gc.tourne) return;
-    var tc = document.createElement("button"); tc.className = "plein"; tc.textContent = "Tourner la roue"; tc.setAttribute("data-primary",""); tc.onclick = function(){ choisir("corps"); };
-    a.appendChild(tc); try{ tc.focus({preventScroll:true}); }catch(e){}
-    return;
-  }
-  if(!S.fait && gt && !gt.duree){
-    if(gt.tirage) return;
-    var td = document.createElement("button"); td.className = "plein"; td.textContent = "Tirer la durée"; td.setAttribute("data-primary",""); td.onclick = function(){ choisir("duree"); };
-    a.appendChild(td); try{ td.focus({preventScroll:true}); }catch(e){}
-    return;
-  }
-  if(S.fait===true && gt){
-    var bt = document.createElement("button"); bt.className = "plein"; bt.setAttribute("data-primary","");
-    if(gt.fini){ bt.textContent = "Manche suivante"; bt.onclick = function(){ choisir("fait"); }; }
-    else { bt.textContent = gt.pause ? "Reprendre" : "Pause"; bt.onclick = function(){ choisir("pause"); }; }
-    a.appendChild(bt); try{ bt.focus({preventScroll:true}); }catch(e){}
-    return;
-  }
+  function bouton(txt, c, plein){ var b = document.createElement("button"); if(plein!==false){ b.className = "plein"; b.setAttribute("data-primary",""); } b.textContent = txt; b.onclick = function(){ choisir(c); }; a.appendChild(b); return b; }
   if(!S.fait){
-    var f = document.createElement("button"); f.className="plein"; f.textContent="Je le fais"; f.setAttribute("data-primary",""); f.onclick=function(){choisir("fais")};
-    var b = document.createElement("button"); b.textContent="Je bois"; b.onclick=function(){choisir("bois")};
-    a.appendChild(f); a.appendChild(b); try{f.focus({preventScroll:true})}catch(e){}
-  } else {
-    var ok = document.createElement("button"); ok.className="plein"; ok.textContent="C'est fait · manche suivante"; ok.setAttribute("data-primary","");
-    ok.onclick = function(){ S.st[S.perdant].fait++; S.tot[S.perdant].fait++; mancheSuivante(); };
-    a.appendChild(ok); try{ok.focus({preventScroll:true})}catch(e){}
+    var f = bouton("Je le fais", "fais"); bouton("Je bois", "bois", false);
+    try{ f.focus({preventScroll:true}); }catch(e){}
+    return;
   }
+  if(S.fait!==true) return;
+  var b = null;
+  if(gc && !gc.vu){ if(gc.res || gc.tourne) return; b = bouton("Tourner la roue", "corps"); }
+  else if(gt && !gt.duree){ if(gt.tirage) return; b = bouton("Tirer la durée", "duree"); }
+  else if(gt && !gt.lance){ b = bouton("Lancer le minuteur", "go"); }
+  else if(gt){ b = gt.fini ? bouton("Manche suivante", "fait") : bouton(gt.pause ? "Reprendre" : "Pause", "pause"); }
+  else b = bouton("C'est fait · manche suivante", "fait");
+  try{ b.focus({preventScroll:true}); }catch(e){}
 }
 function choisir(c){
   if(S.ecran!=="gage") return;
+  var gt = S.gt, gc = S.gc;
   if(c==="corps"){ tournerCorps(); return; }
   if(c==="duree"){ tirerDuree(); return; }
-  if((c==="fais" || c==="bois") && S.gc && !S.gc.vu) return;
   if(c==="pause"){ basculerPause(); return; }
-  if(c==="fais" && !S.fait){
-    if(S.gt && !S.gt.duree) return;
-    S.fait = true;
-    if(S.gt){ demarrerMinuteur(); bip(1320, 0.15, 0.07); }
-    boutonsGage(); diffuser();
+  if(c==="go"){
+    if(S.fait!==true || !gt || !gt.duree || gt.lance || (gc && !gc.vu)) return;
+    gt.lance = true; demarrerMinuteur(); bip(1320, 0.15, 0.07); boutonsGage(); diffuser(); return;
   }
+  if(c==="fais" && !S.fait){ S.fait = true; boutonsGage(); diffuser(); }
   else if(c==="bois" && !S.fait){
-    if(S.gt && !S.gt.duree) return;
     S.st[S.perdant].bois++; S.tot[S.perdant].bois++; verreSoiree(S.perdant); majHud();
     var a = $("gActions"); a.innerHTML = ""; a.appendChild(verreBu(S.perdant));
     S.fait = "bu"; diffuser();
     plus_tard(mancheSuivante, 1500);
-  } else if(c==="fait" && S.fait===true && (!S.gt || S.gt.fini)){
+  } else if(c==="fait" && S.fait===true && (!gc || gc.vu) && (!gt || gt.fini)){
     S.st[S.perdant].fait++; S.tot[S.perdant].fait++; mancheSuivante();
   }
 }
@@ -4108,7 +4097,7 @@ function etat(){
     qz = {n:U.n, texte:U.q.texte, opts:U.q.opts, phase:U.phase, rep:U.rep, bonne: U.phase==="revele" ? U.q.bonne : null, score:U.score, msg:U.msg||""};
   }
   var gt = null;
-  if(S.ecran==="gage" && S.gt){ var G = S.gt; gt = {dmin:G.dmin, dmax:G.dmax, duree:G.duree, tirage:G.tirage, pause:G.pause, fini:G.fini, reste: S.fait===true ? resteMinuteur(G) : 0}; }
+  if(S.ecran==="gage" && S.gt){ var G = S.gt; gt = {dmin:G.dmin, dmax:G.dmax, duree:G.duree, tirage:G.tirage, pause:G.pause, fini:G.fini, lance:!!G.lance, reste: G.lance ? resteMinuteur(G) : 0}; }
   var gc = (S.ecran==="gage" && S.gc) ? {type:S.gc.type, res:S.gc.res, tourne:S.gc.tourne, vu:S.gc.vu} : null;
   var qq = null;
   if(S.ecran==="qui" && U && U.id==="qui"){
@@ -4296,44 +4285,37 @@ function rendreManette(e){
     mMontrer("m-gage");
     $("mGageQui").textContent = "Gage pour "+(noms[e.perdant]||"");
     var box = $("mGageBtns"); box.className = "m-gage "+e.perdant;
-    var gt = e.gt;
-    if(gt && e.fait===true && !gt.fini){ mChrono.fin = Date.now() + (gt.reste||0); mChrono.pause = !!gt.pause; mChrono.reste = gt.reste||0; mChrono.total = (gt.duree||1)*1000; }
-    var gc = e.gc;
-    var cle = e.perdant+"|"+e.fait+"|"+e.manche+"|"+(gt ? [gt.duree, gt.tirage, gt.pause, gt.fini].join(",") : "")+"|"+(gc ? [gc.res, gc.tourne, gc.vu].join(",") : "");
+    var gt = e.gt, gc = e.gc, moi = e.perdant===COTE, qui = noms[e.perdant]||"L'autre";
+    if(gt && gt.lance && !gt.fini){ mChrono.fin = Date.now() + (gt.reste||0); mChrono.pause = !!gt.pause; mChrono.reste = gt.reste||0; mChrono.total = (gt.duree||1)*1000; }
+    var cle = e.perdant+"|"+e.fait+"|"+e.manche+"|"+(gt ? [gt.duree, gt.tirage, gt.pause, gt.fini, gt.lance].join(",") : "")+"|"+(gc ? [gc.res, gc.tourne, gc.vu].join(",") : "");
     if(box.getAttribute("data-k")!==cle){
       box.setAttribute("data-k",cle); box.innerHTML = "";
+      var btn = function(txt, c, plein){ var b = el("button", (plein===false ? "" : "plein ")+"m-gros", txt); b.onclick = function(){ envoyer("choix", c==="pause" ? {c:"pause"} : {c:c, side:COTE}); }; box.appendChild(b); return b; };
+      var info = function(txt){ box.appendChild(el("p","sub",txt)); };
       if(gc && gc.res && e.fait!=="bu"){ var rz = el("p","m-corps"); rz.appendChild(etiquetteCorps(gc)); box.appendChild(rz); }
-      if(gc && !gc.vu && e.fait===false){
-        if(e.perdant===COTE && !gc.res && !gc.tourne){
-          box.appendChild(el("p","sub","Roue du corps "+(CORPS[gc.type] ? CORPS[gc.type].nom : "")));
-          var trb = el("button","plein m-gros","Tourner la roue"); trb.onclick = function(){ envoyer("choix",{c:"corps",side:COTE}); }; box.appendChild(trb);
-        } else box.appendChild(el("p","sub", gc.res ? "Regarde la télé…" : gc.tourne ? "La roue tourne…" : (noms[e.perdant]||"L'autre")+" doit tourner la roue."));
-      } else if(gt && e.fait===true){
-        var mc = el("div","montre m-montre"); mc.id = "mChrono"; mc.style.color = "var(--"+(e.perdant==="b"?"bleu":"violet")+")"; box.appendChild(mc);
-        if(gt.fini) majMontre(mc, "ARRÊTEZ !", 1, "stop", "");
-        else majMontre(mc, fmtChrono(gt.reste||0), (gt.reste||0)/((gt.duree||1)*1000), gt.pause ? "pause" : "", gt.pause ? "pause" : "");
-        if(gt.fini){
-          if(e.perdant===COTE){ var nx = el("button","plein m-gros","Manche suivante"); nx.onclick = function(){ envoyer("choix",{c:"fait",side:COTE}); }; box.appendChild(nx); }
-        } else {
-          var pz = el("button","m-gros", gt.pause ? "Reprendre" : "Pause"); pz.onclick = function(){ envoyer("choix",{c:"pause"}); }; box.appendChild(pz);
-        }
+      if(gt && gt.duree && e.fait===true && !gt.lance) info("Durée : "+fmtDuree(gt.duree));
+      if(e.fait==="bu"){ box.appendChild(verreBu(e.perdant)); }
+      else if(e.fait===false){
+        if(gt && !gt.duree) info(gt.dmin===gt.dmax ? "⏱ Ce gage dure "+fmtDuree(gt.dmin) : "⏱ Ce gage durera entre "+fmtDuree(gt.dmin)+" et "+fmtDuree(gt.dmax)+", tiré au hasard");
+        if(gc && !gc.res) info("◎ La partie du corps sera tirée à la roue");
+        if(moi){ btn("Je le fais", "fais"); btn("Je bois", "bois", false); }
+        else info("C'est à "+qui+" de choisir : le faire ou boire.");
+      }
+      /* le gage est accepté : roue, durée, minuteur */
+      else if(gc && !gc.vu){
+        if(moi && !gc.res && !gc.tourne){ info("Roue du corps "+(CORPS[gc.type] ? CORPS[gc.type].nom : "")); btn("Tourner la roue", "corps"); }
+        else info(gc.res ? "Regarde la télé…" : gc.tourne ? "La roue tourne…" : qui+" doit tourner la roue.");
       } else if(gt && !gt.duree){
-        if(e.perdant===COTE && !gt.tirage){
-          box.appendChild(el("p","sub","Durée : "+fourchette(gt, " et ", "entre ")));
-          var tdb = el("button","plein m-gros","Tirer la durée"); tdb.onclick = function(){ envoyer("choix",{c:"duree",side:COTE}); }; box.appendChild(tdb);
-        } else box.appendChild(el("p","sub", gt.tirage ? "Tirage de la durée…" : (noms[e.perdant]||"L'autre")+" doit tirer la durée."));
-      } else if(e.perdant!==COTE){
-        box.appendChild(el("p","sub", (e.fait===false ? "C'est à "+(noms[e.perdant]||"l'autre")+" de choisir : le faire ou boire." : e.fait===true ? (noms[e.perdant]||"L'autre")+" fait son gage. Surveille bien !" : (noms[e.perdant]||"L'autre")+" a bu.")));
-      } else if(e.fait===false){
-        if(gt && gt.duree) box.appendChild(el("p","sub","Durée : "+fmtDuree(gt.duree)));
-        var f=document.createElement("button"); f.className="plein m-gros"; f.textContent="Je le fais"; f.onclick=function(){envoyer("choix",{c:"fais",side:COTE})};
-        var b=document.createElement("button"); b.className="m-gros"; b.textContent="Je bois"; b.onclick=function(){envoyer("choix",{c:"bois",side:COTE})};
-        box.appendChild(f); box.appendChild(b);
-      } else if(e.fait===true){
-        var ok=document.createElement("button"); ok.className="plein m-gros"; ok.textContent="C'est fait"; ok.onclick=function(){envoyer("choix",{c:"fait",side:COTE})};
-        box.appendChild(ok);
+        if(moi && !gt.tirage){ info("Durée : "+fourchette(gt, " et ", "entre ")); btn("Tirer la durée", "duree"); }
+        else info(gt.tirage ? "Tirage de la durée…" : qui+" doit tirer la durée.");
+      } else if(gt && !gt.lance){
+        if(moi) btn("Lancer le minuteur", "go"); else info(qui+" va lancer le minuteur.");
+      } else if(gt){
+        var mc = el("div","montre m-montre"); mc.id = "mChrono"; mc.style.color = "var(--"+(e.perdant==="b"?"bleu":"violet")+")"; box.appendChild(mc);
+        if(gt.fini){ majMontre(mc, "ARRÊTEZ !", 1, "stop", ""); if(moi) btn("Manche suivante", "fait"); }
+        else { majMontre(mc, fmtChrono(gt.reste||0), (gt.reste||0)/((gt.duree||1)*1000), gt.pause ? "pause" : "", gt.pause ? "pause" : ""); btn(gt.pause ? "Reprendre" : "Pause", "pause", false); }
       } else {
-        box.appendChild(verreBu(e.perdant));
+        if(moi) btn("C'est fait", "fait"); else info(qui+" fait son gage. Surveille bien !");
       }
     }
   } else if(e.ecran==="roulette" || e.ecran==="resultat" || e.ecran==="banque" || e.ecran==="persos" || e.ecran==="qui"){
@@ -4392,7 +4374,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "33";
+var VERSION_SITE = "34";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
