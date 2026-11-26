@@ -250,6 +250,26 @@ thead td{font-weight:600}
 .pads-duel{position:fixed;inset:0;display:grid;grid-template-columns:1fr 1.4fr 1fr}
 .pads-duel .feu span{font-size:34px;letter-spacing:.1em}
 .pads-duel .pad4 span{font-size:44px}
+/* Duel de mages */
+#mages{padding:0}
+#cvMages{width:100%;height:100%;display:block}
+#m-mages{position:fixed;inset:0;box-sizing:border-box;width:100%;grid-template-columns:minmax(0,1fr);display:grid;grid-template-rows:auto 1fr auto;gap:10px;padding:max(52px,env(safe-area-inset-top,0px)) 12px max(12px,env(safe-area-inset-bottom,0px))}
+.mg-haut{display:flex;flex-direction:column;gap:6px}
+.mg-info{margin:0;font-weight:700;font-size:15px;text-align:center}
+.mg-barre{height:14px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.mg-barre i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#46dc8c,#a6f0c6);transition:width .2s}
+.mg-barre.en{height:8px} .mg-barre.en i{width:0}
+.mg-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr 1fr;gap:10px;min-height:0}
+.mg-btn{border-radius:22px;border:3px solid var(--line);background:rgba(255,255,255,.04);color:var(--fg);font:800 30px var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;touch-action:none;user-select:none;-webkit-user-select:none}
+.mg-btn small{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;opacity:.7}
+.mg-btn.sort{font-size:34px}
+.mg-btn.ulti{font-size:18px}
+.mg-btn.ulti:disabled{opacity:.35}
+.mg-btn.appui{filter:brightness(1.8);transform:scale(.97)}
+.mg-fleches{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;height:24vh}
+.mg-fleches .pad[hidden]{display:none}
+.mg-fleches .pad{border-radius:22px;touch-action:none}
+.mg-fleches .pad span{font-size:52px}
 /* Tir à la corde */
 .arene{position:relative;width:min(92vw,1100px);height:clamp(90px,17vh,170px)}
 .arene .zone{position:absolute;top:0;bottom:0;width:18%;border-radius:18px;border:2px solid var(--c);background:color-mix(in srgb,var(--c) 12%,transparent);
@@ -556,6 +576,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
       <button class="plein mode" data-primary id="btnClassique">Mode classique<small>Parties de 10 manches · mini-jeux et gages</small></button>
       <button class="mode" disabled>Arcade<small>Bientôt</small></button>
       <button class="mode" id="btnTestCourse">Tester la course<small>Lance directement le mini circuit</small></button>
+      <button class="mode" id="btnTestMages">Tester Duel de mages<small>Combat feu / glace</small></button>
       <button class="mode" id="btnTestQui">Tester Qui est-ce ?<small>Lance directement le jeu des personnages</small></button>
       <button class="mode" id="btnTestQuiz">Tester le quiz<small>Lance directement le quiz culture G</small></button>
       <button class="mode" id="btnTestDuel">Tester le duel<small>Lance directement le duel de tanks</small></button>
@@ -624,6 +645,10 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
     <div class="qui-reps" id="quiRep"></div>
     <div class="qui-grille" id="quiGrille"></div>
     <div class="cotes"><span class="cb" id="quiB"></span><span class="cv" id="quiV"></span></div>
+  </section>
+
+  <section class="screen" id="mages" hidden>
+    <canvas id="cvMages"></canvas>
   </section>
 
   <section class="screen" id="duel" hidden>
@@ -796,6 +821,25 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
     <p class="eyebrow" id="mUnoInfo"></p>
     <div id="mUnoCorps" class="m-gage"></div>
   </section>
+  <section id="m-mages" hidden>
+    <div class="mg-haut">
+      <p class="mg-info" id="mMgInfo"></p>
+      <div class="mg-barre"><i id="mMgPv"></i></div>
+      <div class="mg-barre en"><i id="mMgEn"></i></div>
+    </div>
+    <div class="mg-actions">
+      <button class="mg-btn" data-a="saut"><small>sauter</small>▲</button>
+      <button class="mg-btn" data-a="bouclier"><small>parer</small>🛡</button>
+      <button class="mg-btn sort" id="mMgSort" data-a="sort"><small>Feu</small>SORT</button>
+      <button class="mg-btn ulti" id="mMgUlti" data-a="ulti" disabled>Ultime</button>
+    </div>
+    <div class="mg-fleches">
+      <button class="pad pad4 b" data-side="b" data-d="-1"><span>◀</span></button>
+      <button class="pad pad4 b" data-side="b" data-d="1"><span>▶</span></button>
+      <button class="pad pad4 v" data-side="v" data-d="-1"><span>◀</span></button>
+      <button class="pad pad4 v" data-side="v" data-d="1"><span>▶</span></button>
+    </div>
+  </section>
   <section id="m-duel" hidden>
     <div class="pads-duel">
       <button class="pad pad4 b" data-side="b" data-d="-1"><small>tourner</small><span>◀</span></button>
@@ -847,7 +891,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=27"></script>
+<script src="config.js?v=28"></script>
 <script>
 (function(){
 "use strict";
@@ -889,7 +933,8 @@ var JEUX = [
   {id:"corde",   type:"Force",   nom:"Tir à la corde"},
   {id:"duel",    type:"Combat",  nom:"Duel de tanks"},
   {id:"quiz",    type:"Culture", nom:"Quiz culture G"},
-  {id:"qui",     type:"Déduction", nom:"Qui est-ce ?"}
+  {id:"qui",     type:"Déduction", nom:"Qui est-ce ?"},
+  {id:"mages",   type:"Combat", nom:"Duel de mages"}
 ];
 var VALEURS = {11:"V",12:"D",13:"R",14:"A"};
 
@@ -1135,15 +1180,15 @@ var gen = 0;
 function plus_tard(fn,ms){var g=gen;setTimeout(function(){if(g===gen)fn()},ms)}
 
 /* ---------- Affichage TV ---------- */
-var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","libre","resultat","gage","fin","banque","persos"];
+var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","libre","resultat","gage","fin","banque","persos"];
 function montrer(id){
   gen++;
   S.ecran = id;
   ECRANS.forEach(function(e){$(e).hidden = e!==id});
-  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","libre","resultat","gage"].indexOf(id)<0;
+  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages","libre","resultat","gage"].indexOf(id)<0;
   if(id!=="gage") neon(null);
   $("btnQuitter").hidden = id==="accueil" || id==="banque" || id==="persos";
-  $("btnPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui"].indexOf(id)<0; $("btnPasser").classList.remove("confirme"); $("btnPasser").textContent = "Passer ce jeu";
+  $("btnPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages"].indexOf(id)<0; $("btnPasser").classList.remove("confirme"); $("btnPasser").textContent = "Passer ce jeu";
   annulerQuitter();
   majHud();
   var p = $(id).querySelector("[data-primary]:not([disabled])") || $(id).querySelector("input,button:not([disabled])");
@@ -1181,7 +1226,7 @@ function majHud(){
 }
 var hudPrec = {b:0, v:0};
 /* Passer un mini-jeu : on joue à un jeu libre dans la vraie vie et on désigne le gagnant */
-var ECRANS_JEUX = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui"];
+var ECRANS_JEUX = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages"];
 function passerJeu(){
   if(ECRANS_JEUX.indexOf(S.ecran)<0) return;
   S.jeu = null; touches = {}; DIRK = {b:0,v:0};
@@ -1266,6 +1311,10 @@ $("btnClassique").onclick = function(){
 };
 
 $("btnBanque").onclick = function(){ ouvrirBanque(); };
+$("btnTestMages").onclick = function(){
+  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
+  mages();
+};
 $("btnTestQui").onclick = function(){
   S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
   qui();
@@ -1383,7 +1432,7 @@ function atterrir(choix){
   (function flash(){ var on = c%2===0; ampoules(function(a){ a.classList.toggle("on", on); }); c++; if(c<10) plus_tard(flash, 140); })();
   plus_tard(function(){ demarrer(JEUX[choix].id); }, 2200);
 }
-function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else if(id==="corde") corde(); else if(id==="duel") duel(); else if(id==="quiz") quiz(); else if(id==="qui") qui(); else carteHaute(); }
+function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else if(id==="corde") corde(); else if(id==="duel") duel(); else if(id==="quiz") quiz(); else if(id==="qui") qui(); else if(id==="mages") mages(); else carteHaute(); }
 
 /* Mini-jeu 8 : quiz culture générale (premier à 2 bonnes réponses, jamais deux fois la même question) */
 var QUESTIONS = [["Quelle est la capitale de l'Australie ?", "Canberra", "Sydney", "Melbourne", "Perth"], ["Quel est le plus long fleuve de France ?", "La Loire", "La Seine", "Le Rhône", "La Garonne"], ["Quelle est la capitale du Canada ?", "Ottawa", "Toronto", "Montréal", "Vancouver"], ["Quel pays a la plus grande superficie au monde ?", "La Russie", "Le Canada", "La Chine", "Les États-Unis"], ["Quel est le plus haut sommet du monde ?", "L'Everest", "Le K2", "Le Kilimandjaro", "Le mont Blanc"], ["Dans quel pays se trouve Marrakech ?", "Le Maroc", "La Tunisie", "L'Algérie", "L'Égypte"], ["Quelle est la capitale du Japon ?", "Tokyo", "Kyoto", "Osaka", "Yokohama"], ["Quel est le plus grand océan du monde ?", "Le Pacifique", "L'Atlantique", "L'océan Indien", "L'Arctique"], ["Quelle mer borde la ville de Marseille ?", "La Méditerranée", "La Manche", "La mer du Nord", "La mer Noire"], ["Quel est le plus grand désert chaud du monde ?", "Le Sahara", "Le Gobi", "Le Kalahari", "L'Atacama"], ["Quelle est la capitale de l'Espagne ?", "Madrid", "Barcelone", "Séville", "Valence"], ["Quelle est la capitale de l'Italie ?", "Rome", "Milan", "Naples", "Florence"], ["Dans quelle ville se trouve la statue du Christ Rédempteur ?", "Rio de Janeiro", "São Paulo", "Buenos Aires", "Lisbonne"], ["Quel pays a pour capitale Lisbonne ?", "Le Portugal", "L'Espagne", "Le Brésil", "L'Italie"], ["Quelle est la monnaie du Royaume-Uni ?", "La livre sterling", "L'euro", "Le dollar", "Le franc"], ["Quelle est la monnaie du Maroc ?", "Le dirham", "Le dinar", "Le riyal", "La livre"], ["Combien d'États compte les États-Unis ?", "50", "48", "51", "52"], ["Quel est le plus petit pays du monde ?", "Le Vatican", "Monaco", "Saint-Marin", "Le Liechtenstein"], ["Quelle est la capitale de l'Égypte ?", "Le Caire", "Alexandrie", "Louxor", "Gizeh"], ["Quel fleuve traverse Paris ?", "La Seine", "La Loire", "La Marne", "Le Rhin"], ["Quelle chaîne de montagnes sépare la France de l'Espagne ?", "Les Pyrénées", "Les Alpes", "Le Jura", "Les Vosges"], ["Quel est le plus long fleuve d'Afrique ?", "Le Nil", "Le Congo", "Le Niger", "Le Zambèze"], ["Quelle est la capitale de l'Allemagne ?", "Berlin", "Munich", "Francfort", "Hambourg"], ["Quelle ville est surnommée « la Grosse Pomme » ?", "New York", "Los Angeles", "Chicago", "San Francisco"], ["Dans quel pays se trouve le Machu Picchu ?", "Le Pérou", "Le Mexique", "La Bolivie", "Le Chili"], ["En quelle année a eu lieu la prise de la Bastille ?", "1789", "1792", "1776", "1815"], ["Qui a été le premier empereur des Français ?", "Napoléon Ier", "Louis XIV", "Charlemagne", "Napoléon III"], ["En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?", "1969", "1965", "1972", "1959"], ["Qui a été le premier homme à marcher sur la Lune ?", "Neil Armstrong", "Buzz Aldrin", "Youri Gagarine", "Michael Collins"], ["En quelle année a commencé la Première Guerre mondiale ?", "1914", "1918", "1912", "1939"], ["En quelle année s'est terminée la Seconde Guerre mondiale ?", "1945", "1944", "1946", "1939"], ["En quelle année le mur de Berlin est-il tombé ?", "1989", "1991", "1985", "1975"], ["Quel roi de France était surnommé le Roi-Soleil ?", "Louis XIV", "Louis XVI", "Louis XIII", "François Ier"], ["Quelle civilisation a construit les pyramides de Gizeh ?", "Les Égyptiens", "Les Romains", "Les Mayas", "Les Grecs"], ["Qui a atteint l'Amérique en 1492 ?", "Christophe Colomb", "Vasco de Gama", "Magellan", "Amerigo Vespucci"], ["Quelle reine de France a été guillotinée en 1793 ?", "Marie-Antoinette", "Catherine de Médicis", "Anne d'Autriche", "Marie de Médicis"], ["Quel paquebot a coulé en 1912 après avoir heurté un iceberg ?", "Le Titanic", "Le Lusitania", "Le Britannic", "Le Queen Mary"], ["Dans quelle ville Jules César a-t-il été assassiné ?", "Rome", "Athènes", "Alexandrie", "Carthage"], ["En quelle année le Maroc a-t-il obtenu son indépendance ?", "1956", "1962", "1945", "1960"], ["Quel pays a offert la statue de la Liberté aux États-Unis ?", "La France", "Le Royaume-Uni", "L'Espagne", "L'Italie"], ["Quelle guerre a opposé le Nord et le Sud des États-Unis ?", "La guerre de Sécession", "La guerre d'Indépendance", "La guerre de Cent Ans", "La guerre froide"], ["Qui a été le premier président de la Ve République ?", "Charles de Gaulle", "Georges Pompidou", "François Mitterrand", "Vincent Auriol"], ["Quel est le symbole chimique de l'or ?", "Au", "Or", "Ag", "Fe"], ["Quelle planète est la plus proche du Soleil ?", "Mercure", "Vénus", "Mars", "La Terre"], ["Quelle est la plus grande planète du système solaire ?", "Jupiter", "Saturne", "Neptune", "Uranus"], ["Combien d'os compte le squelette d'un adulte ?", "206", "186", "226", "250"], ["Quel gaz les plantes absorbent-elles pour la photosynthèse ?", "Le dioxyde de carbone", "L'oxygène", "L'azote", "L'hélium"], ["À quelle température l'eau bout-elle au niveau de la mer ?", "100 °C", "90 °C", "120 °C", "80 °C"], ["Quelle est la formule chimique de l'eau ?", "H₂O", "CO₂", "O₂", "H₂O₂"], ["Quelle planète est surnommée la planète rouge ?", "Mars", "Jupiter", "Vénus", "Saturne"], ["Combien de cœurs a une pieuvre ?", "3", "1", "2", "4"], ["Quel est le plus grand organe du corps humain ?", "La peau", "Le foie", "Les poumons", "L'intestin"], ["Qui a formulé la théorie de la relativité ?", "Albert Einstein", "Isaac Newton", "Galilée", "Niels Bohr"], ["Quel est le symbole chimique du fer ?", "Fe", "Fr", "Ir", "F"], ["Combien de pattes a une araignée ?", "8", "6", "10", "12"], ["Quel est l'animal terrestre le plus rapide ?", "Le guépard", "Le lion", "L'antilope", "Le lévrier"], ["Quel est le plus grand animal du monde ?", "La baleine bleue", "L'éléphant d'Afrique", "Le cachalot", "La girafe"], ["Combien de chromosomes possède une cellule humaine ordinaire ?", "46", "23", "44", "48"], ["Quelle est la vitesse approximative de la lumière dans le vide ?", "300 000 km/s", "30 000 km/s", "3 000 km/s", "3 millions de km/s"], ["Qui a découvert la pénicilline ?", "Alexander Fleming", "Louis Pasteur", "Marie Curie", "Robert Koch"], ["Qui a reçu un prix Nobel de physique et un prix Nobel de chimie ?", "Marie Curie", "Albert Einstein", "Louis Pasteur", "Niels Bohr"], ["Quel métal est liquide à température ambiante ?", "Le mercure", "Le plomb", "L'aluminium", "Le zinc"], ["Combien de temps met environ la lumière du Soleil pour atteindre la Terre ?", "8 minutes", "8 secondes", "1 heure", "1 seconde"], ["Quel est le plus grand oiseau vivant ?", "L'autruche", "L'émeu", "Le condor", "L'albatros"], ["Qui a peint la Joconde ?", "Léonard de Vinci", "Michel-Ange", "Raphaël", "Botticelli"], ["Qui a écrit « Les Misérables » ?", "Victor Hugo", "Émile Zola", "Gustave Flaubert", "Alexandre Dumas"], ["Qui a écrit « Le Petit Prince » ?", "Antoine de Saint-Exupéry", "Jules Verne", "Albert Camus", "Marcel Pagnol"], ["Dans quel musée est exposée la Joconde ?", "Le Louvre", "Le musée d'Orsay", "Le Prado", "Le British Museum"], ["Qui a peint « La Nuit étoilée » ?", "Vincent van Gogh", "Claude Monet", "Paul Cézanne", "Pablo Picasso"], ["Qui a écrit « Roméo et Juliette » ?", "William Shakespeare", "Molière", "Victor Hugo", "Charles Dickens"], ["Quel écrivain a créé le détective Sherlock Holmes ?", "Arthur Conan Doyle", "Agatha Christie", "Edgar Allan Poe", "Georges Simenon"], ["Qui a écrit « Vingt mille lieues sous les mers » ?", "Jules Verne", "Alexandre Dumas", "H. G. Wells", "Victor Hugo"], ["Qui a composé « La Flûte enchantée » ?", "Mozart", "Beethoven", "Bach", "Verdi"], ["Qui a peint le plafond de la chapelle Sixtine ?", "Michel-Ange", "Léonard de Vinci", "Raphaël", "Le Caravage"], ["Qui a écrit « Les Trois Mousquetaires » ?", "Alexandre Dumas", "Victor Hugo", "Honoré de Balzac", "Stendhal"], ["Qui a écrit « L'Étranger » ?", "Albert Camus", "Jean-Paul Sartre", "André Gide", "Marcel Proust"], ["Quel peintre est célèbre pour ses « Nymphéas » ?", "Claude Monet", "Édouard Manet", "Auguste Renoir", "Edgar Degas"], ["Qui est l'autrice de la saga « Harry Potter » ?", "J. K. Rowling", "J. R. R. Tolkien", "C. S. Lewis", "Stephen King"], ["Qui a écrit « Le Seigneur des anneaux » ?", "J. R. R. Tolkien", "C. S. Lewis", "George R. R. Martin", "J. K. Rowling"], ["Qui a peint « Guernica » ?", "Pablo Picasso", "Salvador Dalí", "Joan Miró", "Francisco Goya"], ["Combien de joueurs compte une équipe de football sur le terrain ?", "11", "10", "12", "9"], ["Tous les combien d'années ont lieu les Jeux olympiques d'été ?", "4 ans", "2 ans", "3 ans", "5 ans"], ["Quel pays a remporté la Coupe du monde de football 2018 ?", "La France", "La Croatie", "L'Allemagne", "Le Brésil"], ["Quel pays a remporté le plus de Coupes du monde de football ?", "Le Brésil", "L'Allemagne", "L'Italie", "L'Argentine"], ["Dans quel sport utilise-t-on un volant ?", "Le badminton", "Le tennis", "Le squash", "Le ping-pong"], ["Quelle est la distance officielle d'un marathon ?", "42,195 km", "40 km", "21,1 km", "50 km"], ["Combien de joueurs compte une équipe de basket sur le terrain ?", "5", "6", "7", "4"], ["Quel tournoi de tennis se joue sur terre battue à Paris ?", "Roland-Garros", "Wimbledon", "L'US Open", "L'Open d'Australie"], ["Quelle ville a accueilli les Jeux olympiques d'été de 2024 ?", "Paris", "Los Angeles", "Tokyo", "Londres"], ["Combien de points vaut un essai au rugby à XV, sans la transformation ?", "5", "3", "4", "7"], ["Quel pays a accueilli la Coupe du monde de football 2022 ?", "Le Qatar", "La Russie", "Le Brésil", "L'Afrique du Sud"], ["Combien de joueurs compte une équipe de volley-ball sur le terrain ?", "6", "5", "7", "4"], ["Combien de couleurs compte traditionnellement un arc-en-ciel ?", "7", "6", "5", "8"], ["Combien de jours compte une année bissextile ?", "366", "365", "364", "367"], ["Quel instrument possède généralement 88 touches ?", "Le piano", "L'orgue", "L'accordéon", "Le synthétiseur"], ["Quelle langue compte le plus de locuteurs natifs au monde ?", "Le mandarin", "L'anglais", "L'espagnol", "L'hindi"], ["Combien de cartes compte un jeu classique, sans les jokers ?", "52", "54", "48", "32"], ["Quel animal est le symbole du WWF ?", "Le panda", "Le koala", "Le tigre", "L'ours polaire"], ["Quel est l'ingrédient principal du guacamole ?", "L'avocat", "La tomate", "Le concombre", "Le poivron"], ["De quel pays la pizza Margherita est-elle originaire ?", "L'Italie", "La Grèce", "L'Espagne", "La France"], ["Combien de côtés a un hexagone ?", "6", "5", "7", "8"], ["Combien font 7 × 8 ?", "56", "54", "64", "48"], ["Combien de minutes compte une journée ?", "1 440", "1 200", "2 400", "1 040"], ["Quel film d'animation raconte l'histoire du poisson-clown Nemo ?", "Le Monde de Nemo", "Le Roi lion", "Toy Story", "Shrek"], ["Quel groupe britannique a chanté « Hey Jude » ?", "Les Beatles", "Les Rolling Stones", "Queen", "The Who"], ["Quel chanteur est surnommé « le roi de la pop » ?", "Michael Jackson", "Elvis Presley", "Prince", "Freddie Mercury"], ["Quel chanteur est surnommé « le King » du rock'n'roll ?", "Elvis Presley", "Michael Jackson", "Chuck Berry", "Johnny Hallyday"], ["Dans quelle ville se trouve le Colisée ?", "Rome", "Athènes", "Naples", "Milan"], ["Dans quelle ville se trouve la Sagrada Família ?", "Barcelone", "Madrid", "Lisbonne", "Séville"], ["Quel monument a été construit pour l'Exposition universelle de Paris en 1889 ?", "La tour Eiffel", "L'Arc de triomphe", "Le Sacré-Cœur", "Le Grand Palais"], ["Quelle est la langue officielle du Brésil ?", "Le portugais", "L'espagnol", "Le brésilien", "Le français"], ["Combien de secondes compte une heure ?", "3 600", "360", "6 000", "1 800"], ["De quel pays les sushis sont-ils originaires ?", "Le Japon", "La Chine", "La Corée du Sud", "La Thaïlande"], ["Quelle fête célèbre-t-on le 25 décembre ?", "Noël", "Pâques", "La Toussaint", "Le Nouvel An"], ["Quel plat marocain est cuit dans un plat en terre au couvercle conique ?", "Le tajine", "Le couscous", "La pastilla", "La harira"], ["Quelle est la nourriture principale du panda géant ?", "Le bambou", "L'eucalyptus", "Le riz", "Les fruits"], ["Quel insecte fabrique le miel que l'on mange ?", "L'abeille", "La guêpe", "La fourmi", "Le papillon"], ["Aux échecs, quelle pièce ne se déplace qu'en diagonale ?", "Le fou", "La tour", "Le cavalier", "Le roi"], ["Dans quel pays le papier a-t-il été inventé ?", "La Chine", "L'Égypte", "L'Inde", "La Grèce"], ["Quelle est la capitale de la Belgique ?", "Bruxelles", "Anvers", "Liège", "Bruges"], ["Quelle est la capitale de la Suisse ?", "Berne", "Zurich", "Genève", "Lausanne"], ["Quelle est la capitale de la Turquie ?", "Ankara", "Istanbul", "Izmir", "Antalya"], ["Quelle est la capitale du Brésil ?", "Brasília", "Rio de Janeiro", "São Paulo", "Salvador"], ["Quelle est la capitale de la Russie ?", "Moscou", "Saint-Pétersbourg", "Novossibirsk", "Kazan"], ["Quel est le symbole chimique de l'oxygène ?", "O", "Ox", "Om", "Og"], ["Quel animal est célèbre pour changer de couleur ?", "Le caméléon", "Le crocodile", "L'iguane", "La tortue"], ["Combien de dents compte en général un adulte, dents de sagesse comprises ?", "32", "28", "30", "36"], ["Quel est l'os le plus long du corps humain ?", "Le fémur", "Le tibia", "L'humérus", "Le péroné"], ["Quelle ville est la capitale du Maroc ?", "Rabat", "Casablanca", "Marrakech", "Fès"], ["Quel détroit sépare le Maroc de l'Espagne ?", "Le détroit de Gibraltar", "Le Bosphore", "Le détroit de Magellan", "Le détroit d'Ormuz"]];
@@ -2024,6 +2073,371 @@ function majActionsQui(z, noms){
 $("mQuiVoir").onclick = function(){ MQ.grille = !MQ.grille; if(MQ.dernier) majGrilleManette(MQ.dernier); if(MQ.grille) try{ $("mQuiPanneau").scrollIntoView({behavior:"smooth"}); }catch(e){} };
 $("mQuiFermer").onclick = function(){ MQ.grille = false; MQ.accuse = false; MQ.choix = null; if(MQ.dernier){ majGrilleManette(MQ.dernier); majActionsQui(MQ.dernier, MQ.noms||{}); } };
 $("mQuiAccuser").onclick = function(){ MQ.accuse = !MQ.accuse; MQ.choix = null; if(MQ.dernier){ majGrilleManette(MQ.dernier); majActionsQui(MQ.dernier, MQ.noms||{}); } };
+
+
+/* ================= Mini-jeu 10 : Duel de mages =================
+   Combat de profil, 2 rounds gagnants. À chaque round, chaque mage reçoit un élément au hasard.
+   Pour ajouter un élément : une nouvelle entrée dans ELEMENTS (couleurs, sort, effet, ultime),
+   puis ses réactions dans REACTIONS. Le tirage l'inclut automatiquement. */
+var ELEMENTS = {
+  feu:   {nom:"Feu",   emoji:"🔥", col:"#ff6a2b", col2:"#ffd166", vit:640, deg:11, cd:0.55, rayon:13, effet:"brule", ulti:"meteores", ultiNom:"Pluie de météores"},
+  glace: {nom:"Glace", emoji:"❄️", col:"#6fd8ff", col2:"#e8fbff", vit:540, deg:8,  cd:0.45, rayon:11, effet:"ralenti", ulti:"blizzard", ultiNom:"Blizzard"}
+};
+/* Réaction quand un sort de l'élément A touche une cible sous l'effet B */
+var REACTIONS = {
+  "feu>gele":    function(c, deg){ c.eff.gele = 0; c.eff.stacks = 0; texteFlottant(c, "FONTE ! ×1,5", "#ffd166"); return deg*1.5; },
+  "glace>brule": function(c, deg){ c.eff.brule = 0; texteFlottant(c, "ÉTEINT", "#e8fbff"); return deg; }
+};
+var EFFETS = {
+  brule:   function(c){ c.eff.brule = 3; },
+  ralenti: function(c){ c.eff.ralenti = 2; c.eff.stacks = (c.eff.stacks||0)+1; if(c.eff.stacks>=3){ c.eff.stacks = 0; c.eff.gele = 1.5; texteFlottant(c, "GELÉ !", "#6fd8ff"); bip(1900, 0.2, 0.06); } }
+};
+var MG = {SOL:500, PV:100, DUREE:60, VIT:270, SAUT:680, GRAV:1700, BOUCLIER:0.8, CD_BOUCLIER:2.2, GAIN_EN_COUP:14, GAIN_EN_SUBI:6};
+var MG_TOUCHES = {q:["b","g"], a:["b","g"], d:["b","d"], z:["b","saut"], w:["b","saut"], s:["b","sort"], e:["b","bouclier"], r:["b","ulti"],
+  arrowleft:["v","g"], arrowright:["v","d"], arrowup:["v","saut"], arrowdown:["v","sort"], l:["v","sort"], k:["v","bouclier"], m:["v","ulti"]};
+function nouveauMage(s){
+  return {s:s, x:s==="b" ? 230 : 770, y:MG.SOL, vx:0, vy:0, face:s==="b" ? 1 : -1, pv:MG.PV, en:0, cd:0, bouclier:0, cdB:0, touche:0, coups:0,
+    eff:{brule:0, ralenti:0, gele:0, stacks:0}, el:"feu", anim:0};
+}
+function mages(){
+  touches = {}; DIRK = {b:0,v:0};
+  S.jeu = {id:"mages", phase:"tirage", round:1, wins:{b:0,v:0}, msg:"", sous:"", sorts:[], parts:[], textes:[], meteores:[], neige:0,
+    m:{b:nouveauMage("b"), v:nouveauMage("v")}, t0:0, reste:MG.DUREE, coups:{b:0,v:0}};
+  montrer("mages");
+  var cv = $("cvMages"), ctx = cv.getContext("2d"), r = Math.min(window.devicePixelRatio||1, 1.5);
+  cv.width = Math.max(300, cv.clientWidth*r); cv.height = Math.max(200, cv.clientHeight*r);
+  var g0 = gen, last = null;
+  nouveauRound();
+  function boucle(now){
+    if(g0!==gen) return;
+    var dt = last===null ? 0 : Math.min(0.05, (now-last)/1000); last = now;
+    majMages(dt, now);
+    dessinerMages(ctx, cv, now);
+    requestAnimationFrame(boucle);
+  }
+  requestAnimationFrame(boucle);
+}
+function nouveauRound(){
+  var J = S.jeu, cles = Object.keys(ELEMENTS);
+  J.m = {b:nouveauMage("b"), v:nouveauMage("v")};
+  J.m.b.el = cles[rnd(cles.length)]; J.m.v.el = cles[rnd(cles.length)];
+  J.sorts = []; J.meteores = []; J.textes = []; J.neige = 0; J.reste = MG.DUREE;
+  J.phase = "tirage"; J.msg = "Round "+J.round; J.sous = ""; J.tirageT = 0;
+  diffuser();
+}
+function majMages(dt, now){
+  var J = S.jeu; if(!J || J.id!=="mages") return;
+  majParticules(dt);
+  J.textes = J.textes.filter(function(t){ t.vie -= dt; t.y -= 40*dt; return t.vie>0; });
+  if(J.phase==="tirage"){
+    J.tirageT += dt;
+    var cles = Object.keys(ELEMENTS);
+    if(J.tirageT<1.6){ if(Math.floor(J.tirageT*12)!==Math.floor((J.tirageT-dt)*12)){ J.affB = cles[rnd(cles.length)]; J.affV = cles[rnd(cles.length)]; bip(900, 0.03, 0.04); } }
+    else { if(J.affB!==J.m.b.el || J.affV!==J.m.v.el){ J.affB = J.m.b.el; J.affV = J.m.v.el; bip(1320, 0.18, 0.07); } }
+    J.sous = "";
+    if(J.tirageT>3.2){ J.phase = "decompte"; J.dec = 0; J.dernierDec = null; }
+    return;
+  }
+  if(J.phase==="decompte"){
+    J.dec += dt;
+    var m = J.dec<2.4 ? String(3-Math.floor(J.dec/0.8)) : "COMBAT !";
+    if(m!==J.dernierDec){ J.dernierDec = m; J.msg = m; bip(m==="COMBAT !" ? 1320 : 660, 0.16, 0.07); }
+    if(J.dec>=2.4){ J.phase = "combat"; J.t0 = now; diffuser(); }
+    physMages(dt*0.0); return;
+  }
+  if(J.phase==="combat"){
+    if(J.dec<3.4){ J.dec += dt; if(J.dec>=3.4) J.msg = ""; }
+    physMages(dt);
+    J.reste = Math.max(0, MG.DUREE - (now-J.t0)/1000);
+    var b = J.m.b, v = J.m.v, gagnant = null, detail = "";
+    if(b.pv<=0 || v.pv<=0){
+      if(b.pv<=0 && v.pv<=0){ finRound(null, "Double K.O. !"); return; }
+      gagnant = b.pv<=0 ? "v" : "b"; finRound(gagnant, "K.O. !");
+    } else if(J.reste<=0){
+      if(Math.round(b.pv)===Math.round(v.pv)) finRound(null, "Temps écoulé, égalité !");
+      else finRound(b.pv>v.pv ? "b" : "v", "Temps écoulé !");
+    }
+    return;
+  }
+  if(J.phase==="pause") physMages(dt*0.25);
+}
+function finRound(g, txt){
+  var J = S.jeu; J.phase = "pause"; J.sorts = []; J.meteores = []; J.msgUlti = null; J.neige = 0;
+  J.msg = txt; J.sous = g ? S.noms[g]+" remporte le round" : "Round à rejouer";
+  if(g){ J.wins[g]++; plus_tard(function(){ bip(880,0.15,0.07); plus_tard(function(){ bip(1320,0.3,0.07); },150); }, 300); }
+  diffuser();
+  plus_tard(function(){
+    if(g && J.wins[g]>=2){
+      J.msg = S.noms[g]+" gagne le duel !"; J.sous = J.wins.b+" – "+J.wins.v; diffuser();
+      plus_tard(function(){ finManche(autre(g), S.noms[g]+" a battu "+S.noms[autre(g)]+" en duel de mages ("+Math.max(J.wins.b,J.wins.v)+"-"+Math.min(J.wins.b,J.wins.v)+")"); }, 2600);
+    } else { if(g) J.round++; nouveauRound(); }
+  }, 2600);
+}
+function actionMage(s, a){
+  var J = S.jeu; if(!J || J.id!=="mages" || J.phase!=="combat") return;
+  var c = J.m[s]; if(!c || c.pv<=0 || c.eff.gele>0) return;
+  var E = ELEMENTS[c.el];
+  if(a==="saut"){ if(c.y>=MG.SOL-0.5){ c.vy = -MG.SAUT*(c.eff.ralenti>0 ? 0.8 : 1); bip(500, 0.05, 0.03); } }
+  else if(a==="sort"){
+    if(c.cd>0 || c.bouclier>0) return;
+    c.cd = E.cd*(c.eff.ralenti>0 ? 1.4 : 1); c.anim = 0.25;
+    J.sorts.push({s:s, el:c.el, x:c.x+c.face*46, y:c.y-72, vx:c.face*E.vit, vie:2.2, r:E.rayon, t:0});
+    bip(c.el==="feu" ? 300 : 1500, 0.06, 0.05);
+  }
+  else if(a==="bouclier"){ if(c.cdB>0) return; c.bouclier = MG.BOUCLIER; c.cdB = MG.CD_BOUCLIER; bip(700, 0.08, 0.04); diffuser(); }
+  else if(a==="ulti"){ if(c.en<100) return; c.en = 0; lancerUlti(s); diffuser(); }
+}
+function lancerUlti(s){
+  var J = S.jeu, c = J.m[s], cible = J.m[autre(s)], E = ELEMENTS[c.el];
+  texteFlottant(c, E.ultiNom.toUpperCase()+" !", E.col2);
+  J.msgUlti = {txt:E.emoji+" "+E.ultiNom, col:E.col, vie:1.6};
+  if(E.ulti==="meteores"){
+    for(var i=0;i<9;i++) J.meteores.push({s:s, el:c.el, x:cible.x + (Math.random()-0.5)*360, y:-60 - i*70, vy:520+Math.random()*160, vx:(Math.random()-0.5)*60});
+    bip(180, 0.6, 0.08);
+  } else if(E.ulti==="blizzard"){
+    J.neige = 2.2;
+    if(cible.bouclier>0){ texteFlottant(cible, "BLOQUÉ", "#ffffff"); }
+    else { cible.eff.gele = 2; cible.eff.stacks = 0; cible.eff.brule = 0; blesser(cible, 12, s); }
+    bip(2200, 0.5, 0.06);
+  }
+}
+function texteFlottant(c, txt, col){ S.jeu.textes.push({x:c.x, y:c.y-150, txt:txt, col:col, vie:1.2}); }
+function blesser(c, deg, de){
+  var J = S.jeu; if(c.pv<=0) return;
+  c.pv = Math.max(0, c.pv - deg); c.touche = 0.25; J.coups[c.s] = (J.coups[c.s]||0)+1;
+  c.en = Math.min(100, c.en + MG.GAIN_EN_SUBI);
+  if(de){ var a = J.m[de]; a.en = Math.min(100, a.en + MG.GAIN_EN_COUP); }
+  eclats(c.x, c.y-60, ELEMENTS[de ? J.m[de].el : c.el].col, 14, 220);
+  bip(220, 0.12, 0.08);
+  if(c.pv<=0){ eclats(c.x, c.y-60, "#ffffff", 60, 380); boum(); }
+  diffuser();
+}
+function toucherMage(c, sort){
+  if(c.bouclier>0){ eclats(sort.x, sort.y, "#ffffff", 10, 160); texteFlottant(c, "BLOQUÉ", "#ffffff"); bip(1200, 0.06, 0.05); return; }
+  var E = ELEMENTS[sort.el], deg = E.deg;
+  ["gele","brule"].forEach(function(etat){ var f = REACTIONS[sort.el+">"+etat]; if(f && c.eff[etat]>0) deg = f(c, deg); });
+  blesser(c, deg, sort.s);
+  if(c.pv>0 && EFFETS[E.effet]) EFFETS[E.effet](c);
+}
+function physMages(dt){
+  var J = S.jeu; if(dt<=0) return;
+  ["b","v"].forEach(function(s){
+    var c = J.m[s], o = J.m[autre(s)];
+    c.cd = Math.max(0, c.cd-dt); c.cdB = Math.max(0, c.cdB-dt); c.bouclier = Math.max(0, c.bouclier-dt);
+    c.touche = Math.max(0, c.touche-dt); c.anim = Math.max(0, c.anim-dt);
+    ["ralenti","gele"].forEach(function(k){ c.eff[k] = Math.max(0, c.eff[k]-dt); });
+    if(c.eff.ralenti<=0) c.eff.stacks = 0;
+    if(c.eff.brule>0){ c.eff.brule = Math.max(0, c.eff.brule-dt); if(c.pv>0){ c.pv = Math.max(0, c.pv - 2.2*dt); if(Math.random()<dt*14) J.parts.push({x:c.x+(Math.random()-0.5)*40, y:c.y-Math.random()*100, vx:0, vy:-60, vie:0.5, max:0.5, t:4, col:Math.random()<.5 ? "#ff6a2b" : "#ffd166"}); } }
+    var dir = c.pv>0 && c.eff.gele<=0 && J.phase==="combat" ? Math.max(-1, Math.min(1, DIRK[s]+DIRM[s])) : 0;
+    c.vx = dir*MG.VIT*(c.eff.ralenti>0 ? 0.5 : 1);
+    c.x = Math.max(40, Math.min(960, c.x + c.vx*dt));
+    c.vy += MG.GRAV*dt; c.y += c.vy*dt;
+    if(c.y>=MG.SOL){ c.y = MG.SOL; c.vy = 0; }
+    if(c.pv>0) c.face = o.x>=c.x ? 1 : -1;
+  });
+  /* Sorts : déplacement, collisions entre sorts, touches */
+  J.sorts.forEach(function(p){
+    p.x += p.vx*dt; p.vie -= dt; p.t += dt;
+    if(Math.random()<dt*40) J.parts.push({x:p.x, y:p.y+(Math.random()-0.5)*p.r, vx:-p.vx*0.05, vy:(Math.random()-0.5)*40, vie:0.35, max:0.35, t:3+Math.random()*3, col:Math.random()<.5 ? ELEMENTS[p.el].col : ELEMENTS[p.el].col2});
+    if(p.vie<=0 || p.x<-30 || p.x>1030) p.mort = true;
+  });
+  J.sorts.forEach(function(p){
+    if(p.mort) return;
+    J.sorts.forEach(function(q){
+      if(p.mort || q.mort || q===p || q.s===p.s) return;
+      if(Math.abs(q.x-p.x)<p.r+q.r && Math.abs(q.y-p.y)<p.r+q.r){
+        var vap = p.el!==q.el;
+        eclats((p.x+q.x)/2, p.y, vap ? "#dfe9f2" : ELEMENTS[p.el].col, vap ? 30 : 16, vap ? 140 : 200);
+        if(vap) texteFlottant({x:(p.x+q.x)/2, y:p.y+80}, "VAPEUR", "#dfe9f2");
+        bip(vap ? 400 : 800, 0.1, 0.05);
+        p.mort = q.mort = true;
+      }
+    });
+    if(p.mort) return;
+    var c = J.m[autre(p.s)];
+    if(c.pv>0 && Math.abs(p.x-c.x)<34+p.r && p.y>c.y-128 && p.y<c.y+4){ toucherMage(c, p); p.mort = true; }
+  });
+  J.sorts = J.sorts.filter(function(p){ return !p.mort; });
+  /* Météores */
+  for(var j=J.meteores.length-1;j>=0;j--){
+    var me = J.meteores[j]; me.y += me.vy*dt; me.x += me.vx*dt;
+    if(me.y>0 && Math.random()<dt*50) J.parts.push({x:me.x, y:me.y, vx:(Math.random()-0.5)*30, vy:-40, vie:0.4, max:0.4, t:4+Math.random()*4, col:Math.random()<.5 ? "#ff6a2b" : "#ffd166"});
+    var ci = J.m[autre(me.s)];
+    if(ci.pv>0 && Math.abs(me.x-ci.x)<44 && me.y>ci.y-130 && me.y<ci.y){ toucherMage(ci, {s:me.s, el:me.el, x:me.x, y:me.y}); J.meteores.splice(j,1); continue; }
+    if(me.y>=MG.SOL){ eclats(me.x, MG.SOL, "#ff6a2b", 12, 200); bip(160, 0.08, 0.05); J.meteores.splice(j,1); }
+  }
+  if(J.neige>0) J.neige = Math.max(0, J.neige-dt);
+  if(J.msgUlti){ J.msgUlti.vie -= dt; if(J.msgUlti.vie<=0) J.msgUlti = null; }
+}
+/* ---------- Dessin ---------- */
+function dessinerMage(ctx, c, now, col){
+  var E = ELEMENTS[c.el], t = now/1000, bob = c.y<MG.SOL-1 ? 0 : Math.sin(t*3 + (c.s==="b"?0:1.5))*3;
+  if(c.pv<=0){ ctx.globalAlpha = 0.35; }
+  ctx.save(); ctx.translate(c.x, c.y); ctx.scale(c.face, 1);
+  /* ombre */
+  ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.beginPath(); ctx.ellipse(0, 4 + (MG.SOL-c.y)*0, 38*(1-(MG.SOL-c.y)/500), 7, 0, 0, Math.PI*2); ctx.fill();
+  ctx.translate(0, bob);
+  if(c.touche>0) ctx.translate((Math.random()-0.5)*6, 0);
+  /* cape */
+  ctx.fillStyle = "rgba(0,0,0,.5)";
+  ctx.beginPath(); ctx.moveTo(-14,-92); ctx.quadraticCurveTo(-46 - Math.sin(t*4)*5, -40, -34, 0); ctx.lineTo(-8,0); ctx.closePath(); ctx.fill();
+  /* robe */
+  var gr = ctx.createLinearGradient(0,-100,0,0); gr.addColorStop(0, col); gr.addColorStop(1, "rgba(20,20,40,1)");
+  ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(-14,-92); ctx.lineTo(14,-92); ctx.lineTo(28,0); ctx.lineTo(-28,0); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = E.col; ctx.lineWidth = 2; ctx.globalAlpha *= 0.8; ctx.beginPath(); ctx.moveTo(-26,-6); ctx.lineTo(26,-6); ctx.stroke(); ctx.globalAlpha = c.pv<=0 ? 0.35 : 1;
+  /* ceinture */
+  ctx.fillStyle = E.col; ctx.fillRect(-16,-58,32,5);
+  /* tête */
+  ctx.fillStyle = "#1b1b30"; ctx.beginPath(); ctx.arc(0,-104,14,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = E.col2; ctx.shadowColor = E.col; ctx.shadowBlur = 10;
+  ctx.beginPath(); ctx.arc(5,-106,2.6,0,Math.PI*2); ctx.arc(11,-106,2.6,0,Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+  /* chapeau pointu */
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-24,-112); ctx.lineTo(24,-112); ctx.quadraticCurveTo(4,-128, -10 - Math.sin(t*2)*4,-162); ctx.quadraticCurveTo(-6,-130,-24,-112); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = E.col; ctx.fillRect(-20,-118,40,5);
+  /* bâton + orbe */
+  var lev = c.anim>0 ? -18 : 0;
+  ctx.strokeStyle = "#8a6a45"; ctx.lineWidth = 5; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(26,-4); ctx.lineTo(34,-104+lev); ctx.stroke();
+  var orb = 9 + Math.sin(t*6)*1.5 + (c.anim>0 ? 4 : 0);
+  ctx.fillStyle = E.col2; ctx.shadowColor = E.col; ctx.shadowBlur = 24;
+  ctx.beginPath(); ctx.arc(35,-112+lev,orb,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = E.col; ctx.beginPath(); ctx.arc(35,-112+lev,orb*0.55,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+  /* effets */
+  if(c.eff.gele>0){
+    ctx.fillStyle = "rgba(170,230,255,.35)"; ctx.strokeStyle = "rgba(230,250,255,.9)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(c.x-40,c.y+4); ctx.lineTo(c.x-46,c.y-90); ctx.lineTo(c.x-20,c.y-178); ctx.lineTo(c.x+24,c.y-170); ctx.lineTo(c.x+46,c.y-80); ctx.lineTo(c.x+40,c.y+4); ctx.closePath(); ctx.fill(); ctx.stroke();
+  } else if(c.eff.ralenti>0){
+    ctx.fillStyle = "#e8fbff"; for(var k=0;k<c.eff.stacks;k++){ ctx.beginPath(); ctx.arc(c.x-12+k*12, c.y-186, 4, 0, Math.PI*2); ctx.fill(); }
+  }
+  if(c.bouclier>0){
+    var a = Math.min(1, c.bouclier*3);
+    ctx.strokeStyle = "rgba(255,255,255,"+(0.9*a)+")"; ctx.fillStyle = "rgba(255,255,255,"+(0.12*a)+")"; ctx.lineWidth = 3;
+    ctx.shadowColor = "#ffffff"; ctx.shadowBlur = 20;
+    ctx.beginPath(); ctx.ellipse(c.x, c.y-80, 62, 100, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+}
+function dessinerSort(ctx, p, now){
+  var E = ELEMENTS[p.el];
+  ctx.save(); ctx.translate(p.x, p.y); ctx.shadowColor = E.col; ctx.shadowBlur = 26;
+  if(p.el==="glace"){
+    ctx.scale(p.vx>0 ? 1 : -1, 1);
+    ctx.fillStyle = E.col2; ctx.beginPath(); ctx.moveTo(22,0); ctx.lineTo(-10,-9); ctx.lineTo(-18,0); ctx.lineTo(-10,9); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = E.col; ctx.beginPath(); ctx.moveTo(14,0); ctx.lineTo(-6,-5); ctx.lineTo(-6,5); ctx.closePath(); ctx.fill();
+  } else {
+    var g = ctx.createRadialGradient(0,0,2,0,0,p.r+6); g.addColorStop(0,"#fff6d0"); g.addColorStop(0.4,E.col2); g.addColorStop(1,"rgba(255,80,20,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0,0,p.r+6+Math.sin(now/60)*2,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+function barre(ctx, x, y, w, h, k, col, droite){
+  ctx.fillStyle = "rgba(255,255,255,.1)"; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = col; var ww = w*Math.max(0, Math.min(1, k));
+  ctx.fillRect(droite ? x+w-ww : x, y, ww, h);
+  ctx.strokeStyle = "rgba(255,255,255,.5)"; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h);
+}
+function dessinerMages(ctx, cv, now){
+  var J = S.jeu; if(!J || J.id!=="mages") return;
+  var W = cv.width, H = cv.height, sc = Math.min(W/1000, H/600), ox = (W-1000*sc)/2, oy = (H-600*sc)/2;
+  var C = {b:couleur("--bleu"), v:couleur("--violet"), fg:couleur("--fg")};
+  ctx.setTransform(1,0,0,1,0,0);
+  var ciel = ctx.createLinearGradient(0,0,0,H); ciel.addColorStop(0,"#0b0820"); ciel.addColorStop(0.7,"#1a1236"); ciel.addColorStop(1,"#0a0a14");
+  ctx.fillStyle = ciel; ctx.fillRect(0,0,W,H);
+  ctx.setTransform(sc,0,0,sc,ox,oy);
+  /* étoiles, lune, montagnes */
+  ctx.fillStyle = "rgba(255,255,255,.6)";
+  for(var i=0;i<40;i++){ var sx = (i*137)%1000, sy = (i*71)%260; ctx.globalAlpha = 0.3+0.5*Math.abs(Math.sin(now/900+i)); ctx.fillRect(sx, sy, 2, 2); }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#f3e9c8"; ctx.shadowColor = "#f3e9c8"; ctx.shadowBlur = 40; ctx.beginPath(); ctx.arc(860,250,34,0,Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+  ctx.fillStyle = "#151030"; ctx.beginPath(); ctx.moveTo(0,420); ctx.lineTo(120,300); ctx.lineTo(230,380); ctx.lineTo(380,260); ctx.lineTo(520,390); ctx.lineTo(660,290); ctx.lineTo(800,380); ctx.lineTo(920,310); ctx.lineTo(1000,360); ctx.lineTo(1000,520); ctx.lineTo(0,520); ctx.fill();
+  /* sol de pierre */
+  var sol = ctx.createLinearGradient(0,MG.SOL,0,600); sol.addColorStop(0,"#2b2540"); sol.addColorStop(1,"#120f1e");
+  ctx.fillStyle = sol; ctx.fillRect(-200,MG.SOL,1400,140);
+  ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.lineWidth = 1;
+  for(var x=0;x<1000;x+=80){ ctx.beginPath(); ctx.moveTo(x,MG.SOL); ctx.lineTo(x-40,600); ctx.stroke(); }
+  ctx.strokeStyle = "rgba(255,255,255,.3)"; ctx.beginPath(); ctx.moveTo(0,MG.SOL); ctx.lineTo(1000,MG.SOL); ctx.stroke();
+  /* mages, sorts, météores, particules */
+  ["b","v"].forEach(function(s){ dessinerMage(ctx, J.m[s], now, C[s]); });
+  J.sorts.forEach(function(p){ dessinerSort(ctx, p, now); });
+  J.meteores.forEach(function(me){ if(me.y<-20) return; dessinerSort(ctx, {el:"feu", x:me.x, y:me.y, r:20, vx:1}, now); });
+  J.parts.forEach(function(p){ var k = Math.max(0, p.vie/p.max); ctx.globalAlpha = k; ctx.fillStyle = p.col; ctx.fillRect(p.x-p.t/2, p.y-p.t/2, p.t, p.t); });
+  ctx.globalAlpha = 1;
+  if(J.neige>0){ ctx.fillStyle = "rgba(200,240,255,"+(0.18*Math.min(1,J.neige))+")"; ctx.fillRect(-200,-100,1400,800); ctx.fillStyle = "#ffffff";
+    for(var n=0;n<80;n++){ var nx = ((n*97 + now/4*(1+n%3))%1100)-50, ny = ((n*53 + now/6)%650)-25; ctx.fillRect(nx, ny, 3, 3); } }
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  J.textes.forEach(function(t){ ctx.globalAlpha = Math.min(1, t.vie*2); ctx.font = "800 22px Sora, system-ui, sans-serif"; ctx.fillStyle = t.col; ctx.shadowColor = "#000"; ctx.shadowBlur = 8; ctx.fillText(t.txt, t.x, t.y); });
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  /* HUD */
+  ["b","v"].forEach(function(s, i){
+    var c = J.m[s], E = ELEMENTS[c.el], x = i ? 560 : 40, w = 400, d = !!i;
+    ctx.font = "800 22px Sora, system-ui, sans-serif"; ctx.textAlign = d ? "right" : "left"; ctx.textBaseline = "alphabetic";
+    var Y = 72;
+    ctx.fillStyle = C[s]; ctx.fillText(S.noms[s]+"  "+(J.phase==="tirage" && J.tirageT<1.6 ? "" : E.emoji+" "+E.nom), d ? x+w : x, Y+38);
+    barre(ctx, x, Y+48, w, 18, c.pv/MG.PV, c.pv>30 ? C[s] : "#ff5a6e", d);
+    barre(ctx, x+(d ? w-260 : 0), Y+72, 260, 8, c.en/100, c.en>=100 ? E.col2 : E.col, d);
+    if(c.en>=100){ ctx.font = "700 13px Sora, system-ui, sans-serif"; ctx.fillStyle = E.col2; ctx.textAlign = d ? "right" : "left"; ctx.fillText("ULTIME PRÊT", d ? x+w-270 : x+270, Y+81); }
+    for(var k=0;k<2;k++){ ctx.fillStyle = k<J.wins[s] ? "#ffd166" : "rgba(255,255,255,.18)"; ctx.beginPath(); ctx.arc(d ? x+w-8-k*20 : x+8+k*20, Y+98, 7, 0, Math.PI*2); ctx.fill(); }
+  });
+  ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.font = "800 30px Sora, system-ui, sans-serif";
+  if(J.phase==="combat" || J.phase==="decompte") ctx.fillText(String(Math.ceil(J.reste)), 500, 138);
+  ctx.font = "600 14px Sora, system-ui, sans-serif"; ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.fillText("ROUND "+J.round, 500, 162);
+  /* Tirage des éléments */
+  if(J.phase==="tirage"){
+    ctx.fillStyle = "rgba(5,5,15,.72)"; ctx.fillRect(-200,-100,1400,800);
+    ctx.font = "800 40px Sora, system-ui, sans-serif"; ctx.fillStyle = "#ffffff"; ctx.fillText("Round "+J.round+" · tirage des éléments", 500, 190);
+    [["b",290],["v",710]].forEach(function(x){
+      var E = ELEMENTS[x[0]==="b" ? J.affB||"feu" : J.affV||"glace"];
+      ctx.font = "92px serif"; ctx.fillText(E.emoji, x[1], 310);
+      ctx.font = "800 34px Sora, system-ui, sans-serif"; ctx.fillStyle = E.col; ctx.fillText(E.nom, x[1], 395);
+      ctx.font = "700 22px Sora, system-ui, sans-serif"; ctx.fillStyle = C[x[0]]; ctx.fillText(S.noms[x[0]], x[1], 432); ctx.fillStyle = "#ffffff";
+    });
+    ctx.font = "800 40px Sora, system-ui, sans-serif"; ctx.fillStyle = "rgba(255,255,255,.6)"; ctx.fillText("VS", 500, 330);
+  }
+  if(J.msgUlti){ ctx.globalAlpha = Math.min(1, J.msgUlti.vie*2); ctx.font = "900 46px Sora, system-ui, sans-serif"; ctx.fillStyle = J.msgUlti.col; ctx.shadowColor = J.msgUlti.col; ctx.shadowBlur = 30; ctx.fillText(J.msgUlti.txt, 500, 215); ctx.shadowBlur = 0; ctx.globalAlpha = 1; }
+  if(J.msg && J.phase!=="tirage"){
+    ctx.font = "900 80px Sora, system-ui, sans-serif"; ctx.fillStyle = "#ffffff"; ctx.shadowColor = "rgba(0,0,0,.9)"; ctx.shadowBlur = 24; ctx.fillText(J.msg, 500, 270); ctx.shadowBlur = 0;
+    if(J.sous){ ctx.font = "700 30px Sora, system-ui, sans-serif"; ctx.fillStyle = "rgba(255,255,255,.85)"; ctx.fillText(J.sous, 500, 340); }
+  }
+  ctx.setTransform(1,0,0,1,0,0);
+}
+/* Clavier (pour tester sans téléphone) */
+var mgTenu = {};
+document.addEventListener("keydown", function(e){
+  if(estManette || S.ecran!=="mages") return;
+  var t = MG_TOUCHES[String(e.key).toLowerCase()]; if(!t) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  if(t[1]==="g" || t[1]==="d"){ mgTenu[t[0]+t[1]] = true; DIRK[t[0]] = (mgTenu[t[0]+"d"]?1:0)-(mgTenu[t[0]+"g"]?1:0); }
+  else if(!e.repeat) actionMage(t[0], t[1]);
+}, true);
+document.addEventListener("keyup", function(e){
+  if(estManette) return;
+  var t = MG_TOUCHES[String(e.key).toLowerCase()]; if(!t || (t[1]!=="g" && t[1]!=="d")) return;
+  mgTenu[t[0]+t[1]] = false; DIRK[t[0]] = (mgTenu[t[0]+"d"]?1:0)-(mgTenu[t[0]+"g"]?1:0);
+}, true);
+/* ---------- Téléphone ---------- */
+var mgDernierCoup = 0;
+function rendreMagesManette(z, noms){
+  mMontrer("m-mages");
+  if(!z) return;
+  var moi = z.m && z.m[COTE]; if(!moi) return;
+  var E = ELEMENTS[moi.el] || ELEMENTS.feu;
+  $("mMgInfo").textContent = (noms[COTE]||"")+" · "+E.emoji+" "+E.nom+" · Round "+z.round+" ("+z.wins.b+"-"+z.wins.v+")";
+  $("mMgPv").style.width = Math.max(0, moi.pv)+"%";
+  $("mMgEn").style.width = Math.max(0, moi.en)+"%";
+  $("mMgEn").style.background = E.col;
+  var u = $("mMgUlti"); u.disabled = moi.en<100; u.textContent = moi.en>=100 ? E.ultiNom+" !" : "Ultime "+Math.floor(moi.en)+"%";
+  u.style.borderColor = E.col;
+  $("mMgSort").style.borderColor = E.col; $("mMgSort").querySelector("small").textContent = E.nom;
+  var coups = z.coups ? z.coups[COTE]||0 : 0;
+  if(coups>mgDernierCoup && navigator.vibrate) try{ navigator.vibrate(90); }catch(e){}
+  mgDernierCoup = coups;
+}
+Array.prototype.forEach.call(document.querySelectorAll("#m-mages [data-a]"), function(b){
+  b.addEventListener("pointerdown", function(e){ e.preventDefault(); if(b.disabled) return; envoyer("mage",{side:COTE, a:b.getAttribute("data-a")}); b.classList.add("appui"); });
+  ["pointerup","pointercancel","pointerleave"].forEach(function(ev){ b.addEventListener(ev, function(){ b.classList.remove("appui"); }); });
+});
 
 /* Mini-jeu 6 : tir à la corde (chaque tape tire la corde de son côté) */
 var CORDE_PAS = 0.05, CORDE_DUREE = 20000;
@@ -2960,7 +3374,12 @@ function etat(){
           elim:{b:Object.keys(U.elim.b).map(Number), v:Object.keys(U.elim.v).map(Number)}, joker:U.joker, tour:U.tour, type:U.type, n:U.n,
           phase:U.phase, rep:{b:U.rep.b||"", v:U.rep.v||""}, theme:U.theme||null, question:U.question||null, acc:U.acc||null};
   }
-  return {v:VERSION_SITE, ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, qui:qq, gt:gt, gc:gc};
+  var mg = null;
+  if(S.ecran==="mages" && U && U.id==="mages"){
+    var ms = function(c){ return {el:c.el, pv:Math.round(c.pv), en:Math.round(c.en)}; };
+    mg = {round:U.round, wins:U.wins, m:{b:ms(U.m.b), v:ms(U.m.v)}, coups:U.coups, phase:U.phase};
+  }
+  return {mages:mg, v:VERSION_SITE, ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, qui:qq, gt:gt, gc:gc};
 }
 function diffuser(){
   if(room && !estManette){ room.emit("etat", etat()).catch(function(){}); }
@@ -2992,6 +3411,7 @@ function brancherTV(){
   room.on("passer", function(){ passerJeu(); });
   room.on("quiz", function(m){ if(m.data) quizRepondre(m.data.side, m.data.i); });
   room.on("qui", function(m){ if(m.data && S.ecran==="qui") quiAction(m.data); });
+  room.on("mage", function(m){ if(m.data && S.ecran==="mages") actionMage(m.data.side, m.data.a); });
   room.on("libre", function(m){ if(m.data) libreGagne(m.data.g); });
   room.on("ok", function(){ if(["accueil","joueurs","modes","intro","fin"].indexOf(S.ecran)>=0) cliquerPrincipal(); });
   room.on("nom", function(m){
@@ -3010,7 +3430,7 @@ function brancherTV(){
 var M = {ecran:null};
 var COTE = null;  /* "b" (Lui) ou "v" (Elle) pour ce téléphone */
 var SALLE = null; /* identifiant du salon temps réel */
-var MV = ["m-attente","m-noms","m-pads","m-course","m-duel","m-uno","m-quiz","m-qui","m-libre","m-gage","m-ok"];
+var MV = ["m-attente","m-noms","m-pads","m-course","m-duel","m-mages","m-uno","m-quiz","m-qui","m-libre","m-gage","m-ok"];
 function rendreUnoManette(u, noms){
   mMontrer("m-uno");
   var box = $("mUnoCorps"); box.innerHTML = "";
@@ -3081,7 +3501,7 @@ function rendreManette(e){
   $("mPadB").textContent = noms.b || "Bleu"; $("mPadV").textContent = noms.v || "Violet";
   neon(COTE);
   $("mCrB").textContent = noms.b || "Bleu"; $("mCrV").textContent = noms.v || "Violet";
-  if((M.ecran==="course" || M.ecran==="duel") && e.ecran!==M.ecran){ tenu = {b:{}, v:{}}; envoyerDir(); }
+  if((M.ecran==="course" || M.ecran==="duel" || M.ecran==="mages") && e.ecran!==M.ecran){ tenu = {b:{}, v:{}}; envoyerDir(); }
   if(e.ecran==="quiz" && e.quiz){
     mMontrer("m-quiz");
     var z = e.quiz, moi = z.rep ? z.rep[COTE] : null, cleQ = z.n+"|"+z.phase+"|"+moi;
@@ -3109,6 +3529,8 @@ function rendreManette(e){
       lb.setAttribute("data-k", noms.b+"|"+noms.v); lb.innerHTML = "";
       [["b","plein"],["v",""]].forEach(function(x){ var bt = el("button","m-gros "+x[1], (noms[x[0]]||"")+" a gagné"); bt.style.borderColor = "var(--"+(x[0]==="b"?"bleu":"violet")+")"; bt.onclick = function(){ envoyer("libre",{g:x[0]}); }; lb.appendChild(bt); });
     }
+  } else if(e.ecran==="mages"){
+    rendreMagesManette(e.mages, noms);
   } else if(e.ecran==="duel"){
     mMontrer("m-duel");
   } else if(e.ecran==="course"){
@@ -3174,7 +3596,7 @@ function rendreManette(e){
     $("mOk").textContent = e.ecran==="accueil" ? "Jouer" : e.ecran==="modes" ? "Mode classique" : e.ecran==="intro" ? "Lancer la partie" : "Continuer";
   }
   $("mQuitter").hidden = e.ecran==="accueil";
-  $("mPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui"].indexOf(e.ecran)<0;
+  $("mPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","mages"].indexOf(e.ecran)<0;
   M.ecran = e.ecran;
 }
 function brancherManette(){
@@ -3220,7 +3642,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "27";
+var VERSION_SITE = "28";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
