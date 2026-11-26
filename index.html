@@ -894,7 +894,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=29"></script>
+<script src="config.js?v=30"></script>
 <script>
 (function(){
 "use strict";
@@ -1316,7 +1316,7 @@ $("btnClassique").onclick = function(){
 $("btnBanque").onclick = function(){ ouvrirBanque(); };
 $("btnTestMages").onclick = function(){
   S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
-  mages();
+  mages(); S.jeu.m.v.el = "foudre";
 };
 $("btnTestQui").onclick = function(){
   S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
@@ -2084,14 +2084,17 @@ $("mQuiAccuser").onclick = function(){ MQ.accuse = !MQ.accuse; MQ.choix = null; 
    puis ses réactions dans REACTIONS. Le tirage l'inclut automatiquement. */
 var ELEMENTS = {
   feu:   {nom:"Feu",   emoji:"🔥", col:"#ff6a2b", col2:"#ffd166", vit:640, deg:11, cd:0.55, rayon:13, effet:"brule", ulti:"meteores", ultiNom:"Pluie de météores"},
-  glace: {nom:"Glace", emoji:"❄️", col:"#6fd8ff", col2:"#e8fbff", vit:540, deg:8,  cd:0.45, rayon:11, effet:"ralenti", ulti:"blizzard", ultiNom:"Blizzard"}
+  glace: {nom:"Glace", emoji:"❄️", col:"#6fd8ff", col2:"#e8fbff", vit:540, deg:8,  cd:0.45, rayon:11, effet:"ralenti", ulti:"blizzard", ultiNom:"Blizzard"},
+  foudre:{nom:"Foudre", emoji:"⚡", col:"#ffe14d", col2:"#b9f6ff", vit:950, deg:7,  cd:0.33, rayon:10, effet:"choc", ulti:"tempete", ultiNom:"Tempête", skin:"sorciere"}
 };
 /* Réaction quand un sort de l'élément A touche une cible sous l'effet B */
 var REACTIONS = {
   "feu>gele":    function(c, deg){ c.eff.gele = 0; c.eff.stacks = 0; texteFlottant(c, "FONTE ! ×1,5", "#ffd166"); return deg*1.5; },
-  "glace>brule": function(c, deg){ c.eff.brule = 0; texteFlottant(c, "ÉTEINT", "#e8fbff"); return deg; }
+  "glace>brule": function(c, deg){ c.eff.brule = 0; texteFlottant(c, "ÉTEINT", "#e8fbff"); return deg; },
+  "foudre>gele": function(c, deg){ c.eff.gele = 0; c.eff.stacks = 0; texteFlottant(c, "COURT-CIRCUIT ×1,6", "#ffe14d"); return deg*1.6; }
 };
 var EFFETS = {
+  choc:    function(c){ c.eff.choc = 0.45; },
   brule:   function(c){ c.eff.brule = 3; },
   ralenti: function(c){ c.eff.ralenti = 2; c.eff.stacks = (c.eff.stacks||0)+1; if(c.eff.stacks>=3){ c.eff.stacks = 0; c.eff.gele = 1.5; texteFlottant(c, "GELÉ !", "#6fd8ff"); bip(1900, 0.2, 0.06); } }
 };
@@ -2100,7 +2103,7 @@ var MG_TOUCHES = {q:["b","g"], a:["b","g"], d:["b","d"], z:["b","saut"], w:["b",
   arrowleft:["v","g"], arrowright:["v","d"], arrowup:["v","saut"], arrowdown:["v","sort"], l:["v","sort"], k:["v","bouclier"], m:["v","ulti"]};
 function nouveauMage(s){
   return {s:s, x:s==="b" ? 230 : 770, y:MG.SOL, vx:0, vy:0, face:s==="b" ? 1 : -1, pv:MG.PV, en:0, cd:0, bouclier:0, cdB:0, touche:0, coups:0,
-    eff:{brule:0, ralenti:0, gele:0, stacks:0}, el:"feu", anim:0};
+    eff:{brule:0, ralenti:0, gele:0, stacks:0, choc:0}, el:"feu", anim:0};
 }
 function mages(){
   touches = {}; DIRK = {b:0,v:0};
@@ -2124,7 +2127,7 @@ function nouveauRound(){
   var J = S.jeu, cles = Object.keys(ELEMENTS);
   J.m = {b:nouveauMage("b"), v:nouveauMage("v")};
   J.m.b.el = cles[rnd(cles.length)]; J.m.v.el = cles[rnd(cles.length)];
-  J.sorts = []; J.meteores = []; J.textes = []; J.neige = 0; J.reste = MG.DUREE;
+  J.sorts = []; J.meteores = []; J.eclairs = []; J.flashs = []; J.textes = []; J.neige = 0; J.reste = MG.DUREE;
   J.phase = "tirage"; J.msg = "Round "+J.round; J.sous = ""; J.tirageT = 0;
   diffuser();
 }
@@ -2165,7 +2168,7 @@ function majMages(dt, now){
   if(J.phase==="pause") physMages(dt*0.25);
 }
 function finRound(g, txt){
-  var J = S.jeu; J.phase = "pause"; J.sorts = []; J.meteores = []; J.msgUlti = null; J.neige = 0;
+  var J = S.jeu; J.phase = "pause"; J.sorts = []; J.meteores = []; J.eclairs = []; J.msgUlti = null; J.neige = 0;
   J.msg = txt; J.sous = g ? S.noms[g]+" remporte le round" : "Round à rejouer";
   if(g){ J.wins[g]++; plus_tard(function(){ bip(880,0.15,0.07); plus_tard(function(){ bip(1320,0.3,0.07); },150); }, 300); }
   diffuser();
@@ -2178,7 +2181,7 @@ function finRound(g, txt){
 }
 function actionMage(s, a){
   var J = S.jeu; if(!J || J.id!=="mages" || J.phase!=="combat") return;
-  var c = J.m[s]; if(!c || c.pv<=0 || c.eff.gele>0) return;
+  var c = J.m[s]; if(!c || c.pv<=0 || c.eff.gele>0 || c.eff.choc>0) return;
   var E = ELEMENTS[c.el];
   if(a==="saut"){ if(c.y>=MG.SOL-0.5){ c.vy = -MG.SAUT*(c.eff.ralenti>0 ? 0.8 : 1); bip(500, 0.05, 0.03); } }
   else if(a==="sort"){
@@ -2197,6 +2200,9 @@ function lancerUlti(s){
   if(E.ulti==="meteores"){
     for(var i=0;i<9;i++) J.meteores.push({s:s, el:c.el, x:cible.x + (Math.random()-0.5)*360, y:-60 - i*70, vy:520+Math.random()*160, vx:(Math.random()-0.5)*60});
     bip(180, 0.6, 0.08);
+  } else if(E.ulti==="tempete"){
+    for(var e2=0;e2<4;e2++) J.eclairs.push({s:s, el:c.el, t:0.15+e2*0.38});
+    bip(90, 0.5, 0.08);
   } else if(E.ulti==="blizzard"){
     J.neige = 2.2;
     if(cible.bouclier>0){ texteFlottant(cible, "BLOQUÉ", "#ffffff"); }
@@ -2218,7 +2224,7 @@ function blesser(c, deg, de){
 function toucherMage(c, sort){
   if(c.bouclier>0){ eclats(sort.x, sort.y, "#ffffff", 10, 160); texteFlottant(c, "BLOQUÉ", "#ffffff"); bip(1200, 0.06, 0.05); return; }
   var E = ELEMENTS[sort.el], deg = E.deg;
-  ["gele","brule"].forEach(function(etat){ var f = REACTIONS[sort.el+">"+etat]; if(f && c.eff[etat]>0) deg = f(c, deg); });
+  ["gele","brule","choc"].forEach(function(etat){ var f = REACTIONS[sort.el+">"+etat]; if(f && c.eff[etat]>0) deg = f(c, deg); });
   blesser(c, deg, sort.s);
   if(c.pv>0 && EFFETS[E.effet]) EFFETS[E.effet](c);
 }
@@ -2228,10 +2234,10 @@ function physMages(dt){
     var c = J.m[s], o = J.m[autre(s)];
     c.cd = Math.max(0, c.cd-dt); c.cdB = Math.max(0, c.cdB-dt); c.bouclier = Math.max(0, c.bouclier-dt);
     c.touche = Math.max(0, c.touche-dt); c.anim = Math.max(0, c.anim-dt);
-    ["ralenti","gele"].forEach(function(k){ c.eff[k] = Math.max(0, c.eff[k]-dt); });
+    ["ralenti","gele","choc"].forEach(function(k){ c.eff[k] = Math.max(0, (c.eff[k]||0)-dt); });
     if(c.eff.ralenti<=0) c.eff.stacks = 0;
     if(c.eff.brule>0){ c.eff.brule = Math.max(0, c.eff.brule-dt); if(c.pv>0){ c.pv = Math.max(0, c.pv - 2.2*dt); if(Math.random()<dt*14) J.parts.push({x:c.x+(Math.random()-0.5)*40, y:c.y-Math.random()*100, vx:0, vy:-60, vie:0.5, max:0.5, t:4, col:Math.random()<.5 ? "#ff6a2b" : "#ffd166"}); } }
-    var dir = c.pv>0 && c.eff.gele<=0 && J.phase==="combat" ? Math.max(-1, Math.min(1, DIRK[s]+DIRM[s])) : 0;
+    var dir = c.pv>0 && c.eff.gele<=0 && c.eff.choc<=0 && J.phase==="combat" ? Math.max(-1, Math.min(1, DIRK[s]+DIRM[s])) : 0;
     c.vx = dir*MG.VIT*(c.eff.ralenti>0 ? 0.5 : 1);
     c.x = Math.max(40, Math.min(960, c.x + c.vx*dt));
     c.vy += MG.GRAV*dt; c.y += c.vy*dt;
@@ -2269,11 +2275,193 @@ function physMages(dt){
     if(ci.pv>0 && Math.abs(me.x-ci.x)<44 && me.y>ci.y-130 && me.y<ci.y){ toucherMage(ci, {s:me.s, el:me.el, x:me.x, y:me.y}); J.meteores.splice(j,1); continue; }
     if(me.y>=MG.SOL){ eclats(me.x, MG.SOL, "#ff6a2b", 12, 200); bip(160, 0.08, 0.05); J.meteores.splice(j,1); }
   }
+  /* Éclairs de la tempête : frappent là où se trouve l'adversaire */
+  (J.eclairs||[]).forEach(function(ec){
+    ec.t -= dt; if(ec.t>0 || ec.fait) return; ec.fait = true;
+    var ci = J.m[autre(ec.s)], x = ci.x + (Math.random()-0.5)*30;
+    J.flashs.push({x:x, vie:0.3, pts:null});
+    eclats(x, MG.SOL, "#ffe14d", 18, 260); bip(120+Math.random()*80, 0.12, 0.09);
+    if(ci.pv>0 && Math.abs(x-ci.x)<46) toucherMage(ci, {s:ec.s, el:ec.el, x:x, y:ci.y-60});
+  });
+  J.eclairs = (J.eclairs||[]).filter(function(ec){ return !ec.fait; });
+  J.flashs = (J.flashs||[]).filter(function(f){ f.vie -= dt; return f.vie>0; });
   if(J.neige>0) J.neige = Math.max(0, J.neige-dt);
   if(J.msgUlti){ J.msgUlti.vie -= dt; if(J.msgUlti.vie<=0) J.msgUlti = null; }
 }
+
+/* Skin « sorcière de la foudre » : dessinée face à droite, pieds en (0,0), environ 180 de haut */
+function arcElectrique(ctx, x1, y1, x2, y2, amp, seg){
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  for(var i=1;i<seg;i++){ var k = i/seg; ctx.lineTo(x1+(x2-x1)*k+(Math.random()-0.5)*amp, y1+(y2-y1)*k+(Math.random()-0.5)*amp); }
+  ctx.lineTo(x2, y2); ctx.stroke();
+}
+function dessinerSorciere(ctx, c, now, col){
+  var t = now/1000, E = ELEMENTS[c.el], sol = c.y>=MG.SOL-1;
+  var bob = sol ? Math.sin(t*2.6 + (c.s==="b"?0:1.3))*2.2 : 0, cast = c.anim>0;
+  var PEAU = "#f0c4a2", PEAU_O = "#c98f6e", ROBE = "#1a1033", ROBE2 = "#2c1b55", OR = "#ffe14d", CYAN = "#9ff4ff";
+  ctx.save(); ctx.translate(c.x, c.y);
+  /* ombre au sol */
+  ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.beginPath(); ctx.ellipse(0, 4, 34*(1-(MG.SOL-c.y)/500), 6, 0, 0, Math.PI*2); ctx.fill();
+  ctx.scale(c.face, 1); ctx.translate(0, bob);
+  if(c.touche>0) ctx.translate((Math.random()-0.5)*6, 0);
+  var vent = Math.sin(t*2.2), vent2 = Math.sin(t*3.1+1);
+
+  /* --- Cheveux (arrière) : volume sur le crâne, longues vagues jusqu'aux reins --- */
+  var gh = ctx.createLinearGradient(0,-180,-30,-70); gh.addColorStop(0,"#33245c"); gh.addColorStop(0.5,"#140d2a"); gh.addColorStop(1,"#3d2c80");
+  ctx.fillStyle = gh;
+  ctx.beginPath();
+  ctx.moveTo(14,-170);
+  ctx.bezierCurveTo(10,-184,-12,-186,-20,-170);
+  ctx.bezierCurveTo(-28,-158,-26,-142,-30-vent*2,-126);
+  ctx.bezierCurveTo(-34-vent*3,-110,-30-vent*5,-100,-36-vent*7,-84);
+  ctx.bezierCurveTo(-38-vent*8,-74,-30-vent*6,-68,-26-vent2*5,-74);
+  ctx.bezierCurveTo(-24-vent2*4,-66,-14-vent2*3,-70,-16,-82);
+  ctx.bezierCurveTo(-18,-96,-10,-108,-12,-124);
+  ctx.bezierCurveTo(-12,-138,-6,-148,2,-154);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = "rgba(159,244,255,.32)"; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.moveTo(-2,-180); ctx.bezierCurveTo(-24,-166,-22,-130,-32-vent*7,-86); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-10,-170); ctx.bezierCurveTo(-18,-140,-16,-110,-24-vent2*5,-76); ctx.stroke();
+  ctx.strokeStyle = "rgba(255,225,77,.25)";
+  ctx.beginPath(); ctx.moveTo(-16,-160); ctx.bezierCurveTo(-26,-130,-24,-104,-34-vent*7,-90); ctx.stroke();
+
+  /* --- Cape (doublure couleur du joueur) --- */
+  ctx.fillStyle = col; ctx.globalAlpha *= 0.85;
+  ctx.beginPath(); ctx.moveTo(-8,-128); ctx.bezierCurveTo(-30,-110, -46-vent*8,-60, -44-vent*10,-8); ctx.lineTo(-22-vent*4,-4); ctx.bezierCurveTo(-26,-50,-18,-100,-4,-124); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = c.pv<=0 ? 0.35 : 1;
+  ctx.fillStyle = "#0d0820";
+  ctx.beginPath(); ctx.moveTo(-6,-128); ctx.bezierCurveTo(-26,-110, -40-vent*8,-60, -38-vent*10,-10); ctx.lineTo(-20-vent*4,-6); ctx.bezierCurveTo(-22,-50,-16,-100,-2,-124); ctx.closePath(); ctx.fill();
+  /* motif éclair sur la cape */
+  ctx.strokeStyle = OR; ctx.lineWidth = 1.5; ctx.globalAlpha *= 0.7;
+  ctx.beginPath(); ctx.moveTo(-20,-96); ctx.lineTo(-27,-76); ctx.lineTo(-21,-74); ctx.lineTo(-30-vent*4,-48); ctx.stroke();
+  ctx.globalAlpha = c.pv<=0 ? 0.35 : 1;
+
+  /* --- Jambe arrière : cuissarde noire, talon --- */
+  ctx.fillStyle = "#0b0814";
+  ctx.beginPath(); ctx.moveTo(-9,-66); ctx.bezierCurveTo(-12,-48,-12,-30,-10,-12); ctx.lineTo(-11,-2); ctx.lineTo(-2,-1); ctx.lineTo(-3,-12); ctx.bezierCurveTo(-1,-32,0,-50,1,-64); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#0b0814"; ctx.fillRect(-11,-4,2,5);
+
+  /* --- Jupe longue, fendue devant --- */
+  var gj = ctx.createLinearGradient(0,-96,0,-4); gj.addColorStop(0,ROBE2); gj.addColorStop(1,ROBE);
+  ctx.fillStyle = gj;
+  ctx.beginPath();
+  ctx.moveTo(-14,-84);
+  ctx.bezierCurveTo(-22,-78,-22,-66,-17,-56);              /* hanche arrière */
+  ctx.bezierCurveTo(-18,-38,-22-vent*2,-18,-24-vent*3,-4); /* tombe jusqu'au sol */
+  ctx.lineTo(-2,-6);
+  ctx.bezierCurveTo(0,-30,2,-50,4,-62);                    /* bord de la fente */
+  ctx.bezierCurveTo(8,-70,12,-76,13,-82);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = OR; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(-2,-6); ctx.bezierCurveTo(0,-30,2,-50,4,-62); ctx.stroke();
+
+  /* --- Jambe avant : cuisse visible par la fente, cuissarde --- */
+  var gl = ctx.createLinearGradient(0,-70,12,-40); gl.addColorStop(0,PEAU); gl.addColorStop(1,PEAU_O);
+  ctx.fillStyle = gl;
+  ctx.beginPath(); ctx.moveTo(4,-72); ctx.bezierCurveTo(14,-64,16,-52,13,-42); ctx.lineTo(5,-42); ctx.bezierCurveTo(4,-52,2,-62,1,-68); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#0b0814";
+  ctx.beginPath(); ctx.moveTo(4,-44); ctx.lineTo(14,-44); ctx.bezierCurveTo(14,-30,12,-18,12,-8); ctx.lineTo(19,-4); ctx.lineTo(19,0); ctx.lineTo(6,0); ctx.lineTo(6,-8); ctx.bezierCurveTo(5,-20,4,-32,4,-44); ctx.closePath(); ctx.fill();
+  ctx.fillRect(6,-3,2,5);
+  ctx.strokeStyle = OR; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(4,-44); ctx.lineTo(14,-44); ctx.stroke();
+
+  /* --- Buste : corset sablier --- */
+  var gc = ctx.createLinearGradient(-10,-130,14,-90); gc.addColorStop(0,ROBE2); gc.addColorStop(1,"#120a26");
+  ctx.fillStyle = gc;
+  ctx.beginPath();
+  ctx.moveTo(-9,-127);
+  ctx.bezierCurveTo(-11,-116,-7,-104,-7,-97);    /* dos cambré */
+  ctx.bezierCurveTo(-8,-92,-13,-88,-15,-82);     /* hanche */
+  ctx.lineTo(12,-82);
+  ctx.bezierCurveTo(10,-88,6,-93,6,-98);         /* taille fine */
+  ctx.bezierCurveTo(6,-102,9,-105,13,-108);      /* sous la poitrine */
+  ctx.bezierCurveTo(21,-112,21,-122,13,-125);    /* poitrine */
+  ctx.closePath(); ctx.fill();
+  /* décolleté (peau) */
+  ctx.fillStyle = PEAU;
+  ctx.beginPath(); ctx.moveTo(-6,-127); ctx.lineTo(4,-131); ctx.bezierCurveTo(10,-130,14,-127,13,-124); ctx.bezierCurveTo(9,-121,6,-123,4,-120); ctx.bezierCurveTo(1,-124,-3,-125,-6,-127); ctx.closePath(); ctx.fill();
+  /* bordures dorées + laçage */
+  ctx.strokeStyle = OR; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(-6,-127); ctx.bezierCurveTo(-3,-125,1,-124,4,-120); ctx.bezierCurveTo(6,-123,9,-121,13,-124); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-14,-83); ctx.lineTo(12,-83); ctx.stroke();
+  ctx.lineWidth = 0.9; for(var l=0;l<3;l++){ var ly = -103+l*6; ctx.beginPath(); ctx.moveTo(4,ly); ctx.lineTo(8,ly+3); ctx.moveTo(8,ly); ctx.lineTo(4,ly+3); ctx.stroke(); }
+  /* ceinture éclair */
+  ctx.fillStyle = OR; ctx.beginPath(); ctx.moveTo(1,-90); ctx.lineTo(5,-90); ctx.lineTo(2,-86); ctx.lineTo(6,-86); ctx.lineTo(0,-79); ctx.lineTo(2,-84); ctx.lineTo(-1,-84); ctx.closePath(); ctx.fill();
+
+  /* --- Bras arrière, main sur la hanche --- */
+  ctx.strokeStyle = PEAU_O; ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath(); ctx.moveTo(-6,-124); ctx.lineTo(-17,-106); ctx.lineTo(-9,-92); ctx.stroke();
+  ctx.strokeStyle = CYAN; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-15,-100); ctx.lineTo(-12,-96); ctx.stroke();
+
+  /* --- Cou + épaules --- */
+  ctx.fillStyle = PEAU; ctx.fillRect(-1,-142,6,13);
+  ctx.beginPath(); ctx.ellipse(-3,-127,7,3.5,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = OR; ctx.fillRect(-1,-135,6,2.2);                                  /* collier ras-du-cou */
+  ctx.beginPath(); ctx.moveTo(2,-133); ctx.lineTo(4,-133); ctx.lineTo(2.5,-129); ctx.closePath(); ctx.fill();
+
+  /* --- Tête de profil (légèrement agrandie) --- */
+  ctx.save(); ctx.translate(2,-140); ctx.scale(1.16,1.16); ctx.translate(-2,140);
+  ctx.fillStyle = PEAU;
+  ctx.beginPath();
+  ctx.moveTo(-6,-150);
+  ctx.bezierCurveTo(-8,-164,2,-170,9,-166);
+  ctx.bezierCurveTo(14,-162,15,-157,14,-154);   /* front */
+  ctx.lineTo(17,-149);                          /* nez */
+  ctx.lineTo(14,-148);
+  ctx.bezierCurveTo(15,-146,15,-145,14,-144);   /* lèvres */
+  ctx.bezierCurveTo(14,-142,13,-140,10,-139);   /* menton */
+  ctx.bezierCurveTo(6,-138,2,-140,0,-142);
+  ctx.closePath(); ctx.fill();
+  /* lèvres */
+  ctx.fillStyle = "#c2304f"; ctx.beginPath(); ctx.ellipse(13.6,-145.4,1.8,1.3,0,0,Math.PI*2); ctx.fill();
+  /* œil : iris lumineux, cils */
+  ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.ellipse(9.5,-154.5,2.8,1.6,-0.1,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = OR; ctx.shadowColor = OR; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(10.6,-154.5,1.3,0,Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+  ctx.strokeStyle = "#0b0814"; ctx.lineWidth = 1.1;
+  ctx.beginPath(); ctx.moveTo(6.6,-156); ctx.quadraticCurveTo(10,-157.6,13,-155.4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(12.6,-155.6); ctx.lineTo(14.4,-157.4); ctx.moveTo(11.4,-156.6); ctx.lineTo(12.6,-158.6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(7,-159.5); ctx.quadraticCurveTo(10.5,-161,13.5,-159); ctx.stroke(); /* sourcil */
+
+  /* --- Cheveux (avant) : frange et mèche le long du visage --- */
+  ctx.fillStyle = "#1c1336";
+  ctx.beginPath(); ctx.moveTo(-6,-152); ctx.bezierCurveTo(-8,-170,6,-176,14,-166); ctx.bezierCurveTo(12,-166,8,-164,6,-160); ctx.bezierCurveTo(2,-164,-2,-158,-2,-150); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(0,-160); ctx.bezierCurveTo(-2,-148,-1,-138,2-vent*1.5,-126); ctx.lineTo(-2,-126); ctx.bezierCurveTo(-5,-140,-5,-150,-3,-160); ctx.closePath(); ctx.fill();
+  /* diadème éclair */
+  ctx.fillStyle = OR; ctx.shadowColor = OR; ctx.shadowBlur = 10;
+  ctx.beginPath(); ctx.moveTo(5,-170); ctx.lineTo(9,-170); ctx.lineTo(6.5,-165.5); ctx.lineTo(10,-165.5); ctx.lineTo(4,-158); ctx.lineTo(6,-163.5); ctx.lineTo(3,-163.5); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+
+  /* --- Bras avant : levé avec l'orbe, tendu quand elle lance --- */
+  var ex = cast ? 24 : 18, ey = cast ? -124 : -138, hx = cast ? 40 : 26, hy = cast ? -126 : -160;
+  ctx.strokeStyle = PEAU; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(6,-126); ctx.lineTo(ex,ey); ctx.stroke();
+  ctx.lineWidth = 4.6; ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(hx,hy); ctx.stroke();
+  ctx.fillStyle = PEAU; ctx.beginPath(); ctx.arc(6,-125,4,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = CYAN; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ex+(hx-ex)*0.55,ey+(hy-ey)*0.55); ctx.lineTo(ex+(hx-ex)*0.75,ey+(hy-ey)*0.75); ctx.stroke();
+  /* orbe de foudre */
+  var ox = hx+(cast ? 7 : 3), oy = hy-(cast ? 0 : 7), r = 7 + Math.sin(t*9)*1.2 + (cast ? 3 : 0);
+  var go = ctx.createRadialGradient(ox,oy,1,ox,oy,r+8); go.addColorStop(0,"#ffffff"); go.addColorStop(0.35,"#fff6a8"); go.addColorStop(0.7,"rgba(255,225,77,.55)"); go.addColorStop(1,"rgba(159,244,255,0)");
+  ctx.fillStyle = go; ctx.beginPath(); ctx.arc(ox,oy,r+8,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = "rgba(220,250,255,.9)"; ctx.lineWidth = 1.2; ctx.shadowColor = CYAN; ctx.shadowBlur = 10;
+  for(var a=0;a<3;a++){ var an = Math.random()*Math.PI*2, d = r+6+Math.random()*10; arcElectrique(ctx, ox, oy, ox+Math.cos(an)*d, oy+Math.sin(an)*d, 5, 4); }
+  ctx.shadowBlur = 0;
+  ctx.restore();
+
+  /* --- Aura : petits arcs électriques autour d'elle --- */
+  if(c.pv>0 && Math.random()<0.35){
+    ctx.strokeStyle = Math.random()<.5 ? "rgba(255,225,77,.8)" : "rgba(159,244,255,.8)"; ctx.lineWidth = 1.3;
+    var ax = c.x+(Math.random()-0.5)*50, ay = c.y-20-Math.random()*140;
+    arcElectrique(ctx, ax, ay, ax+(Math.random()-0.5)*30, ay+(Math.random()-0.5)*30, 6, 4);
+  }
+}
+
 /* ---------- Dessin ---------- */
 function dessinerMage(ctx, c, now, col){
+  if(ELEMENTS[c.el] && ELEMENTS[c.el].skin==="sorciere"){
+    if(c.pv<=0) ctx.globalAlpha = 0.35;
+    dessinerSorciere(ctx, c, now, col);
+    dessinerEffetsMage(ctx, c); ctx.globalAlpha = 1; return;
+  }
   var E = ELEMENTS[c.el], t = now/1000, bob = c.y<MG.SOL-1 ? 0 : Math.sin(t*3 + (c.s==="b"?0:1.5))*3;
   if(c.pv<=0){ ctx.globalAlpha = 0.35; }
   ctx.save(); ctx.translate(c.x, c.y); ctx.scale(c.face, 1);
@@ -2307,7 +2495,14 @@ function dessinerMage(ctx, c, now, col){
   ctx.fillStyle = E.col; ctx.beginPath(); ctx.arc(35,-112+lev,orb*0.55,0,Math.PI*2); ctx.fill();
   ctx.shadowBlur = 0;
   ctx.restore();
-  /* effets */
+  dessinerEffetsMage(ctx, c);
+  ctx.globalAlpha = 1;
+}
+function dessinerEffetsMage(ctx, c){
+  if(c.eff.choc>0){
+    ctx.strokeStyle = "rgba(255,225,77,.9)"; ctx.lineWidth = 1.6;
+    for(var z=0;z<3;z++){ var zx = c.x+(Math.random()-0.5)*60, zy = c.y-10-Math.random()*150; arcElectrique(ctx, zx, zy, zx+(Math.random()-0.5)*40, zy+(Math.random()-0.5)*40, 8, 4); }
+  }
   if(c.eff.gele>0){
     ctx.fillStyle = "rgba(170,230,255,.35)"; ctx.strokeStyle = "rgba(230,250,255,.9)"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(c.x-40,c.y+4); ctx.lineTo(c.x-46,c.y-90); ctx.lineTo(c.x-20,c.y-178); ctx.lineTo(c.x+24,c.y-170); ctx.lineTo(c.x+46,c.y-80); ctx.lineTo(c.x+40,c.y+4); ctx.closePath(); ctx.fill(); ctx.stroke();
@@ -2320,12 +2515,16 @@ function dessinerMage(ctx, c, now, col){
     ctx.shadowColor = "#ffffff"; ctx.shadowBlur = 20;
     ctx.beginPath(); ctx.ellipse(c.x, c.y-80, 62, 100, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
   }
-  ctx.globalAlpha = 1;
 }
 function dessinerSort(ctx, p, now){
   var E = ELEMENTS[p.el];
   ctx.save(); ctx.translate(p.x, p.y); ctx.shadowColor = E.col; ctx.shadowBlur = 26;
-  if(p.el==="glace"){
+  if(p.el==="foudre"){
+    var dirx = p.vx>0 ? 1 : -1;
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; arcElectrique(ctx, -dirx*34, 0, dirx*10, 0, 10, 6);
+    ctx.strokeStyle = E.col; ctx.lineWidth = 1.6; arcElectrique(ctx, -dirx*40, 0, dirx*12, 0, 14, 6);
+    ctx.fillStyle = "#fffbe0"; ctx.beginPath(); ctx.arc(dirx*10, 0, 5, 0, Math.PI*2); ctx.fill();
+  } else if(p.el==="glace"){
     ctx.scale(p.vx>0 ? 1 : -1, 1);
     ctx.fillStyle = E.col2; ctx.beginPath(); ctx.moveTo(22,0); ctx.lineTo(-10,-9); ctx.lineTo(-18,0); ctx.lineTo(-10,9); ctx.closePath(); ctx.fill();
     ctx.fillStyle = E.col; ctx.beginPath(); ctx.moveTo(14,0); ctx.lineTo(-6,-5); ctx.lineTo(-6,5); ctx.closePath(); ctx.fill();
@@ -2367,6 +2566,14 @@ function dessinerMages(ctx, cv, now){
   J.meteores.forEach(function(me){ if(me.y<-20) return; dessinerSort(ctx, {el:"feu", x:me.x, y:me.y, r:20, vx:1}, now); });
   J.parts.forEach(function(p){ var k = Math.max(0, p.vie/p.max); ctx.globalAlpha = k; ctx.fillStyle = p.col; ctx.fillRect(p.x-p.t/2, p.y-p.t/2, p.t, p.t); });
   ctx.globalAlpha = 1;
+  (J.flashs||[]).forEach(function(f){
+    var k = f.vie/0.3;
+    ctx.fillStyle = "rgba(255,250,210,"+(0.22*k)+")"; ctx.fillRect(-200,-100,1400,800);
+    ctx.shadowColor = "#ffe14d"; ctx.shadowBlur = 30;
+    ctx.strokeStyle = "rgba(255,255,255,"+k+")"; ctx.lineWidth = 6; arcElectrique(ctx, f.x+(Math.random()-0.5)*40, -20, f.x, MG.SOL, 40, 9);
+    ctx.strokeStyle = "rgba(255,225,77,"+k+")"; ctx.lineWidth = 2.5; arcElectrique(ctx, f.x+(Math.random()-0.5)*40, -20, f.x, MG.SOL, 50, 9);
+    ctx.shadowBlur = 0;
+  });
   if(J.neige>0){ ctx.fillStyle = "rgba(200,240,255,"+(0.18*Math.min(1,J.neige))+")"; ctx.fillRect(-200,-100,1400,800); ctx.fillStyle = "#ffffff";
     for(var n=0;n<80;n++){ var nx = ((n*97 + now/4*(1+n%3))%1100)-50, ny = ((n*53 + now/6)%650)-25; ctx.fillRect(nx, ny, 3, 3); } }
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -3645,7 +3852,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "29";
+var VERSION_SITE = "30";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
