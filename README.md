@@ -1,140 +1,111 @@
 # Le Jeu de Noël
 
-Jeu de soirée à deux, du type « vodka games » : on joue à un mini-jeu, le perdant reçoit un gage, et il a le choix entre **le faire** ou **boire**. Le jeu s'affiche sur la télé (navigateur de la smart TV ou ordinateur branché), et chaque joueur utilise son téléphone comme manette.
+Jeu de soirée à deux, du type « vodka games » : on joue à un mini-jeu, le perdant reçoit un gage, et il choisit entre **le faire** ou **boire**. Le jeu s'affiche sur la télé (navigateur de la smart TV ou ordinateur branché), et chaque joueur utilise son téléphone comme manette.
 
-Il a été conçu par Hicham (avec Claude) pour une longue soirée à deux pendant les fêtes de Noël. Les deux joueurs peuvent faire évoluer le site.
+Conçu par Hicham (avec Claude) pour une longue soirée à deux. Les deux joueurs peuvent faire évoluer le site.
 
 Site en ligne : https://lafhalehicham608-crypto.github.io/jeu-de-noel/
 
-> Ce dépôt est **public**. N'y écrivez jamais de gages, de phrase secrète, de code d'accès ou d'information personnelle. Les gages vivent uniquement dans la base Firebase, rangés sous une clé secrète.
+> Ce dépôt est **public**. N'y écrivez jamais de gages personnels, de phrase secrète, de lien privé, de code d'accès ou d'information personnelle. Les gages, les photos et les réglages privés vivent uniquement dans la base Firebase, rangés sous une clé secrète.
 
 ---
 
 ## 1. Comment on joue
 
-1. **Accueil (télé)** : titre néon, bouton JOUER, et deux QR codes, **Lui** (cadre bleu) et **Elle** (cadre violet). Chacun scanne le sien : son téléphone devient sa manette. Chaque QR indique « connecté » quand le téléphone est relié.
-2. **Joueurs** : deux cartes avec un croquis (bleu à gauche pour lui, violet à droite pour elle). Chacun tape son prénom sur son téléphone, il s'affiche sur la télé.
-3. **Choix du mode** :
-   - **Mode classique** : le jeu principal (voir plus bas).
-   - **Arcade** : prévu, pas encore fait (un défilement de gages, sans mini-jeux).
-   - **Tester la course** / **Tester les cartes** : lancent directement un mini-jeu, pratique pour tester.
-   - **Banque à gages** : pour écrire et gérer les gages (voir section 3).
-4. **Mode classique** : une **séquence** de 3 parties.
+1. **Accueil (télé)** : bouton JOUER et deux QR codes, **Lui** (bleu) et **Elle** (violet). Chacun scanne le sien : son téléphone devient sa manette.
+2. **Joueurs** : chacun tape son prénom sur son téléphone.
+3. **Modes** : mode classique, banque à gages, et des boutons « Tester … » pour lancer directement un mini-jeu.
+4. **Mode classique** : une séquence de 3 parties.
 
    | Partie | Manches | Gages tirés |
    |---|---|---|
-   | Medium (introduction) | 5 | medium uniquement |
-   | Hard | 10 | au hasard entre medium et hard |
-   | Impossible | 10 | au hasard entre hard et impossible |
+   | Medium | 5 | medium uniquement |
+   | Hard | 10 | medium ou hard |
+   | Impossible | 10 | hard ou impossible |
 
-   Le niveau d'une partie est un **plafond** : le tirage est aléatoire dans la fourchette.
-5. **Une manche** :
-   - une **roue** (avec ampoules, tic sonore, ralentissement) tire un mini-jeu ;
-   - on joue sur les téléphones ;
-   - le gagnant est annoncé, puis la **page de gage** s'affiche pour le perdant ;
-   - page de gage volontairement **sobre** : fond sombre, cadre néon de la couleur du perdant tout autour de l'écran (bleu = lui, violet = elle), texte du gage en blanc, deux boutons **Je le fais** / **Je bois** (sur le téléphone du perdant uniquement) ;
-   - « Je bois » ajoute un verre au compteur ; « Je le fais » laisse le gage affiché, puis « C'est fait » passe à la manche suivante.
-6. **Fin de partie** : tableau par joueur (manches perdues, gages faits, verres bus), puis partie suivante ou menu.
-7. **Arrêter le jeu** : bouton discret en bas à gauche de la télé (et en haut du téléphone), avec double appui pour confirmer. La touche Retour de la télécommande ou Échap font pareil.
+5. **Une manche** : une roue tire un mini-jeu → on joue → le perdant reçoit un gage.
+6. **Fin de partie** : tableau par joueur (manches perdues, gages faits, verres bus).
+7. **Compteur de verres** en haut à droite, sur toute la soirée.
+8. **Passer ce jeu** : remplace le mini-jeu par un « choix libre » joué en vrai (on indique ensuite qui a gagné).
+9. **Arrêter le jeu** : bouton en bas à gauche (double appui), touche Retour ou Échap.
 
 Code couleur partout : **bleu = Lui**, **violet = Elle**.
 
-### Les mini-jeux (dans la roue)
+### Les mini-jeux
 
-| Mini-jeu | Type | Règle |
-|---|---|---|
-| Premier qui tape | Réflexe | L'écran devient blanc après un délai aléatoire : le premier qui tape gagne. Taper trop tôt = faux départ = perdu. |
-| Carte haute | Chance | Chacun retourne une carte, la plus basse perd. Égalité = on retire. |
-| Chrono à l'aveugle | Feeling | Une cible entre 5 et 15 s est annoncée, le chrono disparaît après 3 s. Chacun tape quand il pense y être : le plus éloigné de la cible perd. |
-| Mini circuit | Course | Course vue de dessus, 2 tours, les voitures accélèrent seules, on ne fait que tourner. Sortir de la piste = explosion et retour au départ. |
-| Dernière carte | Cartes | Règles du jeu de cartes à couleurs bien connu (5 cartes chacun, +2, inversion, passe, joker, +4). Premier à vider sa main gagne. Limite 5 minutes. Chaque joueur voit sa main privée sur son téléphone. Le nom et le design des cartes sont originaux (on ne copie pas la marque). |
+| Mini-jeu | Principe |
+|---|---|
+| Premier qui tape | Réflexe : taper dès que l'écran s'allume (trop tôt = perdu). |
+| Carte haute | Chacun retourne une carte, la plus basse perd. |
+| Chrono à l'aveugle | Taper au plus près d'une durée cible annoncée. |
+| Mini circuit | Course vue de dessus, 2 tours, sortir de la piste = explosion. |
+| Dernière carte | Jeu de cartes à couleurs (main privée sur le téléphone). Design original. |
+| Tir à la corde | Taper le plus vite possible. |
+| Duel de tanks | Arène vue de dessus, 3 vies chacun. |
+| Quiz culture G | 4 choix, premier à 2 bonnes réponses, jamais deux fois la même question. |
+| Qui est-ce ? | 16 personnages ; thèmes imposés ou questions à deux ; accuser faux = éliminé. Le téléphone montre la fiche de son personnage, la grille d'élimination est cachée derrière un bouton. |
+| Duel de mages | Combat de profil, 2 rounds gagnants, élément tiré au hasard (feu, glace, foudre) avec effets et ultimes. La Foudre utilise des illustrations (`sorciere-*.webp`). |
+| La Traque | Vue de dessus : Kendrick (Lui) chasse Emilia (Elle) dans un cimetière. Pouvoirs, barils d'eau bénite, gargouilles, cryptes, ronces, fioles. Joystick sur le téléphone. |
 
-Commandes au clavier (pour tester sans téléphone) : Q/A et D pour Lui, flèches gauche/droite pour Elle.
+Les touches clavier pour tester sans téléphone sont indiquées dans le code de chaque jeu (`js/jeux/…`).
 
----
+### Les gages
 
-## 2. Les manettes
+Ordre à l'écran :
+1. Le gage s'affiche, avec la fourchette de durée et la roue du corps s'il y en a.
+2. **Je le fais / Je bois** (seulement « Je le fais » pour un gage obligatoire).
+3. Si accepté : **roue du corps** → **tirage de la durée** (arrondie à 15 s) → **lancer le minuteur** (pause possible) → alarme « ARRÊTEZ ! » → manche suivante.
 
-- Chaque QR code ouvre `index.html?v=<version>#manette=<id du salon>&j=b` (Lui) ou `&j=v` (Elle).
-- Le téléphone ne montre que les commandes de son joueur : un seul champ prénom, un seul gros bouton pour les mini-jeux, deux boutons gauche/droite pour la course, sa propre main au jeu de cartes.
-- Seul le téléphone du perdant reçoit les boutons du gage.
-- Le cadre du téléphone brille en permanence dans la couleur de son joueur.
-- Une seule télé pilote la partie : la dernière ouverte prend la main, les autres affichent « Le jeu est ouvert sur un autre écran ».
-
----
-
-## 3. La banque à gages
-
-- Objectif : **500 gages** avant le jour J (une jauge le suit).
-- Chaque gage a deux classements : **pour Lui / pour Elle**, et **Medium / Hard / Impossible** (pas de soft).
-- On peut ajouter un gage, ou plusieurs d'un coup en en mettant **un par ligne**.
-- **Écrire est libre, lire est verrouillé** : en bas de la page, les blocs Lui et Elle sont cachés derrière un code (actuellement `0000` pour les deux, à changer plus tard pour que chacun ne voie pas les gages de l'autre). C'est une protection contre les regards, pas une vraie sécurité.
-- **Phrase secrète** : la première fois, chaque appareil demande votre phrase secrète commune. Elle n'est stockée nulle part en clair : le site en calcule une empreinte (SHA-256) qui sert d'adresse à vos gages dans Firebase. Même phrase sur tous les appareils = même banque.
-- Si la banque est vide pour un perdant et un niveau, le jeu utilise un gage d'exemple et l'indique en petit.
+Dans le texte d'un gage :
+- **X** = l'endroit où s'écrit la durée tirée ;
+- **Z** = l'endroit où s'écrit la partie du corps tirée.
 
 ---
 
-## 4. Architecture technique
+## 2. Banque à gages
 
-- **Un seul fichier** `index.html` (HTML, CSS et JavaScript), plus `config.js` (configuration Firebase, non secrète). Hébergé par **GitHub Pages** depuis la branche `main`, à la racine.
-- Bibliothèques chargées par CDN : Firebase 10.12.2 (app, firestore, database, en version « compat ») et qrcodejs 1.0.0. Polices Google : Monoton (titres néon) et Sora.
-- Projet Firebase : **Noel Game** (`noel-game`).
-
-### Firestore : la banque à gages
-- Chemin : `salons/{empreinte de la phrase secrète, 64 caractères}/gages/{id}`
-- Document : `{ texte, pour: "lui" | "elle", niveau: "medium" | "hard" | "impossible", cree: timestamp }`
-- Règles : lecture et écriture autorisées seulement sous un salon dont l'identifiant fait exactement 64 caractères. Tout le reste est refusé.
-
-### Realtime Database : la liaison télé ↔ téléphones
-- URL : `https://noel-game-default-rtdb.europe-west1.firebasedatabase.app`
-- Chemin : `salles/{id}` où `id` est généré par la télé et gardé dans son navigateur (`localStorage`, clé `jdn-salle`).
-  - `etat` : l'état du jeu publié par la télé (écran, prénoms, perdant, mains du jeu de cartes, etc.)
-  - `vers_tv` : actions envoyées par les téléphones (`tap`, `nom`, `choix`, `ok`, `quitter`, `uno`), supprimées une fois lues
-  - `presence/tv`, `presence/tel_b`, `presence/tel_v` : qui est connecté, effacé automatiquement à la déconnexion. La présence d'un téléphone porte aussi `dir` (direction tenue pendant la course).
-- Règles : lecture et écriture seulement sous `salles/$s` avec un identifiant d'au moins 12 caractères.
-
-### Repères dans le code (`index.html`)
-- `SEQUENCE`, `JEUX`, `GAGES` (exemples), `MANCHES` : contenu et réglages de la partie.
-- `montrer(id)` : change d'écran sur la télé. `neon(cote)` : cadre néon.
-- `roulette()` / `construireRoue()` / `atterrir()` : la roue.
-- `reflexe()`, `carteHaute()`, `chrono()`, `course()`, `uno()` : les mini-jeux. `demarrer(id)` les aiguille. `appui(cote)` reçoit les appuis.
-- `finManche()`, `afficherGage()`, `choisir()`, `mancheSuivante()`, `finPartie()` : déroulé d'une manche.
-- `tirerGage()` : tirage dans la banque (selon le perdant et le niveau de la partie, sans répétition).
-- `rendreBanque()`, `ajouterGages()`, `CODES` : la banque à gages.
-- `etat()` / `diffuser()` : ce que la télé envoie aux téléphones. `rendreManette()` : affichage côté téléphone.
-- `SalonRT()` : liaison Firebase Realtime Database. `demarrerTV()`, `demarrerManette()`, `demarrerBanque()` : démarrage.
+- Objectif : 500 gages. Classement **Lui / Elle** et **Medium / Hard / Impossible**.
+- Options par gage : **minuteur** (durée min / max), **roue du corps** (féminine ou masculine), **gage obligatoire** (pas de « Je bois », **3 maximum par personne**, badge doré).
+- Écrire est libre ; lire les gages est protégé par un code.
+- **Personnages** : bouton en haut de la banque. Liste des personnages de « Qui est-ce ? », ajout d'images (Ctrl+V ou photo), thèmes et questions personnalisés.
+- **Mode banque seule** : ajouter `#banque` à l'adresse (avec le lien privé la première fois) pour remplir la banque depuis un téléphone sans prendre la place de la télé.
+- **Clé privée** : la phrase secrète (ou le lien privé) donne une empreinte SHA-256 qui sert d'adresse aux données dans Firebase. Elle n'est jamais écrite dans le dépôt.
 
 ---
 
-## 5. Règles pour modifier le site sans rien casser
+## 3. Organisation des fichiers
 
-1. **Augmenter la version à chaque publication**, sinon les navigateurs et les téléphones gardent l'ancienne en mémoire :
-   - `var VERSION_SITE = "8";` dans `index.html` (le QR code l'utilise) ;
-   - `<script src="config.js?v=8">` dans `index.html`.
-   Passez les deux à la valeur suivante (9, 10…).
-2. **Ne pas changer les chemins Firebase** (`salons/…/gages`, `salles/…`), ni la façon de calculer l'empreinte de la phrase secrète : sinon les gages déjà écrits deviennent introuvables.
-3. **Rester sur un seul fichier** `index.html` + `config.js`.
-4. **Publier** : sur GitHub, « Add file » puis « Upload files », glisser le fichier modifié, « Commit changes ». La mise en ligne prend environ une minute. Pour tester tout de suite, ouvrir le site avec `?v=` suivi d'un nouveau numéro.
-5. **Tester avant de jouer** : télé + deux téléphones (ou deux onglets ouverts avec les liens des QR codes), au moins un mini-jeu, un gage, et le jeu de cartes.
-6. **Ne pas modifier en même temps** que l'autre personne : le dernier envoi écrase le précédent. Se prévenir avant.
-7. **Rien de personnel dans le dépôt** : il est public. Les gages restent dans Firebase.
+```
+index.html            la page : tous les écrans (HTML) + chargement des scripts
+style.css             tous les styles
+config.js             configuration Firebase (non secrète)
+js/base.js            contenu de base, outils, état du jeu, banque (données), avatars, durées, roues du corps
+js/tv.js              écrans de la télé : accueil, joueurs, modes, intro, roulette
+js/personnages.js     personnages, fiches, page Personnages, éditeur d'image, thèmes et questions
+js/gage.js            résultat de manche, page de gage, fin de partie
+js/manette.js         clavier de la télé, liaison téléphone ↔ télé, affichage de la manette
+js/demarrage.js       démarrage, salon temps réel, banque privée, mode banque seule, VERSION_SITE
+js/jeux/quiz.js       quiz culture générale
+js/jeux/qui-est-ce.js Qui est-ce ?
+js/jeux/mages.js      Duel de mages
+js/jeux/traque.js     La Traque
+js/jeux/classiques.js corde, dernière carte, circuit, tanks, chrono, réflexe, carte haute
+sorciere-*.webp       illustrations de la sorcière de la foudre
+```
+
+Les scripts sont de simples fichiers chargés dans l'ordre par `index.html` et partagent les mêmes variables globales : **l'ordre des balises `<script>` compte**.
+
+### Données (Firebase, projet « Noel Game »)
+- **Firestore** : `salons/{empreinte}/gages/{id}` (gages) et `salons/{empreinte}/medias/{id}` (avatars, images des personnages `p-…`, thèmes et questions `qui-textes`). Règles : seulement sous un salon de 64 caractères, collections `gages` et `medias`.
+- **Realtime Database** : `salles/{id}` (état du jeu, actions des téléphones, présence, images de « Qui est-ce ? »). Règles : identifiant d'au moins 12 caractères.
 
 ---
 
-## 6. Décisions de conception déjà prises
+## 4. Règles pour modifier le site
 
-- Pas de mode « histoire » : simplement des parties de 10 manches (5 pour la partie d'introduction).
-- Page de gage minimaliste, sans animation de carte ni badge de niveau.
-- Pas de validation du gage par l'autre joueur : « C'est fait » suffit.
-- Pas de bouton stop ni de veto à l'écran, pour garder l'immersion.
-- Cartes du jeu de cartes : rendu réaliste, mais design et nom originaux.
-- Le reste du jeu garde l'ambiance néon sombre.
-
-## 7. Idées et choses à faire
-
-- Mode **Arcade** (défilement de gages).
-- Écran pour que chacun **choisisse son propre code** d'accès à la banque (au lieu de `0000`).
-- **Croquis des personnages** : silhouettes néon simples ou dessins cartoon plus détaillés (pas encore tranché).
-- Plus de **mini-jeux** dans la roue (duels d'arcade, etc.).
-- **Bilan de fin de soirée** (sur toute la séquence).
-- Nombre de parties dans une séquence : 3 pour l'instant, à ajuster.
+1. **Changer la version à chaque publication**, sinon télés et téléphones gardent l'ancienne en mémoire : remplacer partout `?v=36` dans `index.html` et `VERSION_SITE` dans `js/demarrage.js` par le numéro suivant. Les téléphones se rechargent tout seuls quand la télé a une version plus récente.
+2. **Ne pas changer** les chemins Firebase ni le calcul de l'empreinte, sinon les données deviennent introuvables.
+3. **Tester avant de jouer** : télé + deux téléphones (ou deux onglets avec les liens des QR codes), au moins un mini-jeu et un gage.
+4. **Ne pas modifier en même temps** que l'autre personne.
+5. **Rien de personnel dans le dépôt** : il est public.
+6. Publication : un commit sur `main` ; GitHub Pages met le site à jour en une minute environ.
