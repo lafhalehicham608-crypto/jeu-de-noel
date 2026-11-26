@@ -379,6 +379,94 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 .g-corps{display:inline-flex;align-items:center;gap:.25em;vertical-align:.08em;font-family:"Playfair Display",Georgia,serif;font-style:italic;font-size:.88em;line-height:1.1;color:#f6e7dc;background:linear-gradient(180deg,#8a2540,#5a1426);border:3px solid #c99a45;border-radius:.35em;padding:.06em .4em .12em;margin:0 .1em;box-shadow:0 0 0 2px rgba(0,0,0,.5),inset 0 0 0 1px rgba(247,227,166,.35)}
 .g-corps.m{background:linear-gradient(180deg,#2a3d61,#141f35)}
 .g-corps .ge{font-style:normal;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+/* ----- Qui est-ce ? ----- */
+.pv{position:relative;width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#151528;container-type:inline-size}
+.pv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.pv.sans{background:linear-gradient(140deg,hsl(var(--h,250) 45% 34%),hsl(calc(var(--h,250) + 50) 50% 16%))}
+.pv .ini{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:rgba(255,255,255,.92);font-size:2em;font-size:40cqw;letter-spacing:.02em;font-family:"Playfair Display",Georgia,serif}
+#qui{gap:clamp(8px,1.6vh,18px);justify-content:flex-start;padding-top:clamp(40px,7vh,70px)}
+.qui-boite{width:min(92vw,1100px);border:2px solid var(--line);border-radius:22px;padding:clamp(12px,2vh,22px) clamp(16px,2.4vw,36px);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));text-align:center}
+.qui-boite.b{border-color:var(--bleu);box-shadow:0 0 30px rgba(47,168,255,.25)}
+.qui-boite.v{border-color:var(--violet);box-shadow:0 0 30px rgba(184,77,255,.25)}
+.qui-boite.deux{border-color:#c99a45;box-shadow:0 0 30px rgba(201,154,69,.25)}
+.qui-boite.niv-hard{border-color:#ff5a6e;box-shadow:0 0 34px rgba(255,90,110,.3)}
+.qui-label{margin:0;color:var(--mute);font-size:clamp(13px,1.5vw,22px)}
+.qui-prompt{margin:.15em 0 0;font-weight:800;font-size:clamp(24px,3.6vw,56px);line-height:1.15;text-wrap:balance}
+.qui-hint{margin:.25em 0 0;color:var(--mute);font-size:clamp(12px,1.3vw,19px);letter-spacing:.04em}
+.qui-reps{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;min-height:1.6em;font-size:clamp(15px,1.8vw,28px)}
+.qui-r{font-weight:800;padding:.2em .8em;border-radius:99px;border:2px solid currentColor}
+.qui-r.oui{background:rgba(70,220,140,.14)} .qui-r.non{background:rgba(255,90,110,.14)} .qui-r.nsp{background:rgba(255,255,255,.06)}
+.qui-r.cb,.qui-attente.cb{color:var(--bleu)} .qui-r.cv,.qui-attente.cv{color:var(--violet)}
+.qui-attente{color:var(--mute);font-weight:600}
+.qui-verdict{font-weight:900;letter-spacing:.2em;padding:.25em 1em;border-radius:12px}
+.qui-verdict.ok{color:#46dc8c;border:2px solid #46dc8c} .qui-verdict.ko{color:#ff5a6e;border:2px solid #ff5a6e}
+.qui-grille{display:grid;grid-template-columns:repeat(8,1fr);gap:clamp(6px,1vw,14px);width:min(96vw,136vh)}
+.qc{display:flex;flex-direction:column;gap:4px;align-items:center;min-width:0;transition:transform .3s,opacity .3s}
+.qc .pv{border:2px solid var(--line)}
+.qc-nom{font-size:clamp(10px,1vw,15px);font-weight:600;text-align:center;line-height:1.15;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qc.accuse .pv{border-color:#fff;box-shadow:0 0 0 3px #fff,0 0 24px rgba(255,255,255,.5)}
+.qc.accuse{transform:scale(1.08);z-index:1}
+.qc.bon .pv{border-color:#46dc8c;box-shadow:0 0 0 3px #46dc8c,0 0 30px #46dc8c}
+.qc.mauvais .pv{border-color:#ff5a6e;box-shadow:0 0 0 3px #ff5a6e;opacity:.55}
+#m-qui{justify-content:flex-start;overflow-y:auto;gap:12px;padding-top:max(52px,env(safe-area-inset-top,0px));padding-bottom:24px}
+.mq-secret{display:flex;gap:12px;align-items:center;width:min(100%,440px);border:1px solid var(--line);border-radius:14px;padding:8px 12px;text-align:left}
+.mq-secret .pv{width:56px;flex:none;border-radius:10px}
+.mq-secret small{display:block;color:var(--mute);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.mq-secret b{font-size:19px}
+.mq-act{display:flex;flex-direction:column;gap:10px;width:min(100%,440px);align-items:stretch;text-align:center}
+.mq-label{margin:0;color:var(--mute);font-size:14px}
+.mq-prompt{margin:0;font-weight:800;font-size:22px;line-height:1.2}
+.mq-rep{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mq-rep button:last-child{grid-column:1 / -1}
+.mq-rep .oui{border-color:#46dc8c} .mq-rep .non{border-color:#ff5a6e}
+.mq-rep button.choisie{background:var(--fg);color:var(--bg)}
+.mq-r{margin:0;font-weight:800;font-size:20px}
+.mq-r.oui{color:#46dc8c} .mq-r.non{color:#ff5a6e}
+.mq-grille{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(100%,440px)}
+.mqc{display:flex;flex-direction:column;gap:3px;padding:0;border:0;background:none;min-width:0;color:var(--fg);border-radius:12px}
+.mqc .pv{border:2px solid var(--line);font-size:14px}
+.mqc .qc-nom{font-size:11px}
+.mqc.elim .pv{filter:grayscale(1) brightness(.35)}
+.mqc.elim .pv::after{content:"✕";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40cqw;color:#ff5a6e;font-weight:800}
+.mqc.elim .qc-nom{opacity:.35;text-decoration:line-through}
+#m-qui.mode-accuse .mqc .pv{border-color:#ff5a6e}
+.mqc.choisi .pv{box-shadow:0 0 0 3px #fff,0 0 18px #ff5a6e;filter:none}
+.mq-accuser{width:min(100%,440px);border-color:#ff5a6e;color:#ff5a6e}
+/* Page Personnages */
+#persos{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
+.pe-outils{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.pe-outils select,.pe-outils input,.pe-ajout select,.pe-ajout input,.pe-carte input,.pe-carte select{font:600 15px var(--text);color:var(--fg);background:var(--bg2);border:2px solid var(--line);border-radius:10px;padding:.45em .6em;min-width:0}
+.pe-outils input{flex:1 1 160px}
+.pe-ajout{display:flex;gap:10px;flex-wrap:wrap;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px}
+.pe-ajout input{flex:1 1 220px}
+.pe-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+.pe-carte{display:flex;flex-direction:column;gap:6px;min-width:0;border:1px solid var(--line);border-radius:14px;padding:8px;background:rgba(255,255,255,.02)}
+.pe-carte .pv{cursor:pointer}
+.pe-carte.f{border-top:3px solid var(--violet)} .pe-carte.m{border-top:3px solid var(--bleu)}
+.pe-nom{margin:0;font-weight:700;font-size:15px;line-height:1.2;overflow-wrap:anywhere}
+.pe-cat{margin:0;color:var(--mute);font-size:12px}
+.pe-act{display:flex;gap:6px;flex-wrap:wrap}
+.pe-act .mini{padding:.4em .7em;font-size:12px;text-decoration:none;color:var(--fg)}
+.pe-act .mini.plein{color:var(--bg)}
+.pe-carte.edit{gap:8px}
+.mini.danger{border-color:#ff5a6e;color:#ff5a6e}
+.pe-act .mini.plein,.petit.plein{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:999px;font-family:var(--text)}
+.pe-h3{margin:14px 0 0;font-size:clamp(20px,2.4vw,32px);font-weight:800}
+.pe-textes{list-style:none;margin:0;padding:0}
+.pe-textes li{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+.pe-textes li p{margin:0;flex:1;min-width:0;overflow-wrap:anywhere}
+.editeur{position:fixed;inset:0;z-index:70;background:rgba(3,3,8,.82);display:flex;align-items:center;justify-content:center;padding:16px}
+.ed-boite{width:min(100%,420px);background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow-y:auto}
+.ed-boite h3{margin:0;font-size:24px}
+.ed-cadre{position:relative;width:100%;max-width:320px;margin:0 auto;aspect-ratio:1/1}
+.ed-cadre canvas{width:100%;height:100%;border-radius:14px;touch-action:none;cursor:grab;display:block;border:2px solid var(--line)}
+.ed-vide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;margin:0;color:var(--mute);font-size:15px;pointer-events:none;line-height:1.6}
+.ed-fichier{position:relative;overflow:hidden;cursor:pointer}
+.ed-fichier input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.ed-boite .row{justify-content:center;gap:8px;flex-wrap:wrap}
+.ed-boite a.mini{text-decoration:none;color:var(--fg)}
+#edZoom{width:100%}
 /* Montre du minuteur : cadran néon, anneau qui se vide, temps au centre */
 .montre{--w:min(30vh,300px);position:relative;width:var(--w);height:calc(var(--w)*1.1);margin:1vh auto 3vh;color:var(--bleu)}
 #gage.v .montre{color:var(--violet)}
@@ -459,6 +547,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
       <button class="plein mode" data-primary id="btnClassique">Mode classique<small>Parties de 10 manches · mini-jeux et gages</small></button>
       <button class="mode" disabled>Arcade<small>Bientôt</small></button>
       <button class="mode" id="btnTestCourse">Tester la course<small>Lance directement le mini circuit</small></button>
+      <button class="mode" id="btnTestQui">Tester Qui est-ce ?<small>Lance directement le jeu des personnages</small></button>
       <button class="mode" id="btnTestQuiz">Tester le quiz<small>Lance directement le quiz culture G</small></button>
       <button class="mode" id="btnTestDuel">Tester le duel<small>Lance directement le duel de tanks</small></button>
       <button class="mode" id="btnTestCorde">Tester la corde<small>Lance directement le tir à la corde</small></button>
@@ -514,6 +603,18 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
     <div class="qz-barre"><i id="qzBarre"></i></div>
     <div class="cotes"><span class="cb" id="qzB"></span><span class="cv" id="qzV"></span></div>
     <p class="sub" id="qzMsg"></p>
+  </section>
+
+  <section class="screen" id="qui" hidden>
+    <p class="eyebrow" id="quiNum"></p>
+    <div class="qui-boite" id="quiBoite">
+      <p class="qui-label" id="quiLabel"></p>
+      <p class="qui-prompt" id="quiPrompt"></p>
+      <p class="qui-hint" id="quiHint"></p>
+    </div>
+    <div class="qui-reps" id="quiRep"></div>
+    <div class="qui-grille" id="quiGrille"></div>
+    <div class="cotes"><span class="cb" id="quiB"></span><span class="cv" id="quiV"></span></div>
   </section>
 
   <section class="screen" id="duel" hidden>
@@ -579,7 +680,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
     <div class="bq">
       <div class="bq-tete">
         <div><p class="eyebrow">Mode</p><h2>Banque à gages</h2></div>
-        <div class="row"><button class="petit" id="bqLien">Copier le lien privé</button><button class="petit" id="bqChangerCle">Changer de clé</button><button class="petit" id="bqRetour">Retour</button></div>
+        <div class="row"><button class="petit plein" id="bqPersos">Personnages</button><button class="petit" id="bqLien">Copier le lien privé</button><button class="petit" id="bqChangerCle">Changer de clé</button><button class="petit" id="bqRetour">Retour</button></div>
       </div>
       <div class="bq-cle" id="bqCle" hidden>
         <p class="sub">Entre la clé de votre banque. Utilisez la même phrase sur tous vos appareils (télé, ton téléphone, le sien) : c'est elle qui relie vos gages. 8 caractères minimum.</p>
@@ -607,6 +708,55 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
       <p class="sub" id="bqVide"></p>
     </div>
   </section>
+
+  <section class="screen" id="persos" hidden>
+    <div class="bq">
+      <div class="bq-tete">
+        <div><p class="eyebrow">Banque à gages</p><h2>Personnages</h2></div>
+        <div class="row"><button class="petit plein" id="peAjouter">Ajouter un personnage</button><button class="petit" id="peRetour">Retour</button></div>
+      </div>
+      <div><p class="sub" id="peTotal"></p><div class="jauge"><i id="peJauge"></i></div></div>
+      <p class="bq-astuce">Pour chaque personnage : « Chercher » ouvre Google Images, copie l'image (clic droit, « Copier l'image »), reviens ici et fais Ctrl+V. Sur téléphone : enregistre l'image puis « Choisir une photo ». Le jeu tire d'abord les personnages qui ont une image.</p>
+      <div class="pe-ajout" id="peAjoutBox" hidden>
+        <input id="peNNom" maxlength="40" placeholder="Nom du personnage">
+        <select id="peNSexe"><option value="f">Femme</option><option value="m">Homme</option></select>
+        <select id="peNCat"></select>
+        <button class="plein" id="peNOk">Ajouter</button>
+      </div>
+      <div class="pe-outils">
+        <div class="seg" id="peFiltre"><button data-f="tous">Tous</button><button data-f="sans">Sans image</button><button data-f="avec">Avec image</button></div>
+        <select id="peCat" aria-label="Catégorie"></select>
+        <input id="peCherche" placeholder="Rechercher…" aria-label="Rechercher un personnage">
+      </div>
+      <p class="sub" id="peMsg"></p>
+      <div class="pe-grille" id="peGrille"></div>
+      <h3 class="pe-h3">Thèmes et questions</h3>
+      <p class="bq-astuce">Un tour sur deux, le jeu impose un thème (celui qui joue invente sa question) ; sinon il pose une question à laquelle vous répondez tous les deux. Tu peux ajouter les vôtres ici.</p>
+      <details class="bq-sec"><summary>Thèmes de base (16)</summary><p class="sub" id="peBaseThemes"></p></details>
+      <details class="bq-sec"><summary>Questions de base</summary><p class="sub" id="peBaseQ"></p></details>
+      <div class="pe-ajout">
+        <select id="peTType"><option value="questions">Question</option><option value="themes">Thème</option></select>
+        <select id="peTNiv"><option value="soft">Soft</option><option value="spicy">Spicy</option><option value="hard">Très hard</option></select>
+        <input id="peTTexte" maxlength="200" placeholder="Ex. : Ton perso a-t-il déjà… ?">
+        <button class="plein" id="peTOk">Ajouter</button>
+      </div>
+      <ul class="pe-textes" id="peTextes"></ul>
+    </div>
+  </section>
+  <div class="editeur" id="editeur" hidden>
+    <div class="ed-boite">
+      <p class="eyebrow">Image du personnage</p>
+      <h3 id="edNom"></h3>
+      <div class="ed-cadre"><canvas id="edCanvas" width="320" height="320"></canvas><p class="ed-vide" id="edVide">Colle une image ici avec <b>Ctrl+V</b><br>ou choisis une photo</p></div>
+      <input type="range" id="edZoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom">
+      <div class="row">
+        <a class="mini" id="edChercher" target="_blank" rel="noopener">Chercher sur Google</a>
+        <label class="mini ed-fichier">Choisir une photo<input type="file" id="edFichier" accept="image/*"></label>
+      </div>
+      <p class="sub" id="edMsg"></p>
+      <div class="row"><button class="plein" id="edSauver" disabled>Enregistrer</button><button id="edRetirer" class="mini danger" hidden>Retirer l'image</button><button id="edFermer">Fermer</button></div>
+    </div>
+  </div>
 </div>
 
 <!-- ============ MANETTE ============ -->
@@ -660,6 +810,12 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
     <p class="sub" id="mQzQ"></p>
     <div class="m-qz" id="mQzBtns"></div>
   </section>
+  <section class="screen" id="m-qui" hidden>
+    <div class="mq-secret" id="mQuiSecret"></div>
+    <div class="mq-act" id="mQuiAct"></div>
+    <div class="mq-grille" id="mQuiGrille"></div>
+    <button class="m-gros mq-accuser" id="mQuiAccuser">Accuser</button>
+  </section>
   <section class="screen" id="m-libre" hidden>
     <p class="eyebrow">Choix libre de jeu</p>
     <p class="sub">Jouez à un jeu de votre choix, puis dites qui a gagné.</p>
@@ -679,7 +835,7 @@ button.uc:disabled{filter:grayscale(.85) brightness(.55);transform:none;box-shad
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=23"></script>
+<script src="config.js?v=24"></script>
 <script>
 (function(){
 "use strict";
@@ -720,7 +876,8 @@ var JEUX = [
   {id:"uno",     type:"Cartes",  nom:"Dernière carte"},
   {id:"corde",   type:"Force",   nom:"Tir à la corde"},
   {id:"duel",    type:"Combat",  nom:"Duel de tanks"},
-  {id:"quiz",    type:"Culture", nom:"Quiz culture G"}
+  {id:"quiz",    type:"Culture", nom:"Quiz culture G"},
+  {id:"qui",     type:"Déduction", nom:"Qui est-ce ?"}
 ];
 var VALEURS = {11:"V",12:"D",13:"R",14:"A"};
 
@@ -774,6 +931,7 @@ function brancherDb(){
     rendreBanque();
   }, function(){ clearTimeout(t); banqueEtat = "erreur"; rendreBanque(); });
   chargerAvatars();
+  brancherPersos();
 }
 function nomPour(p){ return p==="lui" ? "Lui" : "Elle"; }
 
@@ -963,15 +1121,15 @@ var gen = 0;
 function plus_tard(fn,ms){var g=gen;setTimeout(function(){if(g===gen)fn()},ms)}
 
 /* ---------- Affichage TV ---------- */
-var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","libre","resultat","gage","fin","banque"];
+var ECRANS = ["accueil","joueurs","modes","intro","roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","libre","resultat","gage","fin","banque","persos"];
 function montrer(id){
   gen++;
   S.ecran = id;
   ECRANS.forEach(function(e){$(e).hidden = e!==id});
-  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","libre","resultat","gage"].indexOf(id)<0;
+  $("hud").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui","libre","resultat","gage"].indexOf(id)<0;
   if(id!=="gage") neon(null);
-  $("btnQuitter").hidden = id==="accueil" || id==="banque";
-  $("btnPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz"].indexOf(id)<0; $("btnPasser").classList.remove("confirme"); $("btnPasser").textContent = "Passer ce jeu";
+  $("btnQuitter").hidden = id==="accueil" || id==="banque" || id==="persos";
+  $("btnPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui"].indexOf(id)<0; $("btnPasser").classList.remove("confirme"); $("btnPasser").textContent = "Passer ce jeu";
   annulerQuitter();
   majHud();
   var p = $(id).querySelector("[data-primary]:not([disabled])") || $(id).querySelector("input,button:not([disabled])");
@@ -1009,7 +1167,7 @@ function majHud(){
 }
 var hudPrec = {b:0, v:0};
 /* Passer un mini-jeu : on joue à un jeu libre dans la vraie vie et on désigne le gagnant */
-var ECRANS_JEUX = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz"];
+var ECRANS_JEUX = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui"];
 function passerJeu(){
   if(ECRANS_JEUX.indexOf(S.ecran)<0) return;
   S.jeu = null; touches = {}; DIRK = {b:0,v:0};
@@ -1094,6 +1252,10 @@ $("btnClassique").onclick = function(){
 };
 
 $("btnBanque").onclick = function(){ ouvrirBanque(); };
+$("btnTestQui").onclick = function(){
+  S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
+  qui();
+};
 $("btnTestQuiz").onclick = function(){
   S.partie = 0; S.tot = {b:stats0(),v:stats0()}; S.st = {b:stats0(),v:stats0()}; S.manche = 1; paquets = {};
   quiz();
@@ -1207,7 +1369,7 @@ function atterrir(choix){
   (function flash(){ var on = c%2===0; ampoules(function(a){ a.classList.toggle("on", on); }); c++; if(c<10) plus_tard(flash, 140); })();
   plus_tard(function(){ demarrer(JEUX[choix].id); }, 2200);
 }
-function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else if(id==="corde") corde(); else if(id==="duel") duel(); else if(id==="quiz") quiz(); else carteHaute(); }
+function demarrer(id){ if(id==="reflexe") reflexe(); else if(id==="chrono") chrono(); else if(id==="course") course(); else if(id==="uno") uno(); else if(id==="corde") corde(); else if(id==="duel") duel(); else if(id==="quiz") quiz(); else if(id==="qui") qui(); else carteHaute(); }
 
 /* Mini-jeu 8 : quiz culture générale (premier à 2 bonnes réponses, jamais deux fois la même question) */
 var QUESTIONS = [["Quelle est la capitale de l'Australie ?", "Canberra", "Sydney", "Melbourne", "Perth"], ["Quel est le plus long fleuve de France ?", "La Loire", "La Seine", "Le Rhône", "La Garonne"], ["Quelle est la capitale du Canada ?", "Ottawa", "Toronto", "Montréal", "Vancouver"], ["Quel pays a la plus grande superficie au monde ?", "La Russie", "Le Canada", "La Chine", "Les États-Unis"], ["Quel est le plus haut sommet du monde ?", "L'Everest", "Le K2", "Le Kilimandjaro", "Le mont Blanc"], ["Dans quel pays se trouve Marrakech ?", "Le Maroc", "La Tunisie", "L'Algérie", "L'Égypte"], ["Quelle est la capitale du Japon ?", "Tokyo", "Kyoto", "Osaka", "Yokohama"], ["Quel est le plus grand océan du monde ?", "Le Pacifique", "L'Atlantique", "L'océan Indien", "L'Arctique"], ["Quelle mer borde la ville de Marseille ?", "La Méditerranée", "La Manche", "La mer du Nord", "La mer Noire"], ["Quel est le plus grand désert chaud du monde ?", "Le Sahara", "Le Gobi", "Le Kalahari", "L'Atacama"], ["Quelle est la capitale de l'Espagne ?", "Madrid", "Barcelone", "Séville", "Valence"], ["Quelle est la capitale de l'Italie ?", "Rome", "Milan", "Naples", "Florence"], ["Dans quelle ville se trouve la statue du Christ Rédempteur ?", "Rio de Janeiro", "São Paulo", "Buenos Aires", "Lisbonne"], ["Quel pays a pour capitale Lisbonne ?", "Le Portugal", "L'Espagne", "Le Brésil", "L'Italie"], ["Quelle est la monnaie du Royaume-Uni ?", "La livre sterling", "L'euro", "Le dollar", "Le franc"], ["Quelle est la monnaie du Maroc ?", "Le dirham", "Le dinar", "Le riyal", "La livre"], ["Combien d'États compte les États-Unis ?", "50", "48", "51", "52"], ["Quel est le plus petit pays du monde ?", "Le Vatican", "Monaco", "Saint-Marin", "Le Liechtenstein"], ["Quelle est la capitale de l'Égypte ?", "Le Caire", "Alexandrie", "Louxor", "Gizeh"], ["Quel fleuve traverse Paris ?", "La Seine", "La Loire", "La Marne", "Le Rhin"], ["Quelle chaîne de montagnes sépare la France de l'Espagne ?", "Les Pyrénées", "Les Alpes", "Le Jura", "Les Vosges"], ["Quel est le plus long fleuve d'Afrique ?", "Le Nil", "Le Congo", "Le Niger", "Le Zambèze"], ["Quelle est la capitale de l'Allemagne ?", "Berlin", "Munich", "Francfort", "Hambourg"], ["Quelle ville est surnommée « la Grosse Pomme » ?", "New York", "Los Angeles", "Chicago", "San Francisco"], ["Dans quel pays se trouve le Machu Picchu ?", "Le Pérou", "Le Mexique", "La Bolivie", "Le Chili"], ["En quelle année a eu lieu la prise de la Bastille ?", "1789", "1792", "1776", "1815"], ["Qui a été le premier empereur des Français ?", "Napoléon Ier", "Louis XIV", "Charlemagne", "Napoléon III"], ["En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?", "1969", "1965", "1972", "1959"], ["Qui a été le premier homme à marcher sur la Lune ?", "Neil Armstrong", "Buzz Aldrin", "Youri Gagarine", "Michael Collins"], ["En quelle année a commencé la Première Guerre mondiale ?", "1914", "1918", "1912", "1939"], ["En quelle année s'est terminée la Seconde Guerre mondiale ?", "1945", "1944", "1946", "1939"], ["En quelle année le mur de Berlin est-il tombé ?", "1989", "1991", "1985", "1975"], ["Quel roi de France était surnommé le Roi-Soleil ?", "Louis XIV", "Louis XVI", "Louis XIII", "François Ier"], ["Quelle civilisation a construit les pyramides de Gizeh ?", "Les Égyptiens", "Les Romains", "Les Mayas", "Les Grecs"], ["Qui a atteint l'Amérique en 1492 ?", "Christophe Colomb", "Vasco de Gama", "Magellan", "Amerigo Vespucci"], ["Quelle reine de France a été guillotinée en 1793 ?", "Marie-Antoinette", "Catherine de Médicis", "Anne d'Autriche", "Marie de Médicis"], ["Quel paquebot a coulé en 1912 après avoir heurté un iceberg ?", "Le Titanic", "Le Lusitania", "Le Britannic", "Le Queen Mary"], ["Dans quelle ville Jules César a-t-il été assassiné ?", "Rome", "Athènes", "Alexandrie", "Carthage"], ["En quelle année le Maroc a-t-il obtenu son indépendance ?", "1956", "1962", "1945", "1960"], ["Quel pays a offert la statue de la Liberté aux États-Unis ?", "La France", "Le Royaume-Uni", "L'Espagne", "L'Italie"], ["Quelle guerre a opposé le Nord et le Sud des États-Unis ?", "La guerre de Sécession", "La guerre d'Indépendance", "La guerre de Cent Ans", "La guerre froide"], ["Qui a été le premier président de la Ve République ?", "Charles de Gaulle", "Georges Pompidou", "François Mitterrand", "Vincent Auriol"], ["Quel est le symbole chimique de l'or ?", "Au", "Or", "Ag", "Fe"], ["Quelle planète est la plus proche du Soleil ?", "Mercure", "Vénus", "Mars", "La Terre"], ["Quelle est la plus grande planète du système solaire ?", "Jupiter", "Saturne", "Neptune", "Uranus"], ["Combien d'os compte le squelette d'un adulte ?", "206", "186", "226", "250"], ["Quel gaz les plantes absorbent-elles pour la photosynthèse ?", "Le dioxyde de carbone", "L'oxygène", "L'azote", "L'hélium"], ["À quelle température l'eau bout-elle au niveau de la mer ?", "100 °C", "90 °C", "120 °C", "80 °C"], ["Quelle est la formule chimique de l'eau ?", "H₂O", "CO₂", "O₂", "H₂O₂"], ["Quelle planète est surnommée la planète rouge ?", "Mars", "Jupiter", "Vénus", "Saturne"], ["Combien de cœurs a une pieuvre ?", "3", "1", "2", "4"], ["Quel est le plus grand organe du corps humain ?", "La peau", "Le foie", "Les poumons", "L'intestin"], ["Qui a formulé la théorie de la relativité ?", "Albert Einstein", "Isaac Newton", "Galilée", "Niels Bohr"], ["Quel est le symbole chimique du fer ?", "Fe", "Fr", "Ir", "F"], ["Combien de pattes a une araignée ?", "8", "6", "10", "12"], ["Quel est l'animal terrestre le plus rapide ?", "Le guépard", "Le lion", "L'antilope", "Le lévrier"], ["Quel est le plus grand animal du monde ?", "La baleine bleue", "L'éléphant d'Afrique", "Le cachalot", "La girafe"], ["Combien de chromosomes possède une cellule humaine ordinaire ?", "46", "23", "44", "48"], ["Quelle est la vitesse approximative de la lumière dans le vide ?", "300 000 km/s", "30 000 km/s", "3 000 km/s", "3 millions de km/s"], ["Qui a découvert la pénicilline ?", "Alexander Fleming", "Louis Pasteur", "Marie Curie", "Robert Koch"], ["Qui a reçu un prix Nobel de physique et un prix Nobel de chimie ?", "Marie Curie", "Albert Einstein", "Louis Pasteur", "Niels Bohr"], ["Quel métal est liquide à température ambiante ?", "Le mercure", "Le plomb", "L'aluminium", "Le zinc"], ["Combien de temps met environ la lumière du Soleil pour atteindre la Terre ?", "8 minutes", "8 secondes", "1 heure", "1 seconde"], ["Quel est le plus grand oiseau vivant ?", "L'autruche", "L'émeu", "Le condor", "L'albatros"], ["Qui a peint la Joconde ?", "Léonard de Vinci", "Michel-Ange", "Raphaël", "Botticelli"], ["Qui a écrit « Les Misérables » ?", "Victor Hugo", "Émile Zola", "Gustave Flaubert", "Alexandre Dumas"], ["Qui a écrit « Le Petit Prince » ?", "Antoine de Saint-Exupéry", "Jules Verne", "Albert Camus", "Marcel Pagnol"], ["Dans quel musée est exposée la Joconde ?", "Le Louvre", "Le musée d'Orsay", "Le Prado", "Le British Museum"], ["Qui a peint « La Nuit étoilée » ?", "Vincent van Gogh", "Claude Monet", "Paul Cézanne", "Pablo Picasso"], ["Qui a écrit « Roméo et Juliette » ?", "William Shakespeare", "Molière", "Victor Hugo", "Charles Dickens"], ["Quel écrivain a créé le détective Sherlock Holmes ?", "Arthur Conan Doyle", "Agatha Christie", "Edgar Allan Poe", "Georges Simenon"], ["Qui a écrit « Vingt mille lieues sous les mers » ?", "Jules Verne", "Alexandre Dumas", "H. G. Wells", "Victor Hugo"], ["Qui a composé « La Flûte enchantée » ?", "Mozart", "Beethoven", "Bach", "Verdi"], ["Qui a peint le plafond de la chapelle Sixtine ?", "Michel-Ange", "Léonard de Vinci", "Raphaël", "Le Caravage"], ["Qui a écrit « Les Trois Mousquetaires » ?", "Alexandre Dumas", "Victor Hugo", "Honoré de Balzac", "Stendhal"], ["Qui a écrit « L'Étranger » ?", "Albert Camus", "Jean-Paul Sartre", "André Gide", "Marcel Proust"], ["Quel peintre est célèbre pour ses « Nymphéas » ?", "Claude Monet", "Édouard Manet", "Auguste Renoir", "Edgar Degas"], ["Qui est l'autrice de la saga « Harry Potter » ?", "J. K. Rowling", "J. R. R. Tolkien", "C. S. Lewis", "Stephen King"], ["Qui a écrit « Le Seigneur des anneaux » ?", "J. R. R. Tolkien", "C. S. Lewis", "George R. R. Martin", "J. K. Rowling"], ["Qui a peint « Guernica » ?", "Pablo Picasso", "Salvador Dalí", "Joan Miró", "Francisco Goya"], ["Combien de joueurs compte une équipe de football sur le terrain ?", "11", "10", "12", "9"], ["Tous les combien d'années ont lieu les Jeux olympiques d'été ?", "4 ans", "2 ans", "3 ans", "5 ans"], ["Quel pays a remporté la Coupe du monde de football 2018 ?", "La France", "La Croatie", "L'Allemagne", "Le Brésil"], ["Quel pays a remporté le plus de Coupes du monde de football ?", "Le Brésil", "L'Allemagne", "L'Italie", "L'Argentine"], ["Dans quel sport utilise-t-on un volant ?", "Le badminton", "Le tennis", "Le squash", "Le ping-pong"], ["Quelle est la distance officielle d'un marathon ?", "42,195 km", "40 km", "21,1 km", "50 km"], ["Combien de joueurs compte une équipe de basket sur le terrain ?", "5", "6", "7", "4"], ["Quel tournoi de tennis se joue sur terre battue à Paris ?", "Roland-Garros", "Wimbledon", "L'US Open", "L'Open d'Australie"], ["Quelle ville a accueilli les Jeux olympiques d'été de 2024 ?", "Paris", "Los Angeles", "Tokyo", "Londres"], ["Combien de points vaut un essai au rugby à XV, sans la transformation ?", "5", "3", "4", "7"], ["Quel pays a accueilli la Coupe du monde de football 2022 ?", "Le Qatar", "La Russie", "Le Brésil", "L'Afrique du Sud"], ["Combien de joueurs compte une équipe de volley-ball sur le terrain ?", "6", "5", "7", "4"], ["Combien de couleurs compte traditionnellement un arc-en-ciel ?", "7", "6", "5", "8"], ["Combien de jours compte une année bissextile ?", "366", "365", "364", "367"], ["Quel instrument possède généralement 88 touches ?", "Le piano", "L'orgue", "L'accordéon", "Le synthétiseur"], ["Quelle langue compte le plus de locuteurs natifs au monde ?", "Le mandarin", "L'anglais", "L'espagnol", "L'hindi"], ["Combien de cartes compte un jeu classique, sans les jokers ?", "52", "54", "48", "32"], ["Quel animal est le symbole du WWF ?", "Le panda", "Le koala", "Le tigre", "L'ours polaire"], ["Quel est l'ingrédient principal du guacamole ?", "L'avocat", "La tomate", "Le concombre", "Le poivron"], ["De quel pays la pizza Margherita est-elle originaire ?", "L'Italie", "La Grèce", "L'Espagne", "La France"], ["Combien de côtés a un hexagone ?", "6", "5", "7", "8"], ["Combien font 7 × 8 ?", "56", "54", "64", "48"], ["Combien de minutes compte une journée ?", "1 440", "1 200", "2 400", "1 040"], ["Quel film d'animation raconte l'histoire du poisson-clown Nemo ?", "Le Monde de Nemo", "Le Roi lion", "Toy Story", "Shrek"], ["Quel groupe britannique a chanté « Hey Jude » ?", "Les Beatles", "Les Rolling Stones", "Queen", "The Who"], ["Quel chanteur est surnommé « le roi de la pop » ?", "Michael Jackson", "Elvis Presley", "Prince", "Freddie Mercury"], ["Quel chanteur est surnommé « le King » du rock'n'roll ?", "Elvis Presley", "Michael Jackson", "Chuck Berry", "Johnny Hallyday"], ["Dans quelle ville se trouve le Colisée ?", "Rome", "Athènes", "Naples", "Milan"], ["Dans quelle ville se trouve la Sagrada Família ?", "Barcelone", "Madrid", "Lisbonne", "Séville"], ["Quel monument a été construit pour l'Exposition universelle de Paris en 1889 ?", "La tour Eiffel", "L'Arc de triomphe", "Le Sacré-Cœur", "Le Grand Palais"], ["Quelle est la langue officielle du Brésil ?", "Le portugais", "L'espagnol", "Le brésilien", "Le français"], ["Combien de secondes compte une heure ?", "3 600", "360", "6 000", "1 800"], ["De quel pays les sushis sont-ils originaires ?", "Le Japon", "La Chine", "La Corée du Sud", "La Thaïlande"], ["Quelle fête célèbre-t-on le 25 décembre ?", "Noël", "Pâques", "La Toussaint", "Le Nouvel An"], ["Quel plat marocain est cuit dans un plat en terre au couvercle conique ?", "Le tajine", "Le couscous", "La pastilla", "La harira"], ["Quelle est la nourriture principale du panda géant ?", "Le bambou", "L'eucalyptus", "Le riz", "Les fruits"], ["Quel insecte fabrique le miel que l'on mange ?", "L'abeille", "La guêpe", "La fourmi", "Le papillon"], ["Aux échecs, quelle pièce ne se déplace qu'en diagonale ?", "Le fou", "La tour", "Le cavalier", "Le roi"], ["Dans quel pays le papier a-t-il été inventé ?", "La Chine", "L'Égypte", "L'Inde", "La Grèce"], ["Quelle est la capitale de la Belgique ?", "Bruxelles", "Anvers", "Liège", "Bruges"], ["Quelle est la capitale de la Suisse ?", "Berne", "Zurich", "Genève", "Lausanne"], ["Quelle est la capitale de la Turquie ?", "Ankara", "Istanbul", "Izmir", "Antalya"], ["Quelle est la capitale du Brésil ?", "Brasília", "Rio de Janeiro", "São Paulo", "Salvador"], ["Quelle est la capitale de la Russie ?", "Moscou", "Saint-Pétersbourg", "Novossibirsk", "Kazan"], ["Quel est le symbole chimique de l'oxygène ?", "O", "Ox", "Om", "Og"], ["Quel animal est célèbre pour changer de couleur ?", "Le caméléon", "Le crocodile", "L'iguane", "La tortue"], ["Combien de dents compte en général un adulte, dents de sagesse comprises ?", "32", "28", "30", "36"], ["Quel est l'os le plus long du corps humain ?", "Le fémur", "Le tibia", "L'humérus", "Le péroné"], ["Quelle ville est la capitale du Maroc ?", "Rabat", "Casablanca", "Marrakech", "Fès"], ["Quel détroit sépare le Maroc de l'Espagne ?", "Le détroit de Gibraltar", "Le Bosphore", "Le détroit de Magellan", "Le détroit d'Ormuz"]];
@@ -1285,6 +1447,550 @@ function rendreQuiz(){
   });
   $("qzMsg").textContent = J.phase==="revele" ? J.msg : "Le premier qui trouve la bonne réponse marque. Une seule réponse chacun !";
 }
+
+
+/* ================= Personnages (pour « Qui est-ce ? ») =================
+   Liste de base ci-dessous ; les images, les personnages ajoutés et les modifications
+   sont rangés en privé dans Firestore : salons/<clé>/medias/p-<id> (kind:"perso").
+   Thèmes et questions ajoutés : salons/<clé>/medias/qui-textes. */
+var CAT_PERSO = ["Célébrité","Acteur X","Série","Film","Disney","Anime","Jeu vidéo"];
+/* [nom, sexe f/m, catégorie, précision pour la recherche d'image] */
+var PERSOS_BASE = [
+  ["Cristiano Ronaldo","m","Célébrité",""],["Lionel Messi","m","Célébrité",""],["Kylian Mbappé","m","Célébrité",""],["Neymar","m","Célébrité","footballeur"],
+  ["Achraf Hakimi","m","Célébrité",""],["Beyoncé","f","Célébrité",""],["Rihanna","f","Célébrité",""],["Shakira","f","Célébrité",""],
+  ["Nicki Minaj","f","Célébrité",""],["Latto","f","Célébrité","rappeuse"],["Ice Spice","f","Célébrité",""],["Drake","m","Célébrité","rappeur"],
+  ["The Weeknd","m","Célébrité",""],["Aya Nakamura","f","Célébrité",""],["Booba","m","Célébrité","rappeur"],["Tiakola","m","Célébrité",""],
+  ["Jorja Smith","f","Célébrité",""],["Taylor Swift","f","Célébrité",""],["Brad Pitt","m","Célébrité",""],["Leonardo DiCaprio","m","Célébrité",""],
+  ["Johnny Depp","m","Célébrité",""],["Tom Felton","m","Célébrité",""],["Margot Robbie","f","Célébrité",""],["Zendaya","f","Célébrité",""],
+  ["Sydney Sweeney","f","Célébrité",""],["Omar Sy","m","Célébrité",""],["Kim Kardashian","f","Célébrité",""],["Elon Musk","m","Célébrité",""],
+  ["Lana Rhoades","f","Acteur X",""],["Mia Khalifa","f","Acteur X",""],["Sophie Rain","f","Acteur X",""],["Gattouz","m","Acteur X",""],["Johnny Sins","m","Acteur X",""],
+  ["Daenerys Targaryen","f","Série","Game of Thrones"],["Jon Snow","m","Série","Game of Thrones"],["Tyrion Lannister","m","Série","Game of Thrones"],["Cersei Lannister","f","Série","Game of Thrones"],
+  ["Le Professeur","m","Série","La Casa de Papel"],["Tommy Shelby","m","Série","Peaky Blinders"],["Walter White","m","Série","Breaking Bad"],["Homelander","m","Série","The Boys"],
+  ["Michael Scofield","m","Série","Prison Break"],["Ragnar Lothbrok","m","Série","Vikings"],
+  ["Lane","m","Série","Campus Drivers"],["Donovan","m","Série","Campus Drivers"],["Lewis","m","Série","Campus Drivers"],["Adam","m","Série","Campus Drivers"],
+  ["Jack Sparrow","m","Film",""],["James Bond","m","Film",""],["John Wick","m","Film",""],["Tony Stark","m","Film","Iron Man"],["Thor","m","Film","Marvel"],
+  ["Wonder Woman","f","Film",""],["Harley Quinn","f","Film",""],["Catwoman","f","Film",""],["Le Joker","m","Film","Joker"],["Barbie","f","Film","film"],["Shrek","m","Film",""],
+  ["Elsa","f","Disney","La Reine des neiges"],["Raiponce","f","Disney","Disney"],["Esmeralda","f","Disney","Le Bossu de Notre-Dame"],["Aladdin","m","Disney","Disney"],
+  ["Flynn Rider","m","Disney","Raiponce"],["Tarzan","m","Disney","Disney"],["Gaston","m","Disney","La Belle et la Bête"],
+  ["Judy Hopps","f","Disney","Zootopie"],["Nick Wilde","m","Disney","Zootopie"],
+  ["Nico Robin","f","Anime","One Piece"],["Boa Hancock","f","Anime","One Piece"],["Nami","f","Anime","One Piece après l'ellipse"],["Tsunade","f","Anime","Naruto"],
+  ["Erza Scarlet","f","Anime","Fairy Tail"],["Yoruichi","f","Anime","Bleach"],["Makima","f","Anime","Chainsaw Man"],["Albedo","f","Anime","Overlord"],
+  ["Satoru Gojo","m","Anime","Jujutsu Kaisen"],["Toji Fushiguro","m","Anime","Jujutsu Kaisen"],["Livaï Ackerman","m","Anime","L'Attaque des Titans"],
+  ["Lucia","f","Jeu vidéo","GTA VI"]
+];
+var THEMES_BASE = [
+  {t:"Physique", d:"cheveux, taille, corps, look", niv:"soft"},
+  {t:"Origine", d:"pays, continent, langue", niv:"soft"},
+  {t:"Âge", d:"jeune, vieux, génération", niv:"soft"},
+  {t:"Célébrité", d:"pourquoi il est connu, métier, univers", niv:"soft"},
+  {t:"Caractère", d:"gentil, méchant, drôle, arrogant…", niv:"soft"},
+  {t:"Argent", d:"riche, pauvre, dépensier", niv:"soft"},
+  {t:"Talents", d:"pouvoirs, sport, combat, chant…", niv:"soft"},
+  {t:"Style", d:"vêtements, tenue, accessoires", niv:"soft"},
+  {t:"Taille du sexe", d:"pénis ou poitrine", niv:"spicy"},
+  {t:"Fesses et corps", d:"fesses, corps nu, partie la plus sexy", niv:"spicy"},
+  {t:"Au lit", d:"dominant ou soumis, endurance, bruyant…", niv:"spicy"},
+  {t:"Partenaires", d:"nombre de partenaires, expérience", niv:"spicy"},
+  {t:"Kinks", d:"ses fantasmes et pratiques probables", niv:"spicy"},
+  {t:"Fidélité", d:"fidèle, infidèle, plan à trois", niv:"spicy"},
+  {t:"Sex-appeal", d:"est-ce qu'il est hot, tu coucherais avec ?", niv:"spicy"},
+  {t:"Attirances", d:"son genre de partenaire, ce qui l'excite", niv:"spicy"}
+];
+var QUESTIONS_QUI_BASE = {
+  soft:[
+    "Ton perso pourrait-il te mettre une raclée ?","Tu ramènerais ton perso manger chez tes parents ?","Ton perso a-t-il déjà fait pleurer quelqu'un ?",
+    "Ton perso survivrait-il une semaine seul dans la jungle ?","Ton perso est-il plus riche que tout ton entourage réuni ?","Ton perso sait-il cuisiner autre chose que des pâtes ?",
+    "Ton perso ferait-il un bon parent ?","Ton perso est-il du genre à arriver en retard ?","Ton perso tiendrait-il une soirée entière sans parler de lui ?",
+    "Ton perso a-t-il déjà tué quelqu'un, pour de vrai ou à l'écran ?","Ton perso est-il plus vieux que toi ?","Ton perso porte-t-il souvent du noir ?",
+    "Ton perso pourrait-il devenir président ?","Ton perso a-t-il les cheveux longs ?","Ton perso parle-t-il français ?",
+    "Ton perso gagnerait-il un concours de danse ?","Ton perso est-il connu dans le monde entier ?","Ton perso survivrait-il un mois sans téléphone ?"
+  ],
+  spicy:[
+    "Ton perso a-t-il de belles fesses, selon toi ?","Ton perso est-il du genre à attacher… ou à se faire attacher ?","Ton perso tiendrait-il plus de 10 minutes au lit ?",
+    "Ton perso enverrait-il des nudes dès le premier soir ?","Ton perso crie-t-il au lit ?","Ton perso accepterait-il un plan à trois ?",
+    "Ton perso a-t-il un OnlyFans… ou devrait-il en ouvrir un ?","Ton perso t'écrit à 2 h du matin : tu réponds ?","Ton perso est-il plus doué avec sa bouche qu'avec ses mains ?",
+    "Ton perso embrasse-t-il bien, selon toi ?","Ton perso a-t-il déjà trompé quelqu'un ?","Ton perso dort-il nu ?",
+    "Ton perso est-il câlin après l'amour ?","Ton perso a-t-il un corps à se balader torse nu ?","Ton perso draguerait-il ton ou ta partenaire ?",
+    "Ton perso a-t-il plus de 50 ex ?","Ton perso coucherait-il dès le premier rendez-vous ?","Ton perso porte-t-il des sous-vêtements sexy ?"
+  ],
+  hard:[
+    "Ton perso aimerait-il se faire fesser ?","Ton perso a-t-il déjà couché dans un lieu public ?","Ton perso finit-il en moins de deux minutes ?",
+    "Ton perso a-t-il des jouets dans sa table de nuit ?","Ton perso a-t-il déjà tourné une sextape ?","Ton perso aime-t-il qu'on lui tire les cheveux ?",
+    "Ton perso dirait-il oui à une partie à plusieurs ?","Tu coucherais avec ton perso ce soir ?","Ton perso est-il bien monté ou bien doté, selon toi ?",
+    "Ton perso aime-t-il être dominé au lit ?","Ton perso a-t-il déjà couché avec quelqu'un de célèbre ?","Ton perso est-il du genre à tout essayer au lit ?",
+    "Ton perso coucherait-il avec toi pour de l'argent ?","Ton perso l'a-t-il déjà fait à plus de deux ?","Ton perso aime-t-il qu'on le regarde pendant l'acte ?",
+    "Ton perso a-t-il un fétiche bizarre ?"
+  ]
+};
+var NIV_QUI = {soft:"Soft", spicy:"Spicy", hard:"Très hard"};
+function slugPerso(n){ return "p-"+String(n).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
+var PERSOS_DB = {}, TEXTES_QUI = {themes:[], questions:[]}, unsubPersos = null, unsubTextes = null, persosEtat = "chargement";
+function medias(){ return db.collection("salons").doc(CLE).collection("medias"); }
+function brancherPersos(){
+  if(!db || !CLE) return;
+  if(unsubPersos) unsubPersos(); if(unsubTextes) unsubTextes();
+  persosEtat = "chargement";
+  unsubPersos = medias().where("kind","==","perso").onSnapshot(function(snap){
+    PERSOS_DB = {}; snap.docs.forEach(function(d){ PERSOS_DB[d.id] = d.data()||{}; });
+    persosEtat = "ok"; if(S.ecran==="persos") rendrePersos();
+  }, function(){ persosEtat = "erreur"; if(S.ecran==="persos") rendrePersos(); });
+  unsubTextes = medias().doc("qui-textes").onSnapshot(function(d){
+    var x = d.exists ? d.data()||{} : {};
+    TEXTES_QUI = {themes:Array.isArray(x.themes) ? x.themes : [], questions:Array.isArray(x.questions) ? x.questions : []};
+    if(S.ecran==="persos") rendrePersos();
+  }, function(){});
+}
+/* Liste fusionnée : base + modifications + ajouts, sans les supprimés */
+function listePersos(){
+  var out = [], vus = {};
+  PERSOS_BASE.forEach(function(b){
+    var id = slugPerso(b[0]), x = PERSOS_DB[id] || {}; vus[id] = 1;
+    if(x.suppr) return;
+    out.push({id:id, nom:x.nom||b[0], sexe:x.sexe||b[1], cat:x.cat||b[2], rech:b[3], img:/^data:image\//.test(x.img||"") ? x.img : "", base:true});
+  });
+  Object.keys(PERSOS_DB).forEach(function(id){
+    var x = PERSOS_DB[id]; if(vus[id] || x.suppr || !x.nom) return;
+    out.push({id:id, nom:String(x.nom), sexe:x.sexe==="f" ? "f" : "m", cat:CAT_PERSO.indexOf(x.cat)>=0 ? x.cat : "Célébrité", rech:"", img:/^data:image\//.test(x.img||"") ? x.img : "", base:false, cree:+x.cree||0});
+  });
+  return out;
+}
+function initiales(n){ return String(n).replace(/^(le|la|les)\s+/i,"").split(/\s+/).filter(Boolean).slice(0,2).map(function(w){ return w.charAt(0).toUpperCase(); }).join(""); }
+function teinte(n){ var h = 0; for(var i=0;i<n.length;i++) h = (h*31 + n.charCodeAt(i)) % 360; return h; }
+/* Visuel d'un personnage : son image, sinon ses initiales */
+function visuelPerso(p, cls){
+  var v = el("div", "pv"+(cls ? " "+cls : ""));
+  if(p.img){ var i = document.createElement("img"); i.src = p.img; i.alt = ""; i.draggable = false; v.appendChild(i); }
+  else { v.classList.add("sans"); v.style.setProperty("--h", teinte(p.nom)); v.appendChild(el("span","ini",initiales(p.nom))); }
+  return v;
+}
+function lienRecherche(p){ return "https://www.google.com/search?tbm=isch&q="+encodeURIComponent(p.nom+(p.rech ? " "+p.rech : "")); }
+function sauverPerso(id, champs){ return medias().doc(id).set(Object.assign({kind:"perso"}, champs), {merge:true}); }
+
+/* ---------- Page Personnages ---------- */
+var PF = {filtre:"tous", cat:"", cherche:""}, peEdit = null, peSup = null, peSupT = null, peAjout = false;
+function ouvrirPersos(){ montrer("persos"); peEdit = null; peAjout = false; rendrePersos(); }
+function rendrePersos(){
+  var L = listePersos(), avec = L.filter(function(p){ return p.img; }).length;
+  $("peTotal").textContent = avec+" / "+L.length+" personnages ont une image";
+  $("peJauge").style.width = (L.length ? avec/L.length*100 : 0)+"%";
+  Array.prototype.forEach.call($("peFiltre").children, function(b){ b.classList.toggle("on", b.getAttribute("data-f")===PF.filtre); });
+  var msg = !CLE ? "Relie d'abord la banque avec votre phrase secrète (page Banque à gages)." : persosEtat==="erreur" ? "Impossible de lire les personnages. Vérifie la connexion." : persosEtat==="chargement" ? "Chargement…" : "";
+  $("peMsg").textContent = msg;
+  $("peAjoutBox").hidden = !peAjout;
+  var q = PF.cherche.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  var vis = L.filter(function(p){
+    if(PF.filtre==="sans" && p.img) return false;
+    if(PF.filtre==="avec" && !p.img) return false;
+    if(PF.cat && p.cat!==PF.cat) return false;
+    if(q && p.nom.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").indexOf(q)<0) return false;
+    return true;
+  });
+  var g = $("peGrille"); g.innerHTML = "";
+  vis.forEach(function(p){ g.appendChild(cartePerso(p)); });
+  if(!vis.length) g.appendChild(el("p","sub","Aucun personnage ici."));
+  rendreTextesQui();
+}
+function cartePerso(p){
+  var c = el("div","pe-carte "+p.sexe);
+  if(peEdit===p.id){
+    c.classList.add("edit");
+    var n = el("input"); n.value = p.nom; n.maxLength = 40;
+    var sx = el("select"); [["f","Femme"],["m","Homme"]].forEach(function(o){ var op = el("option",null,o[1]); op.value = o[0]; sx.appendChild(op); }); sx.value = p.sexe;
+    var ct = el("select"); CAT_PERSO.forEach(function(k){ var op = el("option",null,k); op.value = k; ct.appendChild(op); }); ct.value = p.cat;
+    c.appendChild(n); c.appendChild(sx); c.appendChild(ct);
+    var r = el("div","pe-act");
+    var ok = el("button","mini plein","OK"); ok.onclick = function(){ var nom = n.value.trim().slice(0,40); if(!nom) return; sauverPerso(p.id, {nom:nom, sexe:sx.value, cat:ct.value}).catch(function(){}); peEdit = null; rendrePersos(); };
+    var an = el("button","mini","Annuler"); an.onclick = function(){ peEdit = null; rendrePersos(); };
+    var sp = el("button","mini danger", peSup===p.id ? "Confirmer ?" : "Supprimer");
+    sp.onclick = function(){
+      if(peSup!==p.id){ peSup = p.id; clearTimeout(peSupT); peSupT = setTimeout(function(){ peSup = null; if(S.ecran==="persos") rendrePersos(); }, 3000); rendrePersos(); return; }
+      peSup = null; peEdit = null;
+      (p.base ? medias().doc(p.id).set({kind:"perso", suppr:true}) : medias().doc(p.id).delete()).catch(function(){});
+      rendrePersos();
+    };
+    r.appendChild(ok); r.appendChild(an); r.appendChild(sp); c.appendChild(r);
+    return c;
+  }
+  var v = visuelPerso(p); v.onclick = function(){ ouvrirEditeur(p); }; c.appendChild(v);
+  c.appendChild(el("p","pe-nom",p.nom));
+  c.appendChild(el("p","pe-cat",p.cat+" · "+(p.sexe==="f" ? "femme" : "homme")));
+  var a = el("div","pe-act");
+  var ch = el("a","mini","Chercher"); ch.href = lienRecherche(p); ch.target = "_blank"; ch.rel = "noopener";
+  ch.onclick = function(){ setTimeout(function(){ ouvrirEditeur(p); }, 300); };
+  var im = el("button","mini plein", p.img ? "Changer" : "Image"); im.onclick = function(){ ouvrirEditeur(p); };
+  var md = el("button","mini","⋯"); md.title = "Modifier"; md.onclick = function(){ peEdit = p.id; rendrePersos(); };
+  a.appendChild(ch); a.appendChild(im); a.appendChild(md); c.appendChild(a);
+  return c;
+}
+$("peFiltre").onclick = function(e){ var f = e.target.getAttribute && e.target.getAttribute("data-f"); if(f){ PF.filtre = f; rendrePersos(); } };
+(function(){ var s = $("peCat"); var o = el("option",null,"Toutes catégories"); o.value = ""; s.appendChild(o); CAT_PERSO.forEach(function(k){ var op = el("option",null,k); op.value = k; s.appendChild(op); }); s.onchange = function(){ PF.cat = s.value; rendrePersos(); };
+  var a = $("peNCat"); CAT_PERSO.forEach(function(k){ var op = el("option",null,k); op.value = k; a.appendChild(op); }); })();
+$("peCherche").oninput = function(){ PF.cherche = $("peCherche").value; rendrePersos(); };
+$("peRetour").onclick = function(){ ouvrirBanque(); };
+$("bqPersos").onclick = function(){ ouvrirPersos(); };
+$("peAjouter").onclick = function(){ peAjout = !peAjout; rendrePersos(); if(peAjout) try{ $("peNNom").focus(); }catch(e){} };
+$("peNOk").onclick = function(){
+  var nom = $("peNNom").value.trim().slice(0,40); if(!nom || !CLE) return;
+  var id = "p-x"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  sauverPerso(id, {nom:nom, sexe:$("peNSexe").value, cat:$("peNCat").value, cree:Date.now()}).catch(function(){});
+  $("peNNom").value = ""; peAjout = false; PF.filtre = "tous"; rendrePersos();
+};
+
+/* ---------- Éditeur d'image : coller (Ctrl+V) ou choisir une photo, recadrer en carré ---------- */
+var ED = null;   /* {p, img, z, x, y} : x, y = centre du cadrage dans l'image, z = zoom */
+var ED_TAILLE = 320;
+function ouvrirEditeur(p){
+  if(!CLE) return;
+  ED = {p:p, img:null, z:1, x:0, y:0};
+  $("edNom").textContent = p.nom;
+  $("edChercher").href = lienRecherche(p);
+  $("edRetirer").hidden = !p.img;
+  $("edZoom").value = "1";
+  $("edMsg").textContent = "";
+  $("editeur").hidden = false;
+  if(p.img){ var i = new Image(); i.onload = function(){ chargerDansEditeur(i, true); }; i.src = p.img; }
+  else dessinerEditeur();
+}
+function fermerEditeur(){ $("editeur").hidden = true; ED = null; }
+function chargerDansEditeur(img, existante){
+  if(!ED) return;
+  ED.img = img; ED.z = 1; $("edZoom").value = "1";
+  var w = img.naturalWidth, h = img.naturalHeight, cote = Math.min(w, h);
+  ED.x = w/2;
+  /* Portrait : on cadre plutôt le haut, là où est le visage */
+  ED.y = h>w && !existante ? Math.min(h/2, cote/2 + (h-cote)*0.12) : h/2;
+  $("edMsg").textContent = existante ? "" : "Glisse pour recadrer, puis Enregistrer.";
+  dessinerEditeur();
+}
+function cadre(){ var w = ED.img.naturalWidth, h = ED.img.naturalHeight, c = Math.min(w,h)/ED.z; ED.x = Math.max(c/2, Math.min(w-c/2, ED.x)); ED.y = Math.max(c/2, Math.min(h-c/2, ED.y)); return c; }
+function dessinerEditeur(){
+  var cv = $("edCanvas"), ctx = cv.getContext("2d");
+  ctx.fillStyle = "#0d0d1c"; ctx.fillRect(0,0,cv.width,cv.height);
+  $("edSauver").disabled = !(ED && ED.img);
+  $("edVide").hidden = !!(ED && ED.img);
+  if(!ED || !ED.img) return;
+  var c = cadre();
+  ctx.drawImage(ED.img, ED.x-c/2, ED.y-c/2, c, c, 0, 0, cv.width, cv.height);
+}
+function lireFichierImage(f){
+  if(!f || !/^image\//.test(f.type)){ $("edMsg").textContent = "Ce n'est pas une image."; return; }
+  var u = URL.createObjectURL(f), i = new Image();
+  i.onload = function(){ chargerDansEditeur(i, false); URL.revokeObjectURL(u); };
+  i.onerror = function(){ $("edMsg").textContent = "Image illisible, essaie une autre."; };
+  i.src = u;
+}
+document.addEventListener("paste", function(e){
+  if(!ED || $("editeur").hidden) return;
+  var it = (e.clipboardData && e.clipboardData.items) || [];
+  for(var k=0;k<it.length;k++){ if(it[k].type && it[k].type.indexOf("image/")===0){ e.preventDefault(); lireFichierImage(it[k].getAsFile()); return; } }
+  $("edMsg").textContent = "Pas d'image dans le presse-papiers : fais « Copier l'image » (pas le lien).";
+});
+$("edFichier").onchange = function(){ if(this.files && this.files[0]) lireFichierImage(this.files[0]); this.value = ""; };
+$("edZoom").oninput = function(){ if(!ED || !ED.img) return; ED.z = +this.value || 1; dessinerEditeur(); };
+(function(){
+  var cv = $("edCanvas"), dep = null;
+  cv.addEventListener("pointerdown", function(e){ if(!ED || !ED.img) return; dep = {x:e.clientX, y:e.clientY, ox:ED.x, oy:ED.y}; try{ cv.setPointerCapture(e.pointerId); }catch(er){} });
+  cv.addEventListener("pointermove", function(e){
+    if(!dep || !ED || !ED.img) return;
+    var c = Math.min(ED.img.naturalWidth, ED.img.naturalHeight)/ED.z, k = c/cv.getBoundingClientRect().width;
+    ED.x = dep.ox - (e.clientX-dep.x)*k; ED.y = dep.oy - (e.clientY-dep.y)*k; dessinerEditeur();
+  });
+  ["pointerup","pointercancel"].forEach(function(t){ cv.addEventListener(t, function(){ dep = null; }); });
+  cv.addEventListener("wheel", function(e){ if(!ED || !ED.img) return; e.preventDefault(); ED.z = Math.max(1, Math.min(4, ED.z*(e.deltaY<0 ? 1.1 : 0.9))); $("edZoom").value = String(ED.z); dessinerEditeur(); }, {passive:false});
+})();
+$("edSauver").onclick = function(){
+  if(!ED || !ED.img) return;
+  var out = document.createElement("canvas"); out.width = out.height = ED_TAILLE;
+  var c = cadre();
+  out.getContext("2d").drawImage(ED.img, ED.x-c/2, ED.y-c/2, c, c, 0, 0, ED_TAILLE, ED_TAILLE);
+  var url;
+  try{ url = out.toDataURL("image/jpeg", 0.82); }catch(e){ $("edMsg").textContent = "Cette image est protégée : télécharge-la puis choisis-la avec « Choisir une photo »."; return; }
+  var p = ED.p; $("edSauver").disabled = true; $("edMsg").textContent = "Enregistrement…";
+  var champs = {img:url}; if(!p.base){ champs.nom = p.nom; champs.sexe = p.sexe; champs.cat = p.cat; }
+  sauverPerso(p.id, champs).then(function(){ fermerEditeur(); }).catch(function(){ $("edMsg").textContent = "Échec de l'enregistrement, réessaie."; $("edSauver").disabled = false; });
+};
+$("edRetirer").onclick = function(){ if(!ED) return; var p = ED.p; sauverPerso(p.id, {img:null}).catch(function(){}); fermerEditeur(); };
+$("edFermer").onclick = fermerEditeur;
+$("editeur").addEventListener("click", function(e){ if(e.target===$("editeur")) fermerEditeur(); });
+
+/* ---------- Thèmes et questions ajoutés ---------- */
+function rendreTextesQui(){
+  $("peBaseThemes").textContent = THEMES_BASE.map(function(t){ return t.t+" ("+NIV_QUI[t.niv]+")"; }).join(" · ");
+  var nq = QUESTIONS_QUI_BASE.soft.length + QUESTIONS_QUI_BASE.spicy.length + QUESTIONS_QUI_BASE.hard.length;
+  $("peBaseQ").textContent = nq+" questions de base : "+QUESTIONS_QUI_BASE.soft.length+" soft, "+QUESTIONS_QUI_BASE.spicy.length+" spicy, "+QUESTIONS_QUI_BASE.hard.length+" très hard.";
+  var ul = $("peTextes"); ul.innerHTML = "";
+  [["themes","Thème"],["questions","Question"]].forEach(function(k){
+    TEXTES_QUI[k[0]].forEach(function(x, i){
+      var li = el("li"); li.appendChild(el("p",null,k[1]+" · "+(NIV_QUI[x.niv]||x.niv)+" — "+x.t));
+      var b = el("button","mini","Supprimer"); b.onclick = function(){ var a = TEXTES_QUI[k[0]].slice(); a.splice(i,1); var m = {}; m[k[0]] = a; medias().doc("qui-textes").set(m, {merge:true}).catch(function(){}); };
+      li.appendChild(b); ul.appendChild(li);
+    });
+  });
+  if(!TEXTES_QUI.themes.length && !TEXTES_QUI.questions.length) ul.appendChild(el("li","bq-rien","Aucun thème ni question ajoutés pour l'instant."));
+}
+$("peTOk").onclick = function(){
+  var t = $("peTTexte").value.trim().slice(0,200), type = $("peTType").value, niv = $("peTNiv").value;
+  if(!t || !CLE) return;
+  if(type==="themes" && niv==="hard") niv = "spicy";
+  var a = TEXTES_QUI[type].slice(); a.push({t:t, niv:niv}); var m = {}; m[type] = a;
+  medias().doc("qui-textes").set(m, {merge:true}).catch(function(){});
+  $("peTTexte").value = "";
+};
+
+/* ================= Mini-jeu 9 : Qui est-ce ? =================
+   16 personnages, chacun en a un secret. Un tour sur deux : un thème imposé (celui qui joue pose
+   sa question à voix haute, l'autre répond sur son téléphone), sinon une question imposée à laquelle
+   les deux répondent pour leur propre personnage. Accuser juste = gagné, accuser faux = éliminé. */
+var QUI_N = 16;
+var quiVus = {themes:{}, questions:{}};
+/* Dosage selon la partie : Medium (0), Hard (1), Impossible (2) */
+var DOSE_THEMES = [{soft:.75, spicy:.25}, {soft:.5, spicy:.5}, {soft:.15, spicy:.85}];
+var DOSE_QUESTIONS = [{soft:.7, spicy:.25, hard:.05}, {soft:.25, spicy:.5, hard:.25}, {soft:.05, spicy:.35, hard:.6}];
+function tirerNiveau(dose){ var r = Math.random(), acc = 0; for(var k in dose){ acc += dose[k]; if(r<acc) return k; } return Object.keys(dose)[0]; }
+function poolThemes(niv){ return THEMES_BASE.filter(function(t){ return t.niv===niv; }).concat(TEXTES_QUI.themes.filter(function(t){ return t.niv===niv; }).map(function(t){ return {t:t.t, d:"", niv:t.niv}; })); }
+function poolQuestions(niv){ return (QUESTIONS_QUI_BASE[niv]||[]).concat(TEXTES_QUI.questions.filter(function(q){ return q.niv===niv; }).map(function(q){ return q.t; })); }
+function tirerTheme(sauf){
+  var niv = tirerNiveau(DOSE_THEMES[S.partie]||DOSE_THEMES[0]), pool = poolThemes(niv);
+  if(!pool.length) pool = poolThemes("soft");
+  var dispo = pool.filter(function(t){ return t.t!==sauf && !quiVus.themes[t.t]; });
+  if(!dispo.length){ pool.forEach(function(t){ delete quiVus.themes[t.t]; }); dispo = pool.filter(function(t){ return t.t!==sauf; }); if(!dispo.length) dispo = pool; }
+  var t = dispo[rnd(dispo.length)]; quiVus.themes[t.t] = 1; return t;
+}
+function tirerQuestionQui(){
+  var niv = tirerNiveau(DOSE_QUESTIONS[S.partie]||DOSE_QUESTIONS[0]), pool = poolQuestions(niv);
+  if(!pool.length){ niv = "soft"; pool = poolQuestions("soft"); }
+  var dispo = pool.filter(function(q){ return !quiVus.questions[q]; });
+  if(!dispo.length){ pool.forEach(function(q){ delete quiVus.questions[q]; }); dispo = pool; }
+  var q = dispo[rnd(dispo.length)]; quiVus.questions[q] = 1; return {t:q, niv:niv};
+}
+function quiCartes(){
+  var L = listePersos(), avec = melange(L.filter(function(p){ return p.img; })), sans = melange(L.filter(function(p){ return !p.img; }));
+  return avec.concat(sans).slice(0, QUI_N);
+}
+function qui(){
+  var cartes = quiCartes();
+  if(cartes.length<4){ S.jeu = null; montrer("qui"); $("quiPrompt").textContent = "Il faut au moins 4 personnages (page Personnages de la banque)."; plus_tard(function(){ passerJeu(); }, 4000); return; }
+  var idx = melange(cartes.map(function(_, i){ return i; }));
+  var J = S.jeu = {id:"qui", cle:Date.now().toString(36), cartes:cartes, secret:{b:idx[0], v:idx[1]}, elim:{b:{}, v:{}},
+    joker:{b:1, v:1}, tour:Math.random()<.5 ? "b" : "v", type:Math.random()<.5 ? "theme" : "question", n:0, phase:"pose", rep:{b:null, v:null}, acc:null};
+  montrer("qui");
+  construireGrilleQui();
+  publierImagesQui();
+  quiTour(true);
+}
+/* Les images des 16 cartes sont envoyées une fois aux téléphones (salles/<id>/qui) */
+function publierImagesQui(){
+  var J = S.jeu; if(!SALLE || !window.firebase || !firebase.database) return;
+  try{ firebase.database().ref("salles/"+SALLE+"/qui").set({cle:J.cle, imgs:J.cartes.map(function(p){ return p.img||""; })}).catch(function(){}); }catch(e){}
+}
+function quiTour(premier){
+  var J = S.jeu; if(!J || J.id!=="qui") return;
+  if(!premier){ J.tour = autre(J.tour); J.type = J.type==="theme" ? "question" : "theme"; }
+  J.n++; J.phase = "pose"; J.rep = {b:null, v:null};
+  if(J.type==="theme"){ J.theme = tirerTheme(J.theme && J.theme.t); J.question = null; }
+  else { J.question = tirerQuestionQui(); J.theme = null; }
+  bip(880, 0.1, 0.05);
+  rendreQui(); diffuser();
+}
+function quiAction(d){
+  var J = S.jeu; if(!J || J.id!=="qui" || !d) return;
+  var s = d.side; if(s!=="b" && s!=="v") return;
+  if(J.phase==="accuse") return;
+  if(d.a==="elim"){
+    var i = d.i|0; if(i<0 || i>=J.cartes.length) return;
+    if(J.elim[s][i]) delete J.elim[s][i]; else J.elim[s][i] = 1;
+    rendreQui(); diffuser(); return;
+  }
+  if(d.a==="joker"){
+    if(J.type!=="theme" || J.phase!=="pose" || s!==J.tour || !J.joker[s]) return;
+    J.joker[s] = 0; J.theme = tirerTheme(J.theme && J.theme.t); bip(660, 0.12, 0.06);
+    rendreQui(); diffuser(); return;
+  }
+  if(d.a==="rep"){
+    var r = ["oui","non","nsp"].indexOf(d.r)>=0 ? d.r : null; if(!r || J.phase!=="pose") return;
+    if(J.type==="theme"){ if(s!==autre(J.tour)) return; J.rep[s] = r; J.phase = "repondu"; }
+    else { if(J.rep[s]) return; J.rep[s] = r; if(J.rep.b && J.rep.v) J.phase = "repondu"; }
+    if(J.phase==="repondu"){ bip(r==="oui" ? 1175 : 523, 0.2, 0.07); } else bip(700, 0.05, 0.04);
+    rendreQui(); diffuser(); return;
+  }
+  if(d.a==="suivant"){ if(J.phase!=="repondu" || s!==J.tour) return; quiTour(false); return; }
+  if(d.a==="accuse"){
+    var k = d.i|0; if(k<0 || k>=J.cartes.length || J.phase==="fin") return;
+    var ok = k===J.secret[autre(s)];
+    J.phase = "accuse"; J.acc = {side:s, i:k, ok:ok};
+    bip(300, 0.3, 0.06);
+    rendreQui(); diffuser();
+    plus_tard(function(){
+      J.phase = "fin"; J.acc.revele = true;
+      if(ok){ bip(1320, 0.25, 0.08); plus_tard(function(){ bip(1760, 0.35, 0.08); }, 160); } else { boum(); }
+      rendreQui(); diffuser();
+      var vrai = J.cartes[J.secret[autre(s)]].nom;
+      plus_tard(function(){
+        if(ok) finManche(autre(s), S.noms[s]+" a trouvé : c'était "+vrai+" !");
+        else finManche(s, S.noms[s]+" s'est trompé·e : c'était "+vrai+", pas "+J.cartes[k].nom+".");
+      }, 4200);
+    }, 2200);
+  }
+}
+var MOTS_REP = {oui:"OUI", non:"NON", nsp:"JE SAIS PAS"};
+function construireGrilleQui(){
+  var J = S.jeu, g = $("quiGrille"); g.innerHTML = "";
+  J.cartes.forEach(function(p, i){
+    var c = el("div","qc"); c.id = "qc"+i;
+    c.appendChild(visuelPerso(p));
+    c.appendChild(el("span","qc-nom",p.nom));
+    g.appendChild(c);
+  });
+}
+function rendreQui(){
+  var J = S.jeu; if(!J || J.id!=="qui") return;
+  var qui = S.noms[J.tour], autreNom = S.noms[autre(J.tour)];
+  $("quiNum").textContent = "Qui est-ce ? · tour "+J.n;
+  var box = $("quiBoite"); box.className = "qui-boite "+(J.type==="theme" ? J.tour : "deux")+(J.question ? " niv-"+J.question.niv : "");
+  var lab = $("quiLabel"), pr = $("quiPrompt"), hint = $("quiHint"), rep = $("quiRep");
+  rep.innerHTML = "";
+  if(J.phase==="accuse" || J.phase==="fin"){
+    var a = J.acc, cible = J.cartes[a.i];
+    box.className = "qui-boite "+a.side;
+    lab.textContent = S.noms[a.side]+" accuse !";
+    pr.textContent = "« C'est "+cible.nom+" ! »";
+    hint.textContent = J.phase==="fin" ? (a.ok ? "Bien joué, c'était bien ça !" : "Raté… c'était "+J.cartes[J.secret[autre(a.side)]].nom+".") : "Suspense…";
+    if(J.phase==="fin") rep.appendChild(el("span","qui-verdict "+(a.ok ? "ok" : "ko"), a.ok ? "TROUVÉ" : "ÉLIMINÉ·E"));
+  } else if(J.type==="theme"){
+    lab.textContent = qui+", pose une question sur le thème :";
+    pr.textContent = J.theme.t;
+    hint.textContent = J.theme.d ? "("+J.theme.d+")" : "";
+    if(J.phase==="repondu"){ var r = J.rep[autre(J.tour)]; rep.appendChild(el("span","qui-r "+r+" c"+autre(J.tour), autreNom+" : "+MOTS_REP[r])); }
+    else rep.appendChild(el("span","qui-attente", autreNom+" répond sur son téléphone…"));
+  } else {
+    lab.textContent = "Question pour vous deux, répondez pour votre perso :";
+    pr.textContent = J.question.t;
+    hint.textContent = NIV_QUI[J.question.niv];
+    if(J.phase==="repondu"){ ["b","v"].forEach(function(s){ rep.appendChild(el("span","qui-r "+J.rep[s]+" c"+s, S.noms[s]+" : "+MOTS_REP[J.rep[s]])); }); }
+    else ["b","v"].forEach(function(s){ rep.appendChild(el("span","qui-attente c"+s, S.noms[s]+(J.rep[s] ? " a répondu ✓" : " réfléchit…"))); });
+  }
+  J.cartes.forEach(function(_, i){
+    var c = $("qc"+i); if(!c) return;
+    c.classList.remove("accuse","bon","mauvais");
+    if(J.acc && J.acc.i===i) c.classList.add("accuse");
+    if(J.phase==="fin"){ var vrai = J.secret[autre(J.acc.side)]; if(i===vrai) c.classList.add("bon"); else if(i===J.acc.i) c.classList.add("mauvais"); }
+  });
+  ["b","v"].forEach(function(s){
+    var n = J.cartes.length - Object.keys(J.elim[s]).length;
+    $(s==="b" ? "quiB" : "quiV").textContent = (s==="b" ? "← " : "")+S.noms[s]+" · "+n+" restant"+(n>1 ? "s" : "")+(J.joker[s] ? " · joker ✓" : " · joker utilisé")+(s==="v" ? " →" : "");
+  });
+}
+
+/* ---------- Côté téléphone ---------- */
+var MQ = {cle:null, imgs:[], accuse:false, choix:null, elim:{}};
+var quiImgsRef = null;
+function ecouterImagesQui(){
+  if(quiImgsRef || !SALLE || !window.firebase || !firebase.database) return;
+  quiImgsRef = firebase.database().ref("salles/"+SALLE+"/qui");
+  quiImgsRef.on("value", function(s){ var v = s.val(); if(v && v.cle){ MQ.imgsCle = v.cle; MQ.imgs = Array.isArray(v.imgs) ? v.imgs : []; majImagesManette(); } });
+}
+function majImagesManette(){
+  if(MQ.imgsCle!==MQ.cle) return;
+  Array.prototype.forEach.call(document.querySelectorAll("#m-qui [data-i]"), function(c){
+    var i = +c.getAttribute("data-i"), src = MQ.imgs[i], v = c.querySelector(".pv");
+    if(src && v && !v.querySelector("img")){ v.classList.remove("sans"); v.innerHTML = ""; var im = document.createElement("img"); im.src = src; im.alt = ""; v.appendChild(im); }
+  });
+}
+function rendreQuiManette(z, noms){
+  mMontrer("m-qui"); MQ.noms = noms;
+  z.rep = z.rep || {}; z.joker = z.joker || {};
+  ecouterImagesQui();
+  var moi = COTE, lui = autre(COTE);
+  if(MQ.cle!==z.cle){
+    MQ.cle = z.cle; MQ.accuse = false; MQ.choix = null;
+    var g = $("mQuiGrille"); g.innerHTML = "";
+    z.cartes.forEach(function(p, i){
+      var c = el("button","mqc"); c.setAttribute("data-i", i);
+      c.appendChild(visuelPerso({nom:p.nom, img:""}));
+      c.appendChild(el("span","qc-nom",p.nom));
+      c.onclick = function(){
+        if(MQ.accuse){ MQ.choix = i; majGrilleManette(MQ.dernier); majActionsQui(MQ.dernier, MQ.noms||{}); return; }
+        c.classList.toggle("elim"); envoyer("qui",{a:"elim", side:COTE, i:i});
+      };
+      g.appendChild(c);
+    });
+    var sp = z.cartes[z.secret[moi]];
+    var sec = $("mQuiSecret"); sec.innerHTML = "";
+    var sv = visuelPerso({nom:sp.nom, img:""}); sv.setAttribute("data-i", z.secret[moi]); sec.appendChild(sv);
+    var t = el("div"); t.appendChild(el("small",null,"Ton personnage")); t.appendChild(el("b",null,sp.nom)); sec.appendChild(t);
+    sec.setAttribute("data-i", z.secret[moi]);
+    majImagesManette();
+  }
+  MQ.dernier = z;
+  majGrilleManette(z);
+  majActionsQui(z, noms);
+}
+function majGrilleManette(z){
+  var el2 = {}; ((z.elim && z.elim[COTE]) || []).forEach(function(i){ el2[i] = 1; });
+  Array.prototype.forEach.call($("mQuiGrille").children, function(c){
+    var i = +c.getAttribute("data-i");
+    c.classList.toggle("elim", !!el2[i]);
+    c.classList.toggle("choisi", MQ.accuse && MQ.choix===i);
+  });
+  $("m-qui").classList.toggle("mode-accuse", MQ.accuse);
+}
+function majActionsQui(z, noms){
+  var box = $("mQuiAct"), moi = COTE, lui = autre(COTE);
+  var cle = [z.n, z.phase, z.type, z.rep.b, z.rep.v, z.joker[moi], MQ.accuse, MQ.choix, z.theme && z.theme.t].join("|");
+  if(box.getAttribute("data-k")===cle) return;
+  box.setAttribute("data-k", cle); box.innerHTML = "";
+  if(z.phase==="accuse" || z.phase==="fin"){
+    box.appendChild(el("p","mq-label", (noms[z.acc.side]||"")+" accuse : "+z.cartes[z.acc.i].nom));
+    box.appendChild(el("p","mq-prompt", z.phase==="fin" ? (z.acc.ok ? "Trouvé !" : "Raté !") : "Regarde la télé…"));
+    $("mQuiAccuser").hidden = true; return;
+  }
+  $("mQuiAccuser").hidden = false;
+  $("mQuiAccuser").textContent = MQ.accuse ? "Annuler l'accusation" : "Accuser";
+  if(MQ.accuse){
+    box.appendChild(el("p","mq-label","Accusation : touche le personnage de "+(noms[lui]||"l'autre")));
+    if(MQ.choix!==null && MQ.choix!==undefined){
+      box.appendChild(el("p","mq-prompt","C'est "+z.cartes[MQ.choix].nom+" ?"));
+      var ok = el("button","plein m-gros","Oui, j'accuse !"); ok.onclick = function(){ var i = MQ.choix; MQ.accuse = false; MQ.choix = null; envoyer("qui",{a:"accuse", side:COTE, i:i}); };
+      box.appendChild(ok);
+    }
+    box.appendChild(el("p","sub","Si tu te trompes, tu es éliminé·e."));
+    return;
+  }
+  var repBtns = function(){
+    var r = el("div","mq-rep");
+    [["oui","Oui"],["non","Non"],["nsp","Je sais pas"]].forEach(function(x){ var b = el("button","m-gros "+x[0], x[1]); b.onclick = function(){ envoyer("qui",{a:"rep", side:COTE, r:x[0]}); r.querySelectorAll("button").forEach(function(o){ o.disabled = true; }); b.classList.add("choisie"); }; r.appendChild(b); });
+    return r;
+  };
+  if(z.type==="theme"){
+    box.appendChild(el("p","mq-label", z.tour===moi ? "À toi ! Pose une question sur le thème :" : (noms[z.tour]||"L'autre")+" pose une question sur le thème :"));
+    box.appendChild(el("p","mq-prompt", z.theme.t));
+    if(z.tour===moi){
+      if(z.phase==="pose"){
+        box.appendChild(el("p","sub","Pose-la à voix haute, "+(noms[lui]||"l'autre")+" répond sur son téléphone."));
+        if(z.joker[moi]){ var j = el("button","m-gros","Joker : changer de thème"); j.onclick = function(){ envoyer("qui",{a:"joker", side:COTE}); }; box.appendChild(j); }
+      } else {
+        box.appendChild(el("p","mq-r "+z.rep[lui], (noms[lui]||"")+" : "+MOTS_REP[z.rep[lui]]));
+        box.appendChild(el("p","sub","Élimine des personnages, puis passe au tour suivant."));
+        var nx = el("button","plein m-gros","Tour suivant"); nx.onclick = function(){ envoyer("qui",{a:"suivant", side:COTE}); }; box.appendChild(nx);
+      }
+    } else {
+      if(z.phase==="pose"){ box.appendChild(el("p","sub","Écoute sa question et réponds pour ton personnage :")); box.appendChild(repBtns()); }
+      else box.appendChild(el("p","mq-r "+z.rep[moi], "Tu as répondu : "+MOTS_REP[z.rep[moi]]));
+    }
+  } else {
+    box.appendChild(el("p","mq-label","Question pour vous deux · "+NIV_QUI[z.question.niv]));
+    box.appendChild(el("p","mq-prompt", z.question.t));
+    if(z.phase==="pose"){
+      if(z.rep[moi]) box.appendChild(el("p","mq-r "+z.rep[moi], "Tu as répondu : "+MOTS_REP[z.rep[moi]]+" · on attend "+(noms[lui]||"l'autre")+"…"));
+      else { box.appendChild(el("p","sub","Réponds pour TON personnage :")); box.appendChild(repBtns()); }
+    } else {
+      box.appendChild(el("p","mq-r "+z.rep[lui], (noms[lui]||"")+" : "+MOTS_REP[z.rep[lui]]));
+      if(z.tour===moi){ var nx2 = el("button","plein m-gros","Tour suivant"); nx2.onclick = function(){ envoyer("qui",{a:"suivant", side:COTE}); }; box.appendChild(nx2); }
+      else box.appendChild(el("p","sub","Élimine des personnages. "+(noms[z.tour]||"L'autre")+" lance le tour suivant."));
+    }
+  }
+}
+$("mQuiAccuser").onclick = function(){ MQ.accuse = !MQ.accuse; MQ.choix = null; if(MQ.dernier){ majGrilleManette(MQ.dernier); majActionsQui(MQ.dernier, MQ.noms||{}); } };
 
 /* Mini-jeu 6 : tir à la corde (chaque tape tire la corde de son côté) */
 var CORDE_PAS = 0.05, CORDE_DUREE = 20000;
@@ -2215,7 +2921,13 @@ function etat(){
   var gt = null;
   if(S.ecran==="gage" && S.gt){ var G = S.gt; gt = {dmin:G.dmin, dmax:G.dmax, duree:G.duree, tirage:G.tirage, pause:G.pause, fini:G.fini, reste: S.fait===true ? resteMinuteur(G) : 0}; }
   var gc = (S.ecran==="gage" && S.gc) ? {type:S.gc.type, res:S.gc.res, tourne:S.gc.tourne, vu:S.gc.vu} : null;
-  return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, gt:gt, gc:gc};
+  var qq = null;
+  if(S.ecran==="qui" && U && U.id==="qui"){
+    qq = {cle:U.cle, cartes:U.cartes.map(function(p){ return {nom:p.nom}; }), secret:U.secret,
+          elim:{b:Object.keys(U.elim.b).map(Number), v:Object.keys(U.elim.v).map(Number)}, joker:U.joker, tour:U.tour, type:U.type, n:U.n,
+          phase:U.phase, rep:{b:U.rep.b||"", v:U.rep.v||""}, theme:U.theme||null, question:U.question||null, acc:U.acc||null};
+  }
+  return {ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, qui:qq, gt:gt, gc:gc};
 }
 function diffuser(){
   if(room && !estManette){ room.emit("etat", etat()).catch(function(){}); }
@@ -2246,6 +2958,7 @@ function brancherTV(){
   room.on("quitter", function(){ if(S.ecran!=="accueil") quitter(); });
   room.on("passer", function(){ passerJeu(); });
   room.on("quiz", function(m){ if(m.data) quizRepondre(m.data.side, m.data.i); });
+  room.on("qui", function(m){ if(m.data && S.ecran==="qui") quiAction(m.data); });
   room.on("libre", function(m){ if(m.data) libreGagne(m.data.g); });
   room.on("ok", function(){ if(["accueil","joueurs","modes","intro","fin"].indexOf(S.ecran)>=0) cliquerPrincipal(); });
   room.on("nom", function(m){
@@ -2263,7 +2976,8 @@ function brancherTV(){
 /* ---------- Vue manette ---------- */
 var M = {ecran:null};
 var COTE = null;  /* "b" (Lui) ou "v" (Elle) pour ce téléphone */
-var MV = ["m-attente","m-noms","m-pads","m-course","m-duel","m-uno","m-quiz","m-libre","m-gage","m-ok"];
+var SALLE = null; /* identifiant du salon temps réel */
+var MV = ["m-attente","m-noms","m-pads","m-course","m-duel","m-uno","m-quiz","m-qui","m-libre","m-gage","m-ok"];
 function rendreUnoManette(u, noms){
   mMontrer("m-uno");
   var box = $("mUnoCorps"); box.innerHTML = "";
@@ -2348,6 +3062,8 @@ function rendreManette(e){
         bx.appendChild(b);
       });
     }
+  } else if(e.ecran==="qui" && e.qui){
+    rendreQuiManette(e.qui, noms);
   } else if(e.ecran==="libre"){
     mMontrer("m-libre");
     var lb = $("mLibreBtns");
@@ -2410,8 +3126,8 @@ function rendreManette(e){
         box.appendChild(verreBu(e.perdant));
       }
     }
-  } else if(e.ecran==="roulette" || e.ecran==="resultat" || e.ecran==="banque"){
-    mMontrer("m-ok"); $("mOkTitre").textContent = e.ecran==="roulette" ? "Tirage du mini-jeu…" : e.ecran==="banque" ? "Banque à gages ouverte sur la télé" : "Résultat à l'écran";
+  } else if(e.ecran==="roulette" || e.ecran==="resultat" || e.ecran==="banque" || e.ecran==="persos" || e.ecran==="qui"){
+    mMontrer("m-ok"); $("mOkTitre").textContent = e.ecran==="roulette" ? "Tirage du mini-jeu…" : e.ecran==="banque" ? "Banque à gages ouverte sur la télé" : e.ecran==="persos" ? "Personnages ouverts sur la télé" : e.ecran==="qui" ? "Qui est-ce ? · regarde la télé" : "Résultat à l'écran";
     $("mOk").hidden = true;
   } else {
     mMontrer("m-ok"); $("mOk").hidden = false;
@@ -2420,7 +3136,7 @@ function rendreManette(e){
     $("mOk").textContent = e.ecran==="accueil" ? "Jouer" : e.ecran==="modes" ? "Mode classique" : e.ecran==="intro" ? "Lancer la partie" : "Continuer";
   }
   $("mQuitter").hidden = e.ecran==="accueil";
-  $("mPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz"].indexOf(e.ecran)<0;
+  $("mPasser").hidden = ["roulette","reflexe","carte","chrono","course","uno","corde","duel","quiz","qui"].indexOf(e.ecran)<0;
   M.ecran = e.ecran;
 }
 function brancherManette(){
@@ -2466,7 +3182,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "23";
+var VERSION_SITE = "24";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
@@ -2554,7 +3270,7 @@ function demarrerTV(){
   if(!firebaseOK() || !firebase.database){ $("qrBoxB").hidden = true; $("qrBoxV").hidden = true; $("etatManette").textContent = "Manette indisponible : vérifie la connexion internet de la télé."; return; }
   var id = null; try{ id = localStorage.getItem("jdn-salle"); }catch(e){}
   if(!id || !/^jdn[a-z0-9]{10,}$/.test(id)){ id = idAleatoire(); try{ localStorage.setItem("jdn-salle", id); }catch(e){} }
-  room = SalonRT(id, "tv");
+  room = SalonRT(id, "tv"); SALLE = id;
   var ov = document.createElement("section");
   ov.className = "screen"; ov.hidden = true; ov.style.zIndex = "60"; ov.style.background = "var(--bg)";
   ov.appendChild(el("p","big","Le jeu est ouvert sur un autre écran"));
@@ -2595,7 +3311,7 @@ function demarrerManette(){
   $(COTE==="b"?"mNomV":"mNomB").hidden = true;
   $(COTE==="b"?"mNomB":"mNomV").placeholder = "Ton prénom";
   neon(COTE);
-  room = SalonRT(id, "tel_"+COTE);
+  room = SalonRT(id, "tel_"+COTE); SALLE = id;
   brancherManette();
   $("mAttTitre").textContent = "Recherche de la télé…";
   $("mAttSub").textContent = "Garde le jeu ouvert sur la télé.";
