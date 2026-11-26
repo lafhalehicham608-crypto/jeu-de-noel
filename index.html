@@ -513,6 +513,17 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 .ed-boite .row{justify-content:center;gap:8px;flex-wrap:wrap}
 .ed-boite a.mini{text-decoration:none;color:var(--fg)}
 #edZoom{width:100%}
+/* Gages obligatoires */
+.bq-oblig{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:#ffcc4d;cursor:pointer;flex-wrap:wrap}
+.bq-oblig input{width:20px;height:20px;accent-color:#ffcc4d}
+.bq-oblig small{font-weight:500;color:var(--mute)}
+li.oblig{border-left:4px solid #ffcc4d;padding-left:10px;background:linear-gradient(90deg,rgba(255,204,77,.08),transparent 60%)}
+.bq-badge-oblig{display:inline-block;margin-right:.5em;font-size:.72em;font-weight:800;letter-spacing:.08em;color:#1a1200;background:#ffcc4d;border-radius:6px;padding:.1em .5em;vertical-align:.15em}
+#gage.oblig #gNote{color:#ffcc4d;font-weight:700;font-size:clamp(14px,1.4vw,20px)}
+.g-oblig{margin:0 0 .3em;font-weight:900;letter-spacing:.18em;text-transform:uppercase;font-size:clamp(14px,1.8vw,26px);color:#ffcc4d;text-shadow:0 0 18px rgba(255,204,77,.6);animation:gObligP 1.6s ease-in-out infinite}
+@keyframes gObligP{50%{text-shadow:0 0 34px rgba(255,204,77,.95);transform:scale(1.04)}}
+#gage.oblig::after{content:"";position:absolute;inset:14px;border:5px double #ffcc4d;border-radius:20px;pointer-events:none;box-shadow:0 0 30px rgba(255,204,77,.35),inset 0 0 30px rgba(255,204,77,.15)}
+.m-oblig{margin:0;font-weight:900;color:#ffcc4d;text-align:center;letter-spacing:.08em;text-transform:uppercase;font-size:15px}
 /* Montre du minuteur : cadran néon, anneau qui se vide, temps au centre */
 .montre{--w:min(30vh,300px);position:relative;width:var(--w);height:calc(var(--w)*1.1);margin:1vh auto 3vh;color:var(--bleu)}
 #gage.v .montre{color:var(--violet)}
@@ -716,6 +727,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
   </section>
 
   <section class="screen" id="gage" hidden>
+    <p class="g-oblig" id="gOblig" hidden>🔒 Gage exceptionnel · obligatoire 🔒</p>
     <p class="qui" id="gQui"></p>
     <p class="texte" id="gTexte"></p>
     <p class="sub" id="gDuree"></p>
@@ -757,6 +769,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
         <textarea id="bqTexte" rows="3" maxlength="6000" placeholder="Écris un gage. Pour en ajouter plusieurs d'un coup, mets-en un par ligne."></textarea>
         <div class="bq-duree"><span class="sub">Minuteur (facultatif) : entre</span><select id="bqDmin" aria-label="Durée minimale"></select><span class="sub">et</span><select id="bqDmax" aria-label="Durée maximale"></select></div>
         <div class="bq-duree"><span class="sub">Roue du corps (facultatif) :</span><select id="bqCorps" aria-label="Roue du corps"></select></div>
+        <label class="bq-oblig"><input type="checkbox" id="bqOblig"> <span>🔒 Gage obligatoire</span> <small id="bqObligN"></small></label>
         <p class="bq-astuce">Avec un minuteur, écris X à l'endroit du temps. Avec la roue du corps, écris Z à l'endroit de la partie du corps. Exemple : « Embrasse-moi sur Z pendant X ».</p>
         <div class="row"><button class="plein" id="bqAjouter" data-primary>Ajouter</button><span class="sub" id="bqMsg"></span></div>
       </div>
@@ -922,7 +935,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=34"></script>
+<script src="config.js?v=35"></script>
 <script>
 (function(){
 "use strict";
@@ -999,7 +1012,7 @@ function tirerGage(){
   }
   if(dispo.length){
     var g = dispo[rnd(dispo.length)]; utilises[g.id] = 1;
-    return {niveau:g.niveau, texte:g.texte, dmin:g.dmin, dmax:g.dmax, corps:g.corps};
+    return {niveau:g.niveau, texte:g.texte, dmin:g.dmin, dmax:g.dmax, corps:g.corps, obligatoire:!!g.obligatoire};
   }
   var n = niv[rnd(niv.length)];
   if(!paquets[n] || !paquets[n].length) paquets[n] = melange(GAGES[n]);
@@ -1017,7 +1030,7 @@ function brancherDb(){
   if(unsubBanque) unsubBanque();
   unsubBanque = gagesCol().onSnapshot(function(snap){
     clearTimeout(t); banqueEtat = "ok";
-    BANQUE = snap.docs.map(function(d){ var x = d.data()||{}; return {id:d.id, texte:String(x.texte||""), pour:x.pour, niveau:x.niveau, cree:+x.cree||0, dmin:+x.dmin||0, dmax:+x.dmax||0, corps:CORPS[x.corps] ? x.corps : ""}; })
+    BANQUE = snap.docs.map(function(d){ var x = d.data()||{}; return {id:d.id, texte:String(x.texte||""), pour:x.pour, niveau:x.niveau, cree:+x.cree||0, dmin:+x.dmin||0, dmax:+x.dmax||0, corps:CORPS[x.corps] ? x.corps : "", obligatoire:!!x.obligatoire}; })
       .filter(function(g){ return g.texte && (g.pour==="lui"||g.pour==="elle") && NOM_NIV[g.niveau]; });
     rendreBanque();
   }, function(){ clearTimeout(t); banqueEtat = "erreur"; rendreBanque(); });
@@ -1057,6 +1070,9 @@ function rendreBanque(){
     b.setAttribute("aria-pressed", String(F.niveau===n));
   });
   $("bqAjouter").textContent = "Ajouter · "+nomPour(F.pour)+" · "+NOM_NIV[F.niveau];
+  var nob = nbObligatoires(F.pour);
+  $("bqObligN").textContent = "("+nob+" / "+MAX_OBLIG+" pour "+nomPour(F.pour)+")";
+  $("bqOblig").disabled = nob>=MAX_OBLIG; if(nob>=MAX_OBLIG) $("bqOblig").checked = false;
   $("bqAjouter").disabled = !db || !CLE;
   $("bqCle").hidden = banqueEtat!=="cle";
   var courant = F.pour+"|"+F.niveau;
@@ -1110,7 +1126,7 @@ function rendreBanque(){
   else if(banqueEtat==="erreur") vide = "Impossible de lire la banque. Recharge la page.";
   $("bqVide").textContent = vide;
 }
-var ouverts = {}, dernierFiltre = null, editDmin = 0, editDmax = 0, editCorps = "";
+var ouverts = {}, dernierFiltre = null, editDmin = 0, editDmax = 0, editCorps = "", editOblig = false;
 /* Codes de la banque : chacun ne voit que les gages dont il a le code */
 var CODES = {lui:"0000", elle:"0000"}, deverrouille = {lui:false, elle:false}, codeSaisi = {}, codeErreur = {};
 function ligneGage(g){
@@ -1123,11 +1139,14 @@ function ligneGage(g){
       ed.appendChild(el("span","sub","Minuteur : entre")); ed.appendChild(sMin); ed.appendChild(el("span","sub","et")); ed.appendChild(sMax);
       var sCo = el("select"); remplirSelectCorps(sCo, editCorps); sCo.onchange = function(){ editCorps = sCo.value; };
       ed.appendChild(el("span","sub","Roue :")); ed.appendChild(sCo);
+      var lo = el("label","bq-oblig"), co = document.createElement("input"); co.type = "checkbox"; co.checked = editOblig;
+      co.disabled = !editOblig && nbObligatoires(g.pour)>=MAX_OBLIG; co.onchange = function(){ editOblig = co.checked; };
+      lo.appendChild(co); lo.appendChild(el("span",null," 🔒 Obligatoire")); ed.appendChild(lo);
       var sv = el("button","mini ok","Enregistrer"), an = el("button","mini","Annuler");
       sv.onclick = function(){
         var t = editTexte.trim().slice(0,300); if(!t) return;
         var d = lireDurees(sMin, sMax);
-        gagesCol().doc(g.id).update({texte:t, dmin:d.dmin||null, dmax:d.dmax||null, corps:CORPS[sCo.value] ? sCo.value : null}).catch(function(){ $("bqMsg").textContent = "La modification n'a pas été enregistrée, réessaie."; });
+        gagesCol().doc(g.id).update({texte:t, dmin:d.dmin||null, dmax:d.dmax||null, corps:CORPS[sCo.value] ? sCo.value : null, obligatoire:co.checked ? true : null}).catch(function(){ $("bqMsg").textContent = "La modification n'a pas été enregistrée, réessaie."; });
         editId = null; rendreBanque();
       };
       an.onclick = function(){ editId = null; rendreBanque(); };
@@ -1136,9 +1155,10 @@ function ligneGage(g){
       var pt = el("p",null,g.texte);
       if(g.dmin) pt.appendChild(el("span","bq-chrono","⏱ "+(g.dmin===g.dmax ? fmtDuree(g.dmin) : fmtDuree(g.dmin)+" – "+fmtDuree(g.dmax))));
       if(g.corps) pt.appendChild(el("span","bq-chrono corps","◎ roue "+CORPS[g.corps].nom));
+      if(g.obligatoire){ li.classList.add("oblig"); pt.insertBefore(el("span","bq-badge-oblig","🔒 OBLIGATOIRE"), pt.firstChild); }
       li.appendChild(pt);
       var md = el("button","mini","Modifier");
-      md.onclick = function(){ editId = g.id; editTexte = g.texte; editDmin = g.dmin||0; editDmax = g.dmax||0; editCorps = g.corps||""; rendreBanque(); };
+      md.onclick = function(){ editId = g.id; editTexte = g.texte; editDmin = g.dmin||0; editDmax = g.dmax||0; editCorps = g.corps||""; editOblig = !!g.obligatoire; rendreBanque(); };
       var sp = el("button","mini danger", supId===g.id ? "Confirmer" : "Supprimer");
       sp.onclick = function(){
         if(supId===g.id){ supId = null; gagesCol().doc(g.id).delete().catch(function(){ $("bqMsg").textContent = "La suppression a échoué, réessaie."; }); return; }
@@ -1184,21 +1204,27 @@ function remplirSelectCorps(sel, val){
   sel.value = val||"";
 }
 remplirSelectCorps($("bqCorps"), "");
+/* Gages obligatoires : pas de « Je bois », 3 maximum par personne */
+var MAX_OBLIG = 3;
+function nbObligatoires(pour){ return BANQUE.filter(function(g){ return g.pour===pour && g.obligatoire; }).length; }
 function ajouterGages(){
   if(!db) return;
   var lignes = $("bqTexte").value.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
   if(!lignes.length){ $("bqMsg").textContent = "Écris d'abord un gage."; return; }
+  var oblig = $("bqOblig").checked;
+  if(oblig && nbObligatoires(F.pour)+lignes.length > MAX_OBLIG){ $("bqMsg").textContent = "Maximum "+MAX_OBLIG+" gages obligatoires pour "+nomPour(F.pour)+" : il en reste "+Math.max(0, MAX_OBLIG-nbObligatoires(F.pour))+"."; return; }
   var base = Date.now();
   Promise.all(lignes.map(function(l,i){
     var d = lireDurees($("bqDmin"), $("bqDmax")), doc = {texte:l.slice(0,300), pour:F.pour, niveau:F.niveau, cree:base+i};
     if(d.dmin){ doc.dmin = d.dmin; doc.dmax = d.dmax; }
     if(CORPS[$("bqCorps").value]) doc.corps = $("bqCorps").value;
+    if(oblig) doc.obligatoire = true;
     return gagesCol().add(doc);
   })).then(function(){
     $("bqMsg").textContent = lignes.length===1 ? "Gage ajouté." : lignes.length+" gages ajoutés.";
   }).catch(function(){ $("bqMsg").textContent = "Certains gages n'ont pas été enregistrés, vérifie la liste."; });
   $("bqTexte").value = "";
-  remplirSelectDuree($("bqDmin"), 0); remplirSelectDuree($("bqDmax"), 0); remplirSelectCorps($("bqCorps"), "");
+  remplirSelectDuree($("bqDmin"), 0); remplirSelectDuree($("bqDmax"), 0); remplirSelectCorps($("bqCorps"), ""); $("bqOblig").checked = false;
 }
 function ouvrirBanque(){ deverrouille = {lui:false, elle:false}; codeSaisi = {}; codeErreur = {}; editId = null; montrer("banque"); $("bqMsg").textContent = ""; rendreBanque(); try{ $("bqTexte").focus({preventScroll:true}); }catch(e){} }
 $("bqRetour").onclick = function(){ editId = null; deverrouille = {lui:false, elle:false}; montrer(S.noms.b && S.noms.v ? "modes" : "accueil"); };
@@ -3790,12 +3816,14 @@ function afficherGage(){
   S.gtexte = g.texte;
   S.gt = (g.dmin && g.dmax) ? {dmin:g.dmin, dmax:g.dmax, duree:0, tirage:false, fin:0, reste:0, pause:false, fini:false} : null;
   S.gc = CORPS[g.corps] ? {type:g.corps, res:"", tourne:false, vu:false} : null;
+  S.oblig = !!g.obligatoire;
   montrer("gage");
   $("gage").className = "screen "+S.perdant;
   $("gQui").textContent = S.noms[S.perdant];
   $("gMontre").hidden = true; $("gCorps").hidden = true; $("gCorps").innerHTML = "";
   afficherTexteGage();
-  $("gNote").textContent = g.exemple ? "Gage d'exemple : la banque n'a pas encore de gage "+NOM_NIV[g.niveau]+" pour "+(S.perdant==="b"?"lui":"elle")+"." : "";
+  $("gOblig").hidden = !S.oblig; $("gage").classList.toggle("oblig", S.oblig);
+  $("gNote").textContent = S.oblig ? "Ce gage est obligatoire : impossible de boire pour y échapper." : g.exemple ? "Gage d'exemple : la banque n'a pas encore de gage "+NOM_NIV[g.niveau]+" pour "+(S.perdant==="b"?"lui":"elle")+"." : "";
   neon(S.perdant);
   boutonsGage();
 }
@@ -3969,7 +3997,7 @@ function boutonsGage(){
   var gt = S.gt, gc = S.gc;
   function bouton(txt, c, plein){ var b = document.createElement("button"); if(plein!==false){ b.className = "plein"; b.setAttribute("data-primary",""); } b.textContent = txt; b.onclick = function(){ choisir(c); }; a.appendChild(b); return b; }
   if(!S.fait){
-    var f = bouton("Je le fais", "fais"); bouton("Je bois", "bois", false);
+    var f = bouton(S.oblig ? "Je le fais (obligatoire)" : "Je le fais", "fais"); if(!S.oblig) bouton("Je bois", "bois", false);
     try{ f.focus({preventScroll:true}); }catch(e){}
     return;
   }
@@ -3993,7 +4021,7 @@ function choisir(c){
     gt.lance = true; demarrerMinuteur(); bip(1320, 0.15, 0.07); boutonsGage(); diffuser(); return;
   }
   if(c==="fais" && !S.fait){ S.fait = true; boutonsGage(); diffuser(); }
-  else if(c==="bois" && !S.fait){
+  else if(c==="bois" && !S.fait && !S.oblig){
     S.st[S.perdant].bois++; S.tot[S.perdant].bois++; verreSoiree(S.perdant); majHud();
     var a = $("gActions"); a.innerHTML = ""; a.appendChild(verreBu(S.perdant));
     S.fait = "bu"; diffuser();
@@ -4003,7 +4031,7 @@ function choisir(c){
   }
 }
 function mancheSuivante(){
-  S.jeu = null; S.perdant = null; S.fait = false; S.gt = null; S.gc = null;
+  S.jeu = null; S.perdant = null; S.fait = false; S.gt = null; S.gc = null; S.oblig = false;
   if(S.manche >= nbManches()){ finPartie(); return; }
   S.manche++; roulette();
 }
@@ -4112,7 +4140,7 @@ function etat(){
   }
   var tq = null;
   if(S.ecran==="traque" && U && U.id==="traque") tq = {manche:U.manche, wins:U.wins, pret:tqEtatPouvoirs(), proche:!!U.proche, phase:U.phase};
-  return {traque:tq, mages:mg, v:VERSION_SITE, ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, qui:qq, gt:gt, gc:gc};
+  return {traque:tq, mages:mg, v:VERSION_SITE, ecran:S.ecran, phase:S.jeu?S.jeu.phase:null, perdant:S.perdant, noms:S.noms, fait:S.fait, manche:S.manche, uno:u, quiz:qz, qui:qq, gt:gt, gc:gc, oblig:S.ecran==="gage" && !!S.oblig};
 }
 function diffuser(){
   if(room && !estManette){ room.emit("etat", etat()).catch(function(){}); }
@@ -4287,7 +4315,7 @@ function rendreManette(e){
     var box = $("mGageBtns"); box.className = "m-gage "+e.perdant;
     var gt = e.gt, gc = e.gc, moi = e.perdant===COTE, qui = noms[e.perdant]||"L'autre";
     if(gt && gt.lance && !gt.fini){ mChrono.fin = Date.now() + (gt.reste||0); mChrono.pause = !!gt.pause; mChrono.reste = gt.reste||0; mChrono.total = (gt.duree||1)*1000; }
-    var cle = e.perdant+"|"+e.fait+"|"+e.manche+"|"+(gt ? [gt.duree, gt.tirage, gt.pause, gt.fini, gt.lance].join(",") : "")+"|"+(gc ? [gc.res, gc.tourne, gc.vu].join(",") : "");
+    var cle = e.perdant+"|"+e.fait+"|"+e.manche+"|"+(e.oblig?1:0)+"|"+(gt ? [gt.duree, gt.tirage, gt.pause, gt.fini, gt.lance].join(",") : "")+"|"+(gc ? [gc.res, gc.tourne, gc.vu].join(",") : "");
     if(box.getAttribute("data-k")!==cle){
       box.setAttribute("data-k",cle); box.innerHTML = "";
       var btn = function(txt, c, plein){ var b = el("button", (plein===false ? "" : "plein ")+"m-gros", txt); b.onclick = function(){ envoyer("choix", c==="pause" ? {c:"pause"} : {c:c, side:COTE}); }; box.appendChild(b); return b; };
@@ -4298,7 +4326,8 @@ function rendreManette(e){
       else if(e.fait===false){
         if(gt && !gt.duree) info(gt.dmin===gt.dmax ? "⏱ Ce gage dure "+fmtDuree(gt.dmin) : "⏱ Ce gage durera entre "+fmtDuree(gt.dmin)+" et "+fmtDuree(gt.dmax)+", tiré au hasard");
         if(gc && !gc.res) info("◎ La partie du corps sera tirée à la roue");
-        if(moi){ btn("Je le fais", "fais"); btn("Je bois", "bois", false); }
+        if(e.oblig){ var ob = el("p","m-oblig","🔒 Gage exceptionnel · obligatoire"); box.appendChild(ob); info("Impossible de boire pour y échapper."); }
+        if(moi){ btn(e.oblig ? "Je le fais (obligatoire)" : "Je le fais", "fais"); if(!e.oblig) btn("Je bois", "bois", false); }
         else info("C'est à "+qui+" de choisir : le faire ou boire.");
       }
       /* le gage est accepté : roue, durée, minuteur */
@@ -4374,7 +4403,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "34";
+var VERSION_SITE = "35";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
