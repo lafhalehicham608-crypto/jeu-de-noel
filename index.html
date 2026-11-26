@@ -847,7 +847,7 @@ a.mini,label.mini{display:inline-flex;align-items:center;justify-content:center;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=26"></script>
+<script src="config.js?v=27"></script>
 <script>
 (function(){
 "use strict";
@@ -901,6 +901,8 @@ function autre(s){return s==="b"?"v":"b"}
 function stats0(){return {perdu:0,fait:0,bois:0}}
 
 var estManette = location.hash.indexOf("#manette")===0;
+/* Mode « banque seule » (…#banque) : pour écrire les gages depuis un téléphone sans prendre la place de la télé */
+var modeBanque = !estManette && /(^#|&)banque\b/.test(location.hash);
 
 /* ---------- État du jeu ---------- */
 var S = {
@@ -3218,7 +3220,7 @@ $("btnRetourTV").onclick = function(){ location.href = location.pathname; };
 if(estManette){ $("tv").hidden = true; $("manette").hidden = false; document.body.style.overflow = "hidden"; }
 else { montrer("accueil"); }
 
-var VERSION_SITE = "26";
+var VERSION_SITE = "27";
 /* ---------- Liaison télé ↔ téléphone (Firebase Realtime Database) ----------
    La télé et la manette partagent un « salon » salles/<id> :
    - etat        : l'état du jeu publié par la télé
@@ -3392,7 +3394,7 @@ function demarrerBanque(){
   var h = lireHash();
   if(h.cle && /^[0-9a-f]{64}$/.test(h.cle)){
     try{ localStorage.setItem("jdn-cle", h.cle); }catch(e){}
-    try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){}
+    try{ history.replaceState(null, "", location.pathname + location.search + (modeBanque ? "#banque" : "")); }catch(e){}
   }
   if(!firebaseOK()){ banqueEtat = "config"; rendreBanque(); return; }
   try{ db = firebase.firestore(); }catch(e){ banqueEtat = "config"; rendreBanque(); return; }
@@ -3417,6 +3419,7 @@ $("bqChangerCle").onclick = function(){ if(!db) return; if(unsubBanque){ unsubBa
 $("bqCleTxt").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); definirCle(); } });
 
 if(estManette) demarrerManette();
+else if(modeBanque){ demarrerBanque(); $("bqRetour").hidden = true; ouvrirBanque(); }
 else { demarrerTV(); demarrerBanque(); }
 
 
