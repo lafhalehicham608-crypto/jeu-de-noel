@@ -36,7 +36,7 @@ var JEUX = [
   {id:"course",  type:"Course",  nom:"Mini circuit"},
   {id:"uno",     type:"Cartes",  nom:"Dernière carte"},
   {id:"corde",   type:"Force",   nom:"Tir à la corde"},
-  {id:"duel",    type:"Combat",  nom:"Duel de tanks"},
+  {id:"duel",    type:"Combat",  nom:"Duel de bolides"},
   {id:"quiz",    type:"Culture", nom:"Quiz culture G"},
   {id:"qui",     type:"Déduction", nom:"Qui est-ce ?"},
   {id:"mages",   type:"Combat", nom:"Duel de mages"},

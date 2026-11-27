@@ -1,9 +1,9 @@
 /* Le Jeu de Noël · Clavier de la télé, liaison téléphone ↔ télé, affichage de la manette */
 "use strict";
 /* ---------- Clavier / télécommande / clic sur la TV ---------- */
-var TOUCHES_COURSE = {q:"bg", a:"bg", d:"bd", arrowleft:"vg", arrowright:"vd"};
+var TOUCHES_COURSE = {q:"bg", a:"bg", d:"bd", arrowleft:"vg", arrowright:"vd", e:"bn", arrowdown:"vn"};
 var TOUCHES_TIR = {s:"b", z:"b", w:"b", arrowup:"v", enter:"v", " ":"v"};
-function majDirClavier(){ DIRK.b = (touches.bd?1:0)-(touches.bg?1:0); DIRK.v = (touches.vd?1:0)-(touches.vg?1:0); }
+function majDirClavier(){ DIRK.b = (touches.bd?1:0)-(touches.bg?1:0); DIRK.v = (touches.vd?1:0)-(touches.vg?1:0); NITK.b = touches.bn?1:0; NITK.v = touches.vn?1:0; }
 document.addEventListener("keyup", function(e){ var t = TOUCHES_COURSE[String(e.key).toLowerCase()]; if(t){ touches[t] = false; majDirClavier(); } });
 window.addEventListener("blur", function(){ touches = {}; majDirClavier(); });
 document.addEventListener("keydown", function(e){
@@ -154,13 +154,15 @@ function lireDirManette(peers){
   JOY = joy;
   peers.forEach(function(p){ var pr = p.presence; if(pr && pr.role==="manette" && pr.dir){ d.b += +pr.dir.b||0; d.v += +pr.dir.v||0; } });
   DIRM.b = Math.max(-1, Math.min(1, d.b)); DIRM.v = Math.max(-1, Math.min(1, d.v));
+  var n = {b:0,v:0}; peers.forEach(function(p){ var pr = p.presence; if(pr && pr.role==="manette" && pr.nit){ n.b = n.b || +pr.nit.b||0; n.v = n.v || +pr.nit.v||0; } }); NITM.b = n.b?1:0; NITM.v = n.v?1:0;
 }
 /* Manette course : l'état des boutons tenus part en continu dans la présence */
 var tenu = {b:{}, v:{}};
 function envoyerDir(){
   if(!room) return;
   var dir = {b:(tenu.b["1"]?1:0)-(tenu.b["-1"]?1:0), v:(tenu.v["1"]?1:0)-(tenu.v["-1"]?1:0)};
-  room.presence({dir:dir}).catch(function(){});
+  var nit = {b:tenu.b.n?1:0, v:tenu.v.n?1:0};
+  room.presence({dir:dir, nit:nit}).catch(function(){});
 }
 Array.prototype.forEach.call(document.querySelectorAll(".pad4"), function(p){
   var s = p.getAttribute("data-side"), d = p.getAttribute("data-d");

@@ -1,4 +1,4 @@
-/* Le Jeu de Noël · Mini-jeux : tir à la corde, dernière carte, mini circuit, duel de tanks, chrono, réflexe, carte haute + appuis */
+/* Le Jeu de Noël · Mini-jeux : tir à la corde, dernière carte, mini circuit, chrono, réflexe, carte haute + appuis */
 "use strict";
 /* Mini-jeu 6 : tir à la corde (chaque tape tire la corde de son côté) */
 var CORDE_PAS = 0.05, CORDE_DUREE = 20000;
@@ -299,146 +299,10 @@ function boum(){
     src.connect(f); f.connect(g); g.connect(audio.destination); src.start(t);
   }catch(e){}
 }
-/* Mini-jeu 7 : duel de tanks (arène vue de dessus, 3 vies chacun) */
-var DUEL_OBST = [[300,110,56,150],[644,340,56,150],[462,268,76,64],[150,440,140,36],[710,124,140,36]];
-var DUEL_VIES = 3, DUEL_DUREE = 60, DUEL_VITESSE = 115, DUEL_BALLE = 440;
-function dansObstacle(x, y, m){
-  for(var i=0;i<DUEL_OBST.length;i++){ var o = DUEL_OBST[i]; if(x>o[0]-m && x<o[0]+o[2]+m && y>o[1]-m && y<o[1]+o[3]+m) return o; }
-  return null;
-}
+/* Éclats de particules (utilisé par le Duel de mages) */
 function eclats(x, y, col, n, vit){
   for(var i=0;i<n;i++){ var an = Math.random()*Math.PI*2, sp = vit*(0.3+Math.random());
     S.jeu.parts.push({x:x, y:y, vx:Math.cos(an)*sp, vy:Math.sin(an)*sp, vie:0.4+Math.random()*0.6, max:1, t:2+Math.random()*4, col: i%3 ? col : (i%2 ? "#ffb347" : "#ffffff")}); }
-}
-function duel(){
-  touches = {}; DIRK = {b:0,v:0};
-  S.jeu = {id:"duel", phase:"decompte", msg:"3", parts:[], balles:[], fin:0,
-    t:{b:{x:90, y:300, a:0, vies:DUEL_VIES, cd:0, flash:0}, v:{x:910, y:300, a:Math.PI, vies:DUEL_VIES, cd:0, flash:0}}};
-  montrer("duel");
-  var cv = $("cvDuel"), ctx = cv.getContext("2d"), r = Math.min(window.devicePixelRatio||1, 1.5);
-  cv.width = Math.max(300, cv.clientWidth*r); cv.height = Math.max(200, cv.clientHeight*r);
-  var C = {bg:couleur("--bg"), b:couleur("--bleu"), v:couleur("--violet"), fg:couleur("--fg"), mute:couleur("--mute")};
-  var g0 = gen, last = null, debut = performance.now(), dernierMsg = null;
-  function boucle(now){
-    if(g0!==gen) return;
-    var dt = last===null ? 0 : Math.min(0.05, (now-last)/1000); last = now;
-    var e = (now-debut)/1000, J = S.jeu;
-    if(J.phase==="decompte"){
-      J.msg = e<3 ? String(3-Math.floor(e)) : "FEU !";
-      if(J.msg!==dernierMsg){ dernierMsg = J.msg; bip(J.msg==="FEU !"?1320:660, 0.18, 0.07); }
-      if(e>=3){ J.phase = "duel"; diffuser(); }
-    } else if(J.phase==="duel"){
-      if(e>4) J.msg = "";
-      physDuel(dt);
-      J.reste = Math.max(0, DUEL_DUREE-(e-3));
-      var mortB = J.t.b.vies<=0, mortV = J.t.v.vies<=0, gagnant = null, detail = "";
-      if(mortB && mortV){ J.phase = "fini"; J.msg = "Double K.O. !"; plus_tard(duel, 2600); }
-      else if(mortB || mortV){ gagnant = mortB ? "v" : "b"; detail = S.noms[gagnant]+" a fait exploser le tank de "+S.noms[autre(gagnant)]; }
-      else if(J.reste<=0){
-        if(J.t.b.vies===J.t.v.vies){ J.phase = "fini"; J.msg = "Égalité, on recommence !"; plus_tard(duel, 2600); }
-        else { gagnant = J.t.b.vies>J.t.v.vies ? "b" : "v"; detail = "Temps écoulé : "+S.noms[gagnant]+" a plus de vies"; }
-      }
-      if(gagnant){
-        J.phase = "fini"; J.msg = S.noms[gagnant]+" gagne !";
-        plus_tard(function(){ bip(880,0.15,0.07); plus_tard(function(){ bip(1320,0.3,0.07); },150); }, 400);
-        plus_tard(function(){ finManche(autre(gagnant), detail); }, 3000);
-      }
-    } else { majParticules(dt); J.balles = []; }
-    dessinerDuel(ctx, cv, C);
-    requestAnimationFrame(boucle);
-  }
-  requestAnimationFrame(boucle);
-}
-function tirer(s){
-  var J = S.jeu; if(!J || J.id!=="duel" || J.phase!=="duel") return;
-  var t = J.t[s]; if(t.vies<=0 || t.cd>0) return;
-  t.cd = 0.35;
-  J.balles.push({x:t.x+Math.cos(t.a)*24, y:t.y+Math.sin(t.a)*24, vx:Math.cos(t.a)*DUEL_BALLE, vy:Math.sin(t.a)*DUEL_BALLE, vie:1.6, s:s});
-  bip(1700, 0.05, 0.04);
-}
-function physDuel(dt){
-  var J = S.jeu;
-  majParticules(dt);
-  ["b","v"].forEach(function(s){
-    var t = J.t[s]; if(t.vies<=0) return;
-    t.cd = Math.max(0, t.cd-dt); t.flash = Math.max(0, t.flash-dt);
-    t.a += Math.max(-1, Math.min(1, DIRK[s]+DIRM[s])) * 3.2 * dt;
-    var nx = t.x + Math.cos(t.a)*DUEL_VITESSE*dt, ny = t.y + Math.sin(t.a)*DUEL_VITESSE*dt;
-    if(nx<22 || nx>978){ t.a = Math.PI - t.a; nx = t.x; }
-    if(ny<22 || ny>578){ t.a = -t.a; ny = t.y; }
-    if(dansObstacle(nx, ny, 17)){
-      if(!dansObstacle(nx, t.y, 17)) ny = t.y;
-      else if(!dansObstacle(t.x, ny, 17)) nx = t.x;
-      else { nx = t.x; ny = t.y; }
-    }
-    t.x = nx; t.y = ny;
-  });
-  var a = J.t.b, b = J.t.v, dx = b.x-a.x, dy = b.y-a.y, d = Math.hypot(dx,dy);
-  if(a.vies>0 && b.vies>0 && d<36 && d>0.01){ var o = (36-d)/2, ux = dx/d, uy = dy/d; a.x -= ux*o; a.y -= uy*o; b.x += ux*o; b.y += uy*o; }
-  for(var i=J.balles.length-1;i>=0;i--){
-    var p = J.balles[i]; p.x += p.vx*dt; p.y += p.vy*dt; p.vie -= dt;
-    var cible = J.t[autre(p.s)], fini = false;
-    if(p.vie<=0 || p.x<0 || p.x>1000 || p.y<0 || p.y>600 || dansObstacle(p.x, p.y, 0)){ fini = true; if(p.vie>0) eclats(p.x, p.y, "#ffffff", 5, 90); }
-    else if(cible.vies>0 && Math.hypot(p.x-cible.x, p.y-cible.y) < 21){ fini = true; toucher(autre(p.s)); }
-    if(fini) J.balles.splice(i,1);
-  }
-}
-function toucher(s){
-  var J = S.jeu, t = J.t[s], col = couleur(s==="b"?"--bleu":"--violet");
-  t.vies--; t.flash = 0.45;
-  if(t.vies<=0){ eclats(t.x, t.y, col, 70, 300); J.parts.push({x:t.x, y:t.y, vx:0, vy:0, vie:0.4, max:0.4, flash:true, col:"#ffffff"}); boum(); }
-  else { eclats(t.x, t.y, col, 18, 170); bip(200, 0.18, 0.09); }
-}
-function dessinerDuel(ctx, cv, C){
-  var J = S.jeu, W = cv.width, H = cv.height, sc = Math.min(W/1000, H/600), ox = (W-1000*sc)/2, oy = (H-600*sc)/2;
-  ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = C.bg; ctx.fillRect(0,0,W,H);
-  ctx.setTransform(sc,0,0,sc,ox,oy);
-  ctx.strokeStyle = "rgba(255,255,255,0.05)"; ctx.lineWidth = 1;
-  for(var gx=50;gx<1000;gx+=50){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,600); ctx.stroke(); }
-  for(var gy=50;gy<600;gy+=50){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(1000,gy); ctx.stroke(); }
-  ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 3; ctx.shadowColor = "rgba(255,255,255,0.6)"; ctx.shadowBlur = 12;
-  ctx.strokeRect(4,4,992,592); ctx.shadowBlur = 0;
-  DUEL_OBST.forEach(function(o){
-    ctx.fillStyle = "#15152e"; ctx.fillRect(o[0],o[1],o[2],o[3]);
-    ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 2; ctx.strokeRect(o[0]+1,o[1]+1,o[2]-2,o[3]-2);
-  });
-  J.balles.forEach(function(p){
-    ctx.fillStyle = C[p.s]; ctx.shadowColor = C[p.s]; ctx.shadowBlur = 14;
-    ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill();
-  });
-  ctx.shadowBlur = 0;
-  J.parts.forEach(function(p){
-    var k = Math.max(0, p.vie/p.max); ctx.globalAlpha = k; ctx.fillStyle = p.col;
-    if(p.flash){ ctx.beginPath(); ctx.arc(p.x, p.y, 90*(1-k)+12, 0, Math.PI*2); ctx.fill(); }
-    else ctx.fillRect(p.x-p.t/2, p.y-p.t/2, p.t, p.t);
-  });
-  ctx.globalAlpha = 1;
-  ["b","v"].forEach(function(s){
-    var t = J.t[s], col = C[s];
-    if(t.vies<=0) return;
-    if(t.flash>0 && Math.floor(t.flash*20)%2) return;
-    ctx.save(); ctx.translate(t.x, t.y); ctx.rotate(t.a);
-    ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(-18,-17,36,7); ctx.fillRect(-18,10,36,7);
-    ctx.shadowColor = col; ctx.shadowBlur = 18; ctx.fillStyle = col; ctx.fillRect(-16,-11,32,22);
-    ctx.shadowBlur = 0; ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillRect(4,-2.5,24,5);
-    ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.fillStyle = "#ffffff"; ctx.fill();
-    ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fillStyle = col; ctx.fill();
-    ctx.restore();
-    for(var k=0;k<DUEL_VIES;k++){ ctx.fillStyle = k<t.vies ? col : "rgba(255,255,255,0.15)"; ctx.beginPath(); ctx.arc(t.x-12+k*12, t.y-32, 4, 0, Math.PI*2); ctx.fill(); }
-  });
-  ctx.setTransform(1,0,0,1,0,0);
-  var fs = Math.max(14, Math.round(H/26));
-  ctx.font = "700 "+fs+"px Sora, system-ui, sans-serif"; ctx.textBaseline = "top";
-  ["b","v"].forEach(function(s,i){
-    var t = J.t[s], txt = S.noms[s]+"  "+"●".repeat(Math.max(0,t.vies))+"○".repeat(DUEL_VIES-Math.max(0,t.vies));
-    ctx.fillStyle = C[s]; ctx.textAlign = i ? "right" : "left"; ctx.fillText(txt, i ? W-fs : fs, fs*0.4);
-  });
-  if(J.phase==="duel" && J.reste!=null){ ctx.fillStyle = C.mute; ctx.textAlign = "center"; ctx.fillText(Math.ceil(J.reste)+" s", W/2, fs*0.4); }
-  if(J.msg){
-    var big = Math.round(H/7);
-    ctx.font = "800 "+big+"px Sora, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillStyle = C.fg; ctx.shadowColor = "rgba(0,0,0,0.85)"; ctx.shadowBlur = 20; ctx.fillText(J.msg, W/2, H/2); ctx.shadowBlur = 0;
-  }
 }
 function tracerPiste(ctx){
   var pts = piste.pts; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);

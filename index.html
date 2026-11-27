@@ -7,7 +7,7 @@
 <title>Le Jeu de Noël</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Playfair+Display:ital,wght@0,600;0,800;1,600;1,800&family=Sora:wght@300;400;600;800&display=swap">
-<link rel="stylesheet" href="style.css?v=38">
+<link rel="stylesheet" href="style.css?v=39">
 </head>
 <body>
 
@@ -359,12 +359,14 @@
   </section>
   <section id="m-duel" hidden>
     <div class="pads-duel">
-      <button class="pad pad4 b" data-side="b" data-d="-1"><small>tourner</small><span>◀</span></button>
-      <button class="pad b feu" data-side="b"><small>tirer</small><span>FEU</span></button>
-      <button class="pad pad4 b" data-side="b" data-d="1"><small>tourner</small><span>▶</span></button>
-      <button class="pad pad4 v" data-side="v" data-d="-1"><small>tourner</small><span>◀</span></button>
-      <button class="pad v feu" data-side="v"><small>tirer</small><span>FEU</span></button>
-      <button class="pad pad4 v" data-side="v" data-d="1"><small>tourner</small><span>▶</span></button>
+      <button class="pad pad4 b bl-g" data-side="b" data-d="-1"><span>◀</span></button>
+      <button class="pad pad4 b bl-d" data-side="b" data-d="1"><span>▶</span></button>
+      <button class="pad pad4 b bl-n" data-side="b" data-d="n"><small>tenir</small><span>NITRO</span></button>
+      <button class="pad b feu bl-f" data-side="b"><small>tirer</small><span>FEU</span></button>
+      <button class="pad pad4 v bl-g" data-side="v" data-d="-1"><span>◀</span></button>
+      <button class="pad pad4 v bl-d" data-side="v" data-d="1"><span>▶</span></button>
+      <button class="pad pad4 v bl-n" data-side="v" data-d="n"><small>tenir</small><span>NITRO</span></button>
+      <button class="pad v feu bl-f" data-side="v"><small>tirer</small><span>FEU</span></button>
     </div>
   </section>
   <section id="m-course" hidden>
@@ -408,18 +410,19 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="config.js?v=38"></script>
-<script src="js/base.js?v=38"></script>
-<script src="js/tv.js?v=38"></script>
-<script src="js/jeux/quiz.js?v=38"></script>
-<script src="js/personnages.js?v=38"></script>
-<script src="js/jeux/qui-est-ce.js?v=38"></script>
-<script src="js/jeux/mages.js?v=38"></script>
-<script src="js/jeux/traque.js?v=38"></script>
-<script src="js/jeux/classiques.js?v=38"></script>
-<script src="js/gage.js?v=38"></script>
-<script src="js/labo.js?v=38"></script>
-<script src="js/manette.js?v=38"></script>
-<script src="js/demarrage.js?v=38"></script>
+<script src="config.js?v=39"></script>
+<script src="js/base.js?v=39"></script>
+<script src="js/tv.js?v=39"></script>
+<script src="js/jeux/quiz.js?v=39"></script>
+<script src="js/personnages.js?v=39"></script>
+<script src="js/jeux/qui-est-ce.js?v=39"></script>
+<script src="js/jeux/mages.js?v=39"></script>
+<script src="js/jeux/traque.js?v=39"></script>
+<script src="js/jeux/classiques.js?v=39"></script>
+<script src="js/jeux/bolides.js?v=39"></script>
+<script src="js/gage.js?v=39"></script>
+<script src="js/labo.js?v=39"></script>
+<script src="js/manette.js?v=39"></script>
+<script src="js/demarrage.js?v=39"></script>
 </body>
 </html>

@@ -43,7 +43,7 @@ Code couleur partout : **bleu = Lui**, **violet = Elle**.
 | Mini circuit | Course vue de dessus, 2 tours, sortir de la piste = explosion. |
 | Dernière carte | Jeu de cartes à couleurs (main privée sur le téléphone). Design original. |
 | Tir à la corde | Taper le plus vite possible. |
-| Duel de tanks | Arène vue de dessus, 3 vies chacun. |
+| Duel de bolides | Combat de voitures vue de dessus, 100 PV chacun, 90 s. Les voitures dérivent ; nitro (tenir), missiles à tête légèrement chercheuse, chocs qui font mal à celle qui se fait percuter, barils explosifs, plaques de boost, bonus (réparation, triple tir, nitro plein). Au temps : le plus de PV gagne. |
 | Quiz culture G | 4 choix, premier à 2 bonnes réponses, jamais deux fois la même question. |
 | Qui est-ce ? | 16 personnages ; thèmes imposés ou questions à deux ; accuser faux = éliminé. Le téléphone montre la fiche de son personnage, la grille d'élimination est cachée derrière un bouton. |
 | Duel de mages | Combat de profil, 2 rounds gagnants, élément tiré au hasard (feu, glace, foudre) avec effets et ultimes. La Foudre utilise des illustrations (`sorciere-*.webp`). |
@@ -92,7 +92,8 @@ js/jeux/quiz.js       quiz culture générale
 js/jeux/qui-est-ce.js Qui est-ce ?
 js/jeux/mages.js      Duel de mages
 js/jeux/traque.js     La Traque
-js/jeux/classiques.js corde, dernière carte, circuit, tanks, chrono, réflexe, carte haute
+js/jeux/classiques.js corde, dernière carte, circuit, chrono, réflexe, carte haute
+js/jeux/bolides.js    Duel de bolides
 sorciere-*.webp       illustrations de la sorcière de la foudre
 ```
 
@@ -106,7 +107,7 @@ Les scripts sont de simples fichiers chargés dans l'ordre par `index.html` et p
 
 ## 4. Règles pour modifier le site
 
-1. **Changer la version à chaque publication**, sinon télés et téléphones gardent l'ancienne en mémoire : remplacer partout `?v=37` dans `index.html` et `VERSION_SITE` dans `js/demarrage.js` par le numéro suivant. Les téléphones se rechargent tout seuls quand la télé a une version plus récente.
+1. **Changer la version à chaque publication**, sinon télés et téléphones gardent l'ancienne en mémoire : remplacer partout `?v=39` dans `index.html` et `VERSION_SITE` dans `js/demarrage.js` par le numéro suivant. Les téléphones se rechargent tout seuls quand la télé a une version plus récente.
 2. **Ne pas changer** les chemins Firebase ni le calcul de l'empreinte, sinon les données deviennent introuvables.
 3. **Tester avant de jouer** : télé + deux téléphones (ou deux onglets avec les liens des QR codes), via le Labo : au moins le mini-jeu modifié et un gage.
 4. **Ne pas modifier en même temps** que l'autre personne.

@@ -7,7 +7,7 @@ function sauverLabo(){ try{ localStorage.setItem("jdn-labo", JSON.stringify(LABO
 var LB_JEUX_INFO = {
   reflexe:"Taper dès que l'écran s'allume", carte:"La carte la plus basse perd", chrono:"Taper au plus près de la cible",
   course:"Course vue de dessus, 2 tours", uno:"Main privée sur le téléphone", corde:"Taper le plus vite possible",
-  duel:"Arène, 3 vies chacun", quiz:"Premier à 2 bonnes réponses", qui:"16 personnages, fiches sur les téléphones",
+  duel:"Voitures, nitro et missiles", quiz:"Premier à 2 bonnes réponses", qui:"16 personnages, fiches sur les téléphones",
   mages:"Combat de profil, 2 rounds", traque:"Kendrick chasse Emilia"
 };
 /* Gages de test : textes neutres, chacun montre une option */

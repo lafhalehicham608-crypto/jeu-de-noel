@@ -235,12 +235,17 @@ thead td{font-weight:600}
 .m-qz .qz-rep:disabled{opacity:.45}
 .m-qz .qz-rep.choisie{opacity:1;box-shadow:0 0 0 3px var(--k)}
 #m-quiz{overflow-y:auto;justify-content:flex-start;padding-top:max(56px,env(safe-area-inset-top,0px))}
-/* Duel de tanks */
-#duel{padding-top:max(56px,env(safe-area-inset-top,0px))}
-#cvDuel{width:100%;flex:1 1 auto;min-height:0;max-width:100%;display:block}
-.pads-duel{position:fixed;inset:0;display:grid;grid-template-columns:1fr 1.4fr 1fr}
-.pads-duel .feu span{font-size:34px;letter-spacing:.1em}
-.pads-duel .pad4 span{font-size:44px}
+/* Duel de bolides */
+#duel{padding:0}
+#cvDuel{width:100%;height:100%;display:block}
+.pads-duel{position:fixed;inset:0;display:grid;grid-template-columns:1fr 1fr 1.25fr;grid-template-rows:1fr 1.7fr;
+  grid-template-areas:"g d n" "g d f";gap:6px;padding:max(48px,env(safe-area-inset-top,0px)) 6px max(6px,env(safe-area-inset-bottom,0px));box-sizing:border-box}
+.pads-duel .pad{border-radius:22px;touch-action:none;min-width:0}
+.pads-duel .bl-g{grid-area:g} .pads-duel .bl-d{grid-area:d} .pads-duel .bl-n{grid-area:n} .pads-duel .bl-f{grid-area:f}
+.pads-duel .pad4 span{font-size:46px}
+.pads-duel .bl-n span{font-size:22px;letter-spacing:.12em;color:#9fe9ff}
+.pads-duel .bl-n{box-shadow:inset 0 0 0 3px #5ad8ff,inset 0 0 40px rgba(90,216,255,.3)}
+.pads-duel .feu span{font-size:36px;letter-spacing:.1em}
 /* La Traque */
 #traque{padding:0}
 #cvTraque{width:100%;height:100%;display:block}
